@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import EmployeesPage from './pages/EmployeesPage'
+import { ToastProvider } from './components/Toast'
 
 function PlaceholderPage({ title }: { title: string }) {
   return (
@@ -12,21 +13,23 @@ function PlaceholderPage({ title }: { title: string }) {
 
 function App() {
   return (
-    <BrowserRouter>
-      <div className="app-layout">
-        <Sidebar />
-        <main className="app-main">
-          <Routes>
-            <Route path="/" element={<PlaceholderPage title="Dashboard" />} />
-            <Route path="/employees" element={<EmployeesPage />} />
-            <Route path="/logs" element={<PlaceholderPage title="Logs" />} />
-            <Route path="/leave-requests" element={<PlaceholderPage title="Leave Requests" />} />
-            <Route path="/reports" element={<PlaceholderPage title="Reports" />} />
-            <Route path="/settings" element={<PlaceholderPage title="Settings" />} />
-          </Routes>
-        </main>
-      </div>
-    </BrowserRouter>
+    <ToastProvider>
+      <BrowserRouter>
+        <div className="app-layout">
+          <Sidebar />
+          <main className="app-main">
+            <Routes>
+              <Route path="/" element={<PlaceholderPage title="Dashboard" />} />
+              <Route path="/employees" element={<EmployeesPage />} />
+              <Route path="/logs" element={<PlaceholderPage title="Logs" />} />
+              <Route path="/leave-requests" element={<PlaceholderPage title="Leave Requests" />} />
+              <Route path="/reports" element={<PlaceholderPage title="Reports" />} />
+              <Route path="/settings" element={<PlaceholderPage title="Settings" />} />
+            </Routes>
+          </main>
+        </div>
+      </BrowserRouter>
+    </ToastProvider>
   )
 }
 
