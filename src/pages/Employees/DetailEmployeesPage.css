@@ -1,6 +1,6 @@
 /* ===================== DETAIL EMPLOYEES PAGE ===================== */
 .detail-page {
-    padding: 32px 36px;
+    padding: 32px 12px;
     min-height: 100vh;
     font-family: 'Outfit', 'Segoe UI', system-ui, sans-serif;
     color: #1e293b;
@@ -551,4 +551,273 @@
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+/* ===================== HISTORY TAB ===================== */
+
+.history-tab-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* ---- Top Bar (Cards & Filters) ---- */
+.history-top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.history-summary-cards {
+    display: flex;
+    gap: 16px;
+    flex: 1;
+}
+
+.h-card {
+    flex: 1;
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    min-width: 140px;
+}
+
+.h-card-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.h-card-value {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 8px;
+}
+
+.h-card-desc {
+    font-size: 12px;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.text-blue {
+    color: #2563eb;
+}
+
+.text-orange {
+    color: #f59e0b;
+}
+
+.text-green {
+    color: #10b981;
+}
+
+.history-filters {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.h-select {
+    padding: 10px 36px 10px 16px;
+    font-weight: 600;
+    color: #334155;
+    background-color: #fff;
+    border-radius: 10px;
+    border-color: #e2e8f0;
+    height: 44px;
+}
+
+.h-filter-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+}
+
+/* ---- Table Section ---- */
+.history-legend {
+    display: flex;
+    gap: 16px;
+    font-size: 13px;
+    color: #475569;
+    font-weight: 500;
+}
+
+.history-legend span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.dot-green {
+    background: #10b981;
+}
+
+.dot-orange {
+    background: #f59e0b;
+}
+
+.dot-gray {
+    background: #cbd5e1;
+}
+
+.history-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    text-align: left;
+}
+
+.history-table thead tr {
+    border-bottom: 1.5px solid #f1f5f9;
+}
+
+.history-table th {
+    padding: 16px 24px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.history-table td {
+    padding: 16px 24px;
+    border-bottom: 1px solid #f8fafc;
+    vertical-align: middle;
+    color: #1e293b;
+}
+
+.history-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.history-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.fw-600 {
+    font-weight: 600;
+}
+
+.text-gray {
+    color: #64748b;
+}
+
+/* Status Badges */
+.h-badge {
+    display: inline-flex;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.badge-success {
+    background: #dcfce7;
+    color: #10b981;
+}
+
+.badge-warning {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.badge-default {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+/* Proof Images */
+.proof-images {
+    display: flex;
+    gap: 4px;
+}
+
+.proof-images img {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    object-fit: cover;
+    border: 1px solid #e2e8f0;
+}
+
+.h-note {
+    font-size: 13px;
+    color: #94a3b8;
+    font-style: italic;
+}
+
+/* Pagination Footer */
+.h-pagination-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    border-top: 1.5px solid #f1f5f9;
+}
+
+.h-pag-text {
+    font-size: 13px;
+    color: #64748b;
+}
+
+.h-pag-controls {
+    display: flex;
+    gap: 4px;
+}
+
+.h-pag-btn {
+    height: 34px;
+    min-width: 34px;
+    padding: 0 12px;
+    background: #fff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    color: #475569;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.h-pag-btn:hover:not(.disabled):not(.active) {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.h-pag-btn.active {
+    background: #2563eb;
+    color: #fff;
+    border-color: #2563eb;
+}
+
+.h-pag-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f8fafc;
 }
