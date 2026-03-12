@@ -10,5 +10,8 @@ export const employeeApi = {
     },
     delete: (id: number): Promise<{ success: boolean; message?: string }> => {
         return apiClient.delete(`/employees/delete/${id}`);
+    },
+    getByID: (id: number): Promise<{ success: boolean; data: Employee; message?: string }> => {
+        return apiClient.get(`/employees/getByID/${id}`);
     }
 };

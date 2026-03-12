@@ -821,3 +821,182 @@
     cursor: not-allowed;
     background: #f8fafc;
 }
+
+/* ===================== SETTING TAB ===================== */
+.setting-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.setting-desc {
+    font-size: 14px;
+    color: #64748b;
+    margin: -10px 0 0 0;
+}
+
+/* Ngang Navigation Tab trong phần cài đặt */
+.setting-tabs {
+    display: flex;
+    gap: 24px;
+    border-bottom: 1.5px solid #f1f5f9;
+    padding-bottom: 0;
+    margin-bottom: 8px;
+    overflow-x: auto;
+}
+
+.setting-tab {
+    background: none;
+    border: none;
+    padding: 0 0 12px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    position: relative;
+    font-family: inherit;
+    white-space: nowrap;
+}
+
+.setting-tab:hover {
+    color: #1e293b;
+}
+
+.setting-tab.active {
+    color: #2563eb;
+}
+
+.setting-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1.5px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #2563eb;
+    border-radius: 2px 2px 0 0;
+}
+
+/* Khung nội dung trắng bọc form */
+.setting-section {
+    background: #fff;
+    border: 1px solid #f1f5f9;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.setting-section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 24px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.setting-section-title .anticon {
+    color: #2563eb;
+}
+
+/* Form Groups */
+.setting-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.setting-form-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.setting-input {
+    padding: 10px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #1e293b;
+    background: #fff;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.setting-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.setting-input.readonly {
+    background: #f8fafc;
+    color: #94a3b8;
+    cursor: not-allowed;
+}
+
+.setting-hint {
+    font-size: 12px;
+    color: #94a3b8;
+    font-style: italic;
+}
+
+.setting-actions {
+    margin-top: 24px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.setting-divider {
+    border: none;
+    border-top: 1.5px solid #f1f5f9;
+    margin: 8px 0;
+}
+
+/* Khu vực nguy hiểm (Vô hiệu hoá tài khoản) */
+.setting-danger-zone {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    background: #fef2f2;
+    border: 1px solid #fee2e2;
+    padding: 20px 24px;
+    border-radius: 12px;
+}
+
+.danger-text h4 {
+    margin: 0 0 6px 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: #b91c1c;
+}
+
+.danger-text p {
+    margin: 0;
+    font-size: 13px;
+    color: #ef4444;
+    line-height: 1.4;
+}
+
+.btn-danger-outline {
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 8px;
+    transition: all 0.2s;
+    background: #fff;
+    color: #dc2626;
+    border: 1.5px solid #fecaca;
+}
+
+.btn-danger-outline:hover {
+    background: #fee2e2;
+    border-color: #f87171;
+}

@@ -314,7 +314,7 @@ export default function EmployeesPage() {
                     <td className="col-action">
                       <div className="row-actions">
                         <button className="row-btn" title="Xem" onClick={() => handleDetailEmployee(emp.id)}><EyeOutlined /></button>
-                        <button className="row-btn" title="Sửa"><EditOutlined /></button>
+                        <button className="row-btn" title="Sửa" onClick={() => handleDetailEmployee(emp.id)}><EditOutlined /></button>
                         <button className="row-btn row-btn-danger" title="Xóa" onClick={() => setConfirmDelete(emp)}><DeleteOutlined /></button>
                       </div>
                     </td>

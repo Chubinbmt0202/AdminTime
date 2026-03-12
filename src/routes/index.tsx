@@ -1,7 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import EmployeesPage from '../pages/Employees/EmployeesPage';
-import DetailEmployeesPage from '../pages/Employees/DetailEmployeesPage';
+import DetailEmployeesPage from '../features/employees/components/DetailEmployee/DetailEmployeesPage';
 
 function PlaceholderPage({ title }: { title: string }) {
     return (

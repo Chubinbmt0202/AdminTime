@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import {
     EditOutlined,
     DownloadOutlined,
@@ -7,31 +8,36 @@ import {
     UserOutlined,
     CalendarOutlined,
     SmileOutlined,
-    WalletOutlined,
     FileTextOutlined,
-    RiseOutlined,
     CheckCircleFilled,
     InfoCircleOutlined,
     LoadingOutlined,
-    ArrowRightOutlined,
-    FilterOutlined
+    SettingOutlined,
+    FilterOutlined,
+    SendOutlined,
+    LoginOutlined,
+    StopOutlined
 } from '@ant-design/icons';
 import './DetailEmployeesPage.css';
-import { useToast } from '../../components/common/Toast/Toast';
+import { useToast } from '../../../../components/common/Toast/Toast';
 
+// Khởi tạo form trống ban đầu (để không bị flash dữ liệu giả trước khi API load xong)
 const initialFormData = {
-    email: 'jordan.smith@company.com',
-    phone: '+84 901 234 567',
-    dob: '15/05/1990',
-    gender: 'Nam',
-    address: '123 Đường Láng, Phường Láng Thượng, Quận Đống Đa, Hà Nội',
-    department: 'Engineering (Kỹ thuật)',
-    title: 'Senior Software Architect',
-    joinDate: '12/01/2020',
-    manager: 'Elena Rodriguez'
+    full_name: 'Đang tải...',
+    id: '',
+    username: '',
+    email: '',
+    phone: '',
+    dob: '',
+    gender: '',
+    address: '',
+    department: '',
+    title: '',
+    joinDate: '',
+    manager: ''
 };
 
-// Dữ liệu mẫu cho Lịch sử chấm công
+// Dữ liệu mẫu cho Lịch sử chấm công (Có thể thay bằng API sau)
 const historyRecords = [
     { id: 1, date: '20/10/2023', day: 'Thứ Sáu', timeIn: '08:05', timeOut: '17:30', total: '8.5h', status: 'Đúng giờ', statusType: 'success', proofs: ['https://i.pravatar.cc/150?u=p1', 'https://i.pravatar.cc/150?u=p2'] },
     { id: 2, date: '19/10/2023', day: 'Thứ Năm', timeIn: '08:45', timeOut: '17:35', total: '7.8h', status: 'Đi muộn (45p)', statusType: 'warning', isLateIn: true, proofs: ['https://i.pravatar.cc/150?u=p3'] },
@@ -43,9 +49,11 @@ const historyRecords = [
 type FieldKey = keyof typeof initialFormData;
 
 export default function DetailEmployeesPage() {
-    const [activeTab, setActiveTab] = useState('info');
+    const { id } = useParams(); // Lấy ID từ URL (VD: http://localhost:5173/employees/10 -> id = 10)
+    const toast = useToast();
 
-    const toast = useToast()
+    const [activeTab, setActiveTab] = useState('info');
+    const [loading, setLoading] = useState(true); // Trạng thái tải dữ liệu API
 
     // Trạng thái bật/tắt toàn bộ chế độ edit
     const [isEditing, setIsEditing] = useState(false);
@@ -57,24 +65,83 @@ export default function DetailEmployeesPage() {
     // Lưu trữ field nào đang được click để biến thành Input
     const [activeEditField, setActiveEditField] = useState<FieldKey | null>(null);
 
+    const [isRequestingInfoUpdate, setIsRequestingInfoUpdate] = useState(false);
+
+    const handleRequestInfoUpdate = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        if (isRequestingInfoUpdate) return;
+
+        setIsRequestingInfoUpdate(true);
+        try {
+            // Giả lập API mất 1 giây
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            toast.success(
+                'Đã gửi yêu cầu',
+                `Nhân viên ${formData.full_name} sẽ nhận được thông báo yêu cầu cập nhật thông tin cá nhân.`
+            );
+        } catch (error) {
+            toast.error('Lỗi', 'Không thể gửi yêu cầu, vui lòng thử lại sau.');
+        } finally {
+            setIsRequestingInfoUpdate(false);
+        }
+    };
+
+    // ================== FETCH API ==================
+    useEffect(() => {
+        const fetchEmployeeDetail = async () => {
+            if (!id) return;
+            setLoading(true);
+            try {
+                const res = await fetch(`http://localhost:3001/api/employees/getByID/${id}`);
+                const json = await res.json();
+
+                if (json.success) {
+                    // Cập nhật dữ liệu từ API vào state
+                    // (Lưu ý: Bạn hãy map đúng các trường (fields) từ DB của bạn trả về vào đây)
+                    setFormData({
+                        ...initialFormData,
+                        id: json.data.id || 'Chưa cập nhật',
+                        username: json.data.username || 'Chưa cập nhật',
+                        full_name: json.data.full_name || 'Chưa cập nhật',
+                        email: json.data.email || 'Chưa cập nhật',
+                        phone: json.data.phone || 'Chưa cập nhật',
+                        dob: json.data.dob || 'Chưa cập nhật',
+                        gender: json.data.gender || 'Chưa cập nhật',
+                        address: json.data.address || 'Chưa cập nhật',
+                        department: json.data.department || 'Chưa cập nhật',
+                        title: json.data.role || 'Chưa cập nhật', // Gán role làm chức vụ
+                        joinDate: json.data.created_at ? new Date(json.data.created_at).toLocaleDateString('vi-VN') : 'Chưa cập nhật',
+                        manager: json.data.manager || 'Chưa cập nhật'
+                    });
+                } else {
+                    toast.error('Lỗi', json.message || 'Không tìm thấy thông tin nhân viên');
+                }
+            } catch (error) {
+                toast.error('Lỗi', 'Không thể kết nối đến server để lấy dữ liệu');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchEmployeeDetail();
+    }, [id]); // Chạy lại nếu id trên URL thay đổi
+
+    // ================== HANDLERS ==================
     const handleToggleEdit = () => {
         setIsEditing(!isEditing);
-        setActiveEditField(null); // Tắt input nếu đang mở dở
+        setActiveEditField(null);
     };
 
     const handleRequestFaceUpdate = async (e: React.MouseEvent) => {
-        e.preventDefault(); // Ngăn chặn hành vi mặc định của thẻ <a>
+        e.preventDefault();
         if (isRequestingFaceUpdate) return;
 
         setIsRequestingFaceUpdate(true);
         try {
-            // Giả lập gọi API mất 1 giây (Sau này bạn thay bằng hàm fetch API thật)
             await new Promise(resolve => setTimeout(resolve, 1000));
-
-            // Thông báo thành công
             toast.success(
                 'Đã gửi yêu cầu',
-                `Nhân viên ${formData.email} sẽ nhận được thông báo cập nhật khuôn mặt trên ứng dụng.`
+                `Nhân viên ${formData.full_name} sẽ nhận được thông báo cập nhật khuôn mặt trên ứng dụng.`
             );
         } catch (error) {
             toast.error('Lỗi', 'Không thể gửi yêu cầu, vui lòng thử lại sau.');
@@ -83,7 +150,6 @@ export default function DetailEmployeesPage() {
         }
     };
 
-    // Hàm Helper để render linh hoạt giữa Text và Input
     const renderEditableValue = (key: FieldKey, customDisplay?: React.ReactNode) => {
         if (activeEditField === key) {
             return (
@@ -91,8 +157,8 @@ export default function DetailEmployeesPage() {
                     className="inline-input"
                     value={formData[key]}
                     onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
-                    onBlur={() => setActiveEditField(null)} // Click ra ngoài thì tắt input
-                    onKeyDown={(e) => e.key === 'Enter' && setActiveEditField(null)} // Nhấn Enter thì tắt input
+                    onBlur={() => setActiveEditField(null)}
+                    onKeyDown={(e) => e.key === 'Enter' && setActiveEditField(null)}
                     autoFocus
                 />
             );
@@ -112,17 +178,29 @@ export default function DetailEmployeesPage() {
         );
     };
 
-    // Hàm quản lý nội dung hiển thị dựa trên Tab đang active
     const renderTabContent = () => {
         switch (activeTab) {
             case 'info':
                 return (
                     <>
-                        {/* Card: Thông tin cá nhân */}
                         <div className="info-card">
-                            <div className="card-header">
-                                <FileTextOutlined className="card-icon" />
-                                <h2>Thông tin cá nhân</h2>
+                            <div className="card-header flex-between">
+                                <div className="card-title-wrap">
+                                    <FileTextOutlined className="card-icon" />
+                                    <h2>Thông tin cá nhân</h2>
+                                </div>
+                                <button
+                                    className="btn-secondary"
+                                    onClick={handleRequestInfoUpdate}
+                                    disabled={isRequestingInfoUpdate}
+                                    style={{ fontSize: '13px', padding: '6px 12px', height: 'auto', opacity: isRequestingInfoUpdate ? 0.6 : 1 }}
+                                >
+                                    {isRequestingInfoUpdate ? (
+                                        <><LoadingOutlined spin /> Đang gửi...</>
+                                    ) : (
+                                        <><SendOutlined /> Yêu cầu cập nhật</>
+                                    )}
+                                </button>
                             </div>
                             <div className="card-content grid-2-cols">
                                 <div className="info-item">
@@ -144,41 +222,6 @@ export default function DetailEmployeesPage() {
                                 <div className="info-item full-width">
                                     <span className="info-label">ĐỊA CHỈ</span>
                                     <span className="info-value">{renderEditableValue('address')}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Card: Thông tin công việc */}
-                        <div className="info-card">
-                            <div className="card-header">
-                                <RiseOutlined className="card-icon" />
-                                <h2>Thông tin công việc</h2>
-                            </div>
-                            <div className="card-content grid-2-cols">
-                                <div className="info-item">
-                                    <span className="info-label">PHÒNG BAN</span>
-                                    <span className="info-value">
-                                        {renderEditableValue('department', <span><span className="dot-blue"></span> {formData.department}</span>)}
-                                    </span>
-                                </div>
-                                <div className="info-item">
-                                    <span className="info-label">CHỨC VỤ</span>
-                                    <span className="info-value">{renderEditableValue('title')}</span>
-                                </div>
-                                <div className="info-item">
-                                    <span className="info-label">NGÀY THAM GIA</span>
-                                    <span className="info-value">{renderEditableValue('joinDate')}</span>
-                                </div>
-                                <div className="info-item">
-                                    <span className="info-label">NGƯỜI QUẢN LÝ</span>
-                                    <span className="info-value manager-wrap">
-                                        {renderEditableValue('manager', (
-                                            <div className="manager-info">
-                                                <img src="https://i.pravatar.cc/150?u=elena" alt="Manager" className="manager-avatar" />
-                                                {formData.manager}
-                                            </div>
-                                        ))}
-                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -309,13 +352,27 @@ export default function DetailEmployeesPage() {
                                 <SmileOutlined className="card-icon" />
                                 <h2>Dữ liệu khuôn mặt</h2>
                             </div>
-                            <span className="status-tag success">
-                                <CheckCircleFilled /> Đã đăng ký
-                            </span>
+                            <div className='flex'>
+                                <span className="status-tag success mr-2">
+                                    <CheckCircleFilled /> Đã đăng ký
+                                </span>
+                                <button
+                                    className="btn-secondary"
+                                    onClick={handleRequestFaceUpdate}
+                                    disabled={isRequestingFaceUpdate}
+                                    style={{ fontSize: '13px', padding: '6px 12px', height: 'auto', opacity: isRequestingFaceUpdate ? 0.6 : 1 }}
+                                >
+                                    {isRequestingFaceUpdate ? (
+                                        <><LoadingOutlined spin /> Đang gửi...</>
+                                    ) : (
+                                        <><SendOutlined /> Yêu cầu cập nhật lại khuôn mặt</>
+                                    )}
+                                </button>
+                            </div>
                         </div>
                         <div className="card-content face-data-wrap">
                             <div className="face-image-box">
-                                <img src="https://i.pravatar.cc/300?u=jordan" alt="Face Data" />
+                                <img src={`https://ui-avatars.com/api/?name=${formData.full_name}&background=random&size=300`} alt="Face Data" />
                                 <span className="preview-label">Preview Mode</span>
                             </div>
 
@@ -325,52 +382,79 @@ export default function DetailEmployeesPage() {
                                         <span className="info-label">NGÀY ĐĂNG KÝ</span>
                                         <span className="info-value large">15/01/2020 09:30</span>
                                     </div>
-                                    <div className="stat-box">
-                                        <span className="info-label">ĐỘ TIN CẬY</span>
-                                        <span className="info-value large text-success">98.4%</span>
-                                    </div>
                                 </div>
 
                                 <p className="face-note">
                                     <InfoCircleOutlined /> Dữ liệu khuôn mặt được sử dụng cho mục đích chấm công và bảo mật truy cập tại văn phòng. Toàn bộ dữ liệu được mã hóa và bảo mật theo tiêu chuẩn công ty.
                                 </p>
-
-                                <a
-                                    href="#"
-                                    className={`update-link ${isRequestingFaceUpdate ? 'disabled' : ''}`}
-                                    onClick={handleRequestFaceUpdate}
-                                >
-                                    {isRequestingFaceUpdate ? (
-                                        <><LoadingOutlined spin /> Đang gửi yêu cầu...</>
-                                    ) : (
-                                        <>Yêu cầu cập nhật lại dữ liệu <ArrowRightOutlined /></>
-                                    )}
-                                </a>
                             </div>
                         </div>
                     </div>
                 );
-
-            case 'salary':
+            case 'setting':
                 return (
                     <div className="info-card">
                         <div className="card-header">
-                            <WalletOutlined className="card-icon" />
-                            <h2>Lương & Phúc lợi</h2>
-                        </div>
-                        <div className="card-content">
-                            <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
-                                <WalletOutlined style={{ fontSize: '48px', marginBottom: '16px', opacity: 0.5 }} />
-                                <p>Thông tin về lương, thưởng và phúc lợi của nhân viên sẽ hiển thị tại đây.</p>
+                            <div className="card-title-wrap ">
+                                <div className="card-title-wrap">
+                                    <SettingOutlined className="card-icon" />
+                                    <h2>Cài đặt tài khoản</h2>
+                                </div>
+                                <button className="btn-danger-outline">
+                                    <StopOutlined /> Vô hiệu hoá
+                                </button>
                             </div>
+                        </div>
+                        <div className="card-content setting-content">
+                            <p className="setting-desc">Quản lý thông tin đăng nhập, bảo mật và tùy chỉnh trải nghiệm của bạn.</p>
+
+                            {/* Section: Thông tin đăng nhập */}
+                            <div className="setting-section">
+                                <h3 className="setting-section-title">
+                                    <LoginOutlined /> Thông tin đăng nhập
+                                </h3>
+
+                                <div className="grid-2-cols">
+                                    <div className="setting-form-group">
+                                        <label>UserName</label>
+                                        <input type="text" className="setting-input" defaultValue={formData.username} />
+                                        <span className="setting-hint">Dùng để đăng nhập và nhận thông báo hệ thống.</span>
+                                    </div>
+                                    <div className="setting-form-group">
+                                        <label>Tên người dùng (ID)</label>
+                                        <input type="text" className="setting-input readonly" defaultValue={`${formData.id}`} readOnly />
+                                    </div>
+                                    <div className="setting-form-group">
+                                        <label>Cập nhật lại mật khẩu</label>
+                                        <input type="password" className="setting-input" placeholder="Tối thiểu 8 ký tự" />
+                                    </div>
+                                </div>
+
+                                <div className="setting-actions">
+                                    <button className="btn-primary">Lưu thay đổi</button>
+                                </div>
+                            </div>
+
+                            <hr className="setting-divider" />
                         </div>
                     </div>
                 );
-
             default:
                 return null;
         }
     };
+
+    // Màn hình loading khi gọi API
+    if (loading) {
+        return (
+            <div className="detail-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+                <div style={{ textAlign: 'center', color: '#2563eb' }}>
+                    <LoadingOutlined style={{ fontSize: '48px', marginBottom: '16px' }} spin />
+                    <h3>Đang tải dữ liệu nhân viên...</h3>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="detail-page">
@@ -378,18 +462,19 @@ export default function DetailEmployeesPage() {
             <div className="detail-header-card">
                 <div className="header-info-wrap">
                     <div className="header-avatar">
-                        <img src="https://i.pravatar.cc/150?u=jordan" alt="Jordan Smith" />
+                        <img src={`https://ui-avatars.com/api/?name=${formData.full_name}&background=random`} alt={formData.full_name} />
                         <div className="status-badge-icon"><CheckCircleFilled /></div>
                     </div>
                     <div className="header-text">
-                        <h1 className="employee-name">Jordan Smith</h1>
+                        {/* Đã cập nhật lấy tên thực tế từ API */}
+                        <h1 className="employee-name">{renderEditableValue('full_name')}</h1>
                         <div className="employee-tags">
-                            <span className="tag-id">#ENG-9042</span>
+                            <span className="tag-id">#{id}</span>
                             <span className="tag-status"><span className="status-dot"></span> Đang hoạt động</span>
                         </div>
                         <div className="employee-meta">
                             <span><ToolOutlined /> {formData.department}</span>
-                            <span><EnvironmentOutlined /> Hà Nội, VN</span>
+                            <span><EnvironmentOutlined /> {formData.address.split(',').pop()?.trim()}</span>
                         </div>
                     </div>
                 </div>
@@ -426,8 +511,8 @@ export default function DetailEmployeesPage() {
                         <button className={`nav-item ${activeTab === 'face' ? 'active' : ''}`} onClick={() => setActiveTab('face')}>
                             <SmileOutlined /> Dữ liệu khuôn mặt
                         </button>
-                        <button className={`nav-item ${activeTab === 'salary' ? 'active' : ''}`} onClick={() => setActiveTab('salary')}>
-                            <WalletOutlined /> Lương & Phúc lợi
+                        <button className={`nav-item ${activeTab === 'setting' ? 'active' : ''}`} onClick={() => setActiveTab('setting')}>
+                            <SettingOutlined /> Cài đặt tài khoản
                         </button>
                     </nav>
 
