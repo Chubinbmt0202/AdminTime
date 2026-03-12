@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect } from 'react';
 import {
   SearchOutlined,
   DownloadOutlined,
@@ -15,182 +15,149 @@ import {
   RightOutlined,
   LoadingOutlined,
   ExclamationCircleOutlined,
-} from '@ant-design/icons'
-import { useToast } from '../components/Toast'
-import './EmployeesPage.css'
-import AddEmployeeDrawer from './AddEmployeeDrawer'
+} from '@ant-design/icons';
 
-// Khớp với response từ API backend
-interface Employee {
-  id: number
-  username: string
-  full_name: string
-  role: string
-  is_face_updated: boolean
-  created_at: string
-}
-
-const STATUSES = ['Tất cả trạng thái', 'Đã đăng ký', 'Chưa đăng ký']
-
-const AVATAR_COLORS = [
-  '#4f46e5', '#0891b2', '#059669', '#d97706', '#dc2626',
-  '#7c3aed', '#db2777', '#2563eb', '#65a30d', '#ea580c',
-]
-
-const PAGE_SIZE_OPTIONS = [10, 20, 50]
-
-// Lấy 2 chữ đầu tên để làm avatar
-function getInitials(fullName: string) {
-  const parts = fullName.trim().split(/\s+/)
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-}
-
-// Format ngày từ ISO string
-function formatDate(iso: string) {
-  try {
-    return new Date(iso).toLocaleDateString('vi-VN', {
-      day: '2-digit', month: '2-digit', year: 'numeric',
-    })
-  } catch {
-    return iso
-  }
-}
+// Import từ cấu trúc mới
+import { useToast } from '../../components/common/Toast/Toast';
+import AddEmployeeDrawer from '../../features/employees/components/AddEmployeeDrawer';
+import { employeeApi } from '../../features/employees/api/employee.api';
+import type { Employee } from '../../features/employees/types';
+import { STATUSES, AVATAR_COLORS, PAGE_SIZE_OPTIONS } from '../../constants';
+import { formatDate } from '../../utils/date';
+import { getInitials } from '../../utils/string';
+import './EmployeesPage.css';
 
 export default function EmployeesPage() {
-  const toast = useToast()
-  const [employees, setEmployees] = useState<Employee[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const toast = useToast();
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [search, setSearch] = useState('')
-  const [status, setStatus] = useState('Tất cả trạng thái')
-  const [selected, setSelected] = useState<Set<number>>(new Set())
-  const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
-  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [search, setSearch] = useState('');
+  const [status, setStatus] = useState('Tất cả trạng thái');
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   // State xác nhận xoá
-  const [confirmDelete, setConfirmDelete] = useState<Employee | null>(null)
-  const [deleting, setDeleting] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState<Employee | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Lấy danh sách vai trò động từ dữ liệu API
   const roleOptions = useMemo(() => {
-    const roles = [...new Set(employees.map(e => e.role).filter(Boolean))]
-    return ['Tất cả vai trò', ...roles.sort()]
-  }, [employees])
+    const roles = [...new Set(employees.map(e => e.role).filter(Boolean))];
+    return ['Tất cả vai trò', ...roles.sort()];
+  }, [employees]);
 
-  const [role, setRole] = useState('Tất cả vai trò')
+  const [role, setRole] = useState('Tất cả vai trò');
 
+  // Lấy dữ liệu thông qua API Service
   const fetchEmployees = async () => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     try {
-      const res = await fetch('http://localhost:3001/api/employees/getAll')
-      if (!res.ok) throw new Error(`Lỗi ${res.status}: ${res.statusText}`)
-      const json = await res.json()
-      if (!json.success) throw new Error(json.message || 'Lỗi không xác định')
-      setEmployees(json.data)
+      const json = await employeeApi.getAll();
+      if (!json.success) throw new Error(json.message || 'Lỗi không xác định');
+      setEmployees(json.data);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Không thể kết nối tới server'
-      setError(msg)
+      const msg = err instanceof Error ? err.message : 'Không thể kết nối tới server';
+      setError(msg);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchEmployees()
-  }, [])
+    fetchEmployees();
+  }, []);
 
   const filtered = useMemo(() => {
     return employees.filter(emp => {
-      const q = search.toLowerCase()
+      const q = search.toLowerCase();
       const matchSearch =
         !q ||
         emp.full_name.toLowerCase().includes(q) ||
         emp.username.toLowerCase().includes(q) ||
         String(emp.id).includes(q) ||
-        emp.role.toLowerCase().includes(q)
-      const matchRole = role === 'Tất cả vai trò' || emp.role === role
+        emp.role.toLowerCase().includes(q);
+      const matchRole = role === 'Tất cả vai trò' || emp.role === role;
       const matchStatus =
         status === 'Tất cả trạng thái' ||
         (status === 'Đã đăng ký' && emp.is_face_updated) ||
-        (status === 'Chưa đăng ký' && !emp.is_face_updated)
-      return matchSearch && matchRole && matchStatus
-    })
-  }, [employees, search, role, status])
+        (status === 'Chưa đăng ký' && !emp.is_face_updated);
+      return matchSearch && matchRole && matchStatus;
+    });
+  }, [employees, search, role, status]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
-  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize)
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
 
-  const handleSearch = (v: string) => { setSearch(v); setPage(1) }
-  const handleRole = (v: string) => { setRole(v); setPage(1) }
-  const handleStatus = (v: string) => { setStatus(v); setPage(1) }
+  const handleSearch = (v: string) => { setSearch(v); setPage(1); };
+  const handleRole = (v: string) => { setRole(v); setPage(1); };
+  const handleStatus = (v: string) => { setStatus(v); setPage(1); };
 
-  const allChecked = paginated.length > 0 && paginated.every(e => selected.has(e.id))
-  const someChecked = paginated.some(e => selected.has(e.id))
+  const allChecked = paginated.length > 0 && paginated.every(e => selected.has(e.id));
+  const someChecked = paginated.some(e => selected.has(e.id));
 
   const toggleAll = () => {
     if (allChecked) {
-      const next = new Set(selected)
-      paginated.forEach(e => next.delete(e.id))
-      setSelected(next)
+      const next = new Set(selected);
+      paginated.forEach(e => next.delete(e.id));
+      setSelected(next);
     } else {
-      const next = new Set(selected)
-      paginated.forEach(e => next.add(e.id))
-      setSelected(next)
+      const next = new Set(selected);
+      paginated.forEach(e => next.add(e.id));
+      setSelected(next);
     }
-  }
+  };
 
   const toggleOne = (id: number) => {
-    const next = new Set(selected)
-    next.has(id) ? next.delete(id) : next.add(id)
-    setSelected(next)
-  }
+    const next = new Set(selected);
+    next.has(id) ? next.delete(id) : next.add(id);
+    setSelected(next);
+  };
 
-  const clearSelection = () => setSelected(new Set())
+  const clearSelection = () => setSelected(new Set());
 
-  // Xóa nhân viên
+  // Xóa nhân viên thông qua API Service
   const handleDelete = async () => {
-    if (!confirmDelete) return
-    setDeleting(true)
+    if (!confirmDelete) return;
+    setDeleting(true);
     try {
-      const res = await fetch(`http://localhost:3001/api/employees/delete/${confirmDelete.id}`, {
-        method: 'DELETE',
-      })
-      const json = await res.json()
-      if (!res.ok || !json.success) throw new Error(json.message || 'Xóa thất bại')
-      toast.success('Xóa nhân viên thành công', `Đã xóa ${confirmDelete.full_name}`)
+      const json = await employeeApi.delete(confirmDelete.id);
+      if (!json.success) throw new Error(json.message || 'Xóa thất bại');
+      toast.success('Xóa nhân viên thành công', `Đã xóa ${confirmDelete.full_name}`);
+
       // Xóa khỏi selected nếu có
       setSelected(prev => {
-        const next = new Set(prev)
-        next.delete(confirmDelete.id)
-        return next
-      })
-      fetchEmployees()
+        const next = new Set(prev);
+        next.delete(confirmDelete.id);
+        return next;
+      });
+      fetchEmployees();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Lỗi không xác định'
-      toast.error('Không thể xóa nhân viên', msg)
+      const msg = err instanceof Error ? err.message : 'Lỗi không xác định';
+      toast.error('Không thể xóa nhân viên', msg);
     } finally {
-      setDeleting(false)
-      setConfirmDelete(null)
+      setDeleting(false);
+      setConfirmDelete(null);
     }
-  }
+  };
 
   const getPageNumbers = () => {
-    const pages: (number | '...')[] = []
+    const pages: (number | '...')[] = [];
     if (totalPages <= 7) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i)
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
     } else {
-      pages.push(1, 2, 3)
-      if (page > 4) pages.push('...')
-      if (page > 3 && page < totalPages - 2) pages.push(page)
-      if (page < totalPages - 3) pages.push('...')
-      pages.push(totalPages - 1, totalPages)
+      pages.push(1, 2, 3);
+      if (page > 4) pages.push('...');
+      if (page > 3 && page < totalPages - 2) pages.push(page);
+      if (page < totalPages - 3) pages.push('...');
+      pages.push(totalPages - 1, totalPages);
     }
-    return [...new Set(pages)]
-  }
+    return [...new Set(pages)];
+  };
 
   return (
     <>
@@ -283,7 +250,7 @@ export default function EmployeesPage() {
                       type="checkbox"
                       className="emp-checkbox"
                       checked={allChecked}
-                      ref={el => { if (el) el.indeterminate = someChecked && !allChecked }}
+                      ref={el => { if (el) el.indeterminate = someChecked && !allChecked; }}
                       onChange={toggleAll}
                     />
                   </th>
@@ -361,7 +328,7 @@ export default function EmployeesPage() {
                 <select
                   className="pag-size-select"
                   value={pageSize}
-                  onChange={e => { setPageSize(Number(e.target.value)); setPage(1) }}
+                  onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}
                 >
                   {PAGE_SIZE_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
@@ -390,8 +357,8 @@ export default function EmployeesPage() {
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         onSuccess={() => {
-          fetchEmployees()
-          setDrawerOpen(false)
+          fetchEmployees();
+          setDrawerOpen(false);
         }}
       />
 
@@ -431,5 +398,5 @@ export default function EmployeesPage() {
         </>
       )}
     </>
-  )
+  );
 }

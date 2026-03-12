@@ -9,7 +9,7 @@ import {
   EyeInvisibleOutlined,
   LoadingOutlined,
 } from '@ant-design/icons'
-import { useToast } from '../components/Toast'
+import { useToast } from '../../../components/common/Toast/Toast'
 import './AddEmployeeDrawer.css'
 
 interface FormData {
