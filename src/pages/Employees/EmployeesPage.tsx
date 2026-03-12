@@ -26,12 +26,14 @@ import { STATUSES, AVATAR_COLORS, PAGE_SIZE_OPTIONS } from '../../constants';
 import { formatDate } from '../../utils/date';
 import { getInitials } from '../../utils/string';
 import './EmployeesPage.css';
+import { useNavigate } from 'react-router-dom';
 
 export default function EmployeesPage() {
   const toast = useToast();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const navigator = useNavigate();
 
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('Tất cả trạng thái');
@@ -158,6 +160,11 @@ export default function EmployeesPage() {
     }
     return [...new Set(pages)];
   };
+
+  function handleDetailEmployee(id: number): void {
+    // chuyển sang trang chi tiết nhân viên
+    navigator(`/employees/${id}`);
+  }
 
   return (
     <>
@@ -306,7 +313,7 @@ export default function EmployeesPage() {
                     <td className="col-date">{formatDate(emp.created_at)}</td>
                     <td className="col-action">
                       <div className="row-actions">
-                        <button className="row-btn" title="Xem"><EyeOutlined /></button>
+                        <button className="row-btn" title="Xem" onClick={() => handleDetailEmployee(emp.id)}><EyeOutlined /></button>
                         <button className="row-btn" title="Sửa"><EditOutlined /></button>
                         <button className="row-btn row-btn-danger" title="Xóa" onClick={() => setConfirmDelete(emp)}><DeleteOutlined /></button>
                       </div>

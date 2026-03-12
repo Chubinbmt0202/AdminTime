@@ -21,7 +21,17 @@ export default function Sidebar() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const activeKey = navItems.find(item => item.path === location.pathname)?.key ?? 'dashboard'
+  // Logic mới: Hỗ trợ nhận diện các trang con (như /employees/detail, /employees/123)
+  const activeKey = location.pathname.startsWith('/settings')
+    ? 'settings'
+    : navItems.find(item => {
+      // Nếu là trang chủ ('/'), URL phải khớp hoàn toàn
+      if (item.path === '/') {
+        return location.pathname === '/'
+      }
+      // Nếu là các trang khác, chỉ cần URL hiện tại bắt đầu bằng path đó
+      return location.pathname.startsWith(item.path)
+    })?.key ?? 'dashboard'
 
   return (
     <aside className="sidebar">
@@ -61,7 +71,7 @@ export default function Sidebar() {
           onClick={() => navigate('/settings')}
         >
           <span className="sidebar-nav-icon"><SettingOutlined /></span>
-          <span className="sidebar-nav-label">Settings</span>
+          <span className="sidebar-nav-label">Cài đặt</span>
         </button>
 
         <div className="sidebar-user">
