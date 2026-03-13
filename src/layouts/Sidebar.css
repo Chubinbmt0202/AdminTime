@@ -162,3 +162,174 @@
   color: #94a3b8;
   font-weight: 500;
 }
+
+
+/* ===================== SIDEBAR NOTIFICATIONS ===================== */
+
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* Để đẩy icon chuông sang phải */
+  position: relative;
+  /* Quan trọng để định vị popup */
+  padding: 12px;
+  /* ... Giữ nguyên các thuộc tính background/border cũ nếu có */
+}
+
+.sidebar-user-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Nút chuông thông báo */
+.sidebar-notif-wrapper {
+  position: relative;
+}
+
+.sidebar-notif-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  /* Màu xám dịu */
+  font-size: 18px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.notif-badge {
+  position: absolute;
+  top: 0px;
+  right: -2px;
+  min-width: 16px;
+  height: 16px;
+  background-color: #ef4444;
+  border-radius: 10px;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+/* Popup thông báo */
+.notif-popup {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  /* Hiển thị phía trên nút chuông */
+  left: 0;
+
+  width: 320px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  z-index: 1000;
+  overflow: hidden;
+  animation: slideUp 0.2s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.notif-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.notif-header h4 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.mark-read-btn {
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mark-read-btn:hover {
+  text-decoration: underline;
+}
+
+.notif-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.notif-item {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f8fafc;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.notif-item:hover {
+  background-color: #f8fafc;
+}
+
+.notif-item.unread {
+  background-color: #eff6ff;
+}
+
+.notif-text {
+  margin: 0 0 6px 0;
+  font-size: 13px;
+  color: #334155;
+  line-height: 1.5;
+}
+
+.notif-item.unread .notif-text {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.notif-time {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.notif-footer {
+  padding: 12px;
+  text-align: center;
+  border-top: 1px solid #f1f5f9;
+  background: #f8fafc;
+}
+
+.notif-footer button {
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.notif-footer button:hover {
+  color: #2563eb;
+}
