@@ -51,7 +51,7 @@ export default function LogsPage() {
             const response = await attendanceService.getDailyAttendance(selectedDate);
             if (response.success) {
                 setLogs(response.data);
-                console.log('API Original Data:', response.data);
+                // console.log('API Original Data:', response.data);
             }
         } catch (error) {
             console.error('Failed to fetch attendance:', error);
@@ -75,11 +75,14 @@ export default function LogsPage() {
     const dailyLogs = useMemo(() => {
         const empMap = new Map<number, AttendanceRecord>();
 
-        // 1. First Pass: Collect all unique employees (default to absent)
+        // 1. First Pass: Build a list of all unique employees seen in the API response.
+        // We initialize them all as "Chưa chấm công" (absent) for the current selected context.
         logs.forEach(log => {
             if (!empMap.has(log.employee_id)) {
                 empMap.set(log.employee_id, {
-                    ...log,
+                    employee_id: log.employee_id,
+                    full_name: log.full_name,
+                    username: log.username,
                     log_date: null,
                     check_in_time: null,
                     check_out_time: null,
@@ -88,7 +91,8 @@ export default function LogsPage() {
             }
         });
 
-        // 2. Second Pass: Override with actual log for the selectedDate if it exists
+        // 2. Second Pass: If an employee has a log entry that matches the selected date,
+        // we use that full record (showing their check-in/out times and status).
         logs.forEach(log => {
             if (isSameDay(log.log_date, selectedDate)) {
                 empMap.set(log.employee_id, log);
@@ -110,7 +114,7 @@ export default function LogsPage() {
         return matchesSearch && matchesStatus;
     });
 
-    console.log('Filtered attendance data (for selectedDate):', filteredLogs);
+    // console.log(`Displayed logs for ${selectedDate}:`, filteredLogs);
 
     // Calculate dynamic stats based on the normalized daily data
     const stats = {
@@ -166,10 +170,10 @@ export default function LogsPage() {
             <div className="logs-filters">
                 <div className="filter-group">
                     <div className="date-picker-wrap">
-                        <CalendarOutlined className="input-icon" />
                         <input
                             type="date"
                             className="log-input date-input"
+                            style={{ width: "170px" }}
                             value={selectedDate}
                             onChange={(e) => setSelectedDate(e.target.value)}
                         />
@@ -179,6 +183,7 @@ export default function LogsPage() {
                         <SearchOutlined className="input-icon" />
                         <input
                             type="text"
+                            style={{ padding: "0 16px 0 38px" }}
                             className="log-input search-input"
                             placeholder="Tìm theo tên, username..."
                             value={search}

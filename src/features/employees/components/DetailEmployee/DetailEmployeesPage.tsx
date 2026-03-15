@@ -20,6 +20,8 @@ import {
 } from '@ant-design/icons';
 import './DetailEmployeesPage.css';
 import { useToast } from '../../../../components/common/Toast/Toast';
+import { attendanceService, type AttendanceRecord } from '../../../../services/attendance.service';
+import { employeeApi } from '../../api/employee.api';
 
 // Khởi tạo form trống ban đầu (để không bị flash dữ liệu giả trước khi API load xong)
 const initialFormData = {
@@ -37,16 +39,58 @@ const initialFormData = {
     manager: ''
 };
 
-// Dữ liệu mẫu cho Lịch sử chấm công (Có thể thay bằng API sau)
-const historyRecords = [
-    { id: 1, date: '20/10/2023', day: 'Thứ Sáu', timeIn: '08:05', timeOut: '17:30', total: '8.5h', status: 'Đúng giờ', statusType: 'success', proofs: ['https://i.pravatar.cc/150?u=p1', 'https://i.pravatar.cc/150?u=p2'] },
-    { id: 2, date: '19/10/2023', day: 'Thứ Năm', timeIn: '08:45', timeOut: '17:35', total: '7.8h', status: 'Đi muộn (45p)', statusType: 'warning', isLateIn: true, proofs: ['https://i.pravatar.cc/150?u=p3'] },
-    { id: 3, date: '18/10/2023', day: 'Thứ Tư', timeIn: '07:55', timeOut: '17:30', total: '8.5h', status: 'Đúng giờ', statusType: 'success', proofs: ['https://i.pravatar.cc/150?u=p4'] },
-    { id: 4, date: '17/10/2023', day: 'Thứ Ba', timeIn: '--:--', timeOut: '--:--', total: '0h', status: 'Nghỉ phép (P)', statusType: 'default', note: 'Đã duyệt (ID: #AL-102)' },
-    { id: 5, date: '16/10/2023', day: 'Thứ Hai', timeIn: '08:00', timeOut: '16:30', total: '7.5h', status: 'Về sớm (30p)', statusType: 'warning', isEarlyOut: true, proofs: ['https://i.pravatar.cc/150?u=p5'] },
-];
-
 type FieldKey = keyof typeof initialFormData;
+
+// Helpers for history tab
+const formatHistoryDate = (dateString: string | null) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('vi-VN');
+};
+
+const getVietnameseDay = (dateString: string | null) => {
+    if (!dateString) return '---';
+    const days = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+    const date = new Date(dateString);
+    return days[date.getDay()];
+};
+
+const getHistoryStatusLabel = (status: string | null) => {
+    switch (status) {
+        case 'present': return 'Đúng giờ';
+        case 'late': return 'Đi muộn';
+        case 'half_day': return 'Nửa ngày';
+        case null: return 'Chưa chấm công';
+        default: return status;
+    }
+};
+
+const getHistoryStatusType = (status: string | null) => {
+    switch (status) {
+        case 'present': return 'success';
+        case 'late': return 'warning';
+        case 'half_day': return 'info';
+        case null: return 'danger';
+        default: return 'default';
+    }
+};
+
+const formatHistoryTime = (isoString: string | null) => {
+    if (!isoString) return '--:--';
+    const date = new Date(isoString);
+    return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+};
+
+const calculateDuration = (checkIn: string | null, checkOut: string | null) => {
+    if (!checkIn || !checkOut) return '--h';
+    const start = new Date(checkIn);
+    const end = new Date(checkOut);
+    const diffMs = end.getTime() - start.getTime();
+    if (diffMs < 0) return '--h';
+
+    const diffHours = diffMs / (1000 * 60 * 60);
+    return `${diffHours.toFixed(1)}h`;
+};
 
 export default function DetailEmployeesPage() {
     const { id } = useParams(); // Lấy ID từ URL (VD: http://localhost:5173/employees/10 -> id = 10)
@@ -54,6 +98,13 @@ export default function DetailEmployeesPage() {
 
     const [activeTab, setActiveTab] = useState('info');
     const [loading, setLoading] = useState(true); // Trạng thái tải dữ liệu API
+
+    // History State
+    const [historyLogs, setHistoryLogs] = useState<AttendanceRecord[]>([]);
+    const [historyLoading, setHistoryLoading] = useState(false);
+
+    // Face Update Confirmation State
+    const [showFaceConfirm, setShowFaceConfirm] = useState(false);
 
     // Trạng thái bật/tắt toàn bộ chế độ edit
     const [isEditing, setIsEditing] = useState(false);
@@ -66,6 +117,32 @@ export default function DetailEmployeesPage() {
     const [activeEditField, setActiveEditField] = useState<FieldKey | null>(null);
 
     const [isRequestingInfoUpdate, setIsRequestingInfoUpdate] = useState(false);
+
+    // ================== FETCH ATTENDANCE HISTORY ==================
+    const fetchHistory = async () => {
+        if (!id) return;
+        setHistoryLoading(true);
+        try {
+            const res = await attendanceService.getEmployeeHistory(Number(id));
+            if (res.success) {
+                setHistoryLogs(res.data);
+            } else {
+                toast.error('Lỗi', res.message || 'Không thể lấy lịch sử chấm công');
+            }
+        } catch (error) {
+            console.error('Failed to fetch history:', error);
+            toast.error('Lỗi', 'Lỗi kết nối khi lấy lịch sử chấm công');
+        } finally {
+            setHistoryLoading(false);
+        }
+    };
+
+    // Trigger fetch when tab changes to history
+    useEffect(() => {
+        if (activeTab === 'history') {
+            fetchHistory();
+        }
+    }, [activeTab, id]);
 
     const handleRequestInfoUpdate = async (e: React.MouseEvent) => {
         e.preventDefault();
@@ -96,8 +173,6 @@ export default function DetailEmployeesPage() {
                 const json = await res.json();
 
                 if (json.success) {
-                    // Cập nhật dữ liệu từ API vào state
-                    // (Lưu ý: Bạn hãy map đúng các trường (fields) từ DB của bạn trả về vào đây)
                     setFormData({
                         ...initialFormData,
                         id: json.data.id || 'Chưa cập nhật',
@@ -132,19 +207,28 @@ export default function DetailEmployeesPage() {
         setActiveEditField(null);
     };
 
-    const handleRequestFaceUpdate = async (e: React.MouseEvent) => {
+    const handleRequestFaceUpdate = (e: React.MouseEvent) => {
         e.preventDefault();
-        if (isRequestingFaceUpdate) return;
+        setShowFaceConfirm(true);
+    };
 
+    const confirmFaceUpdate = async () => {
+        if (isRequestingFaceUpdate || !id) return;
+        setShowFaceConfirm(false);
         setIsRequestingFaceUpdate(true);
         try {
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            toast.success(
-                'Đã gửi yêu cầu',
-                `Nhân viên ${formData.full_name} sẽ nhận được thông báo cập nhật khuôn mặt trên ứng dụng.`
-            );
+            const res = await employeeApi.requestFaceUpdate(Number(id));
+            if (res.success) {
+                toast.success(
+                    'Yêu cầu thành công',
+                    `Dữ liệu khuôn mặt cũ của ${formData.full_name} đã được xoá. Nhân viên sẽ nhận được thông báo cập nhật lại.`
+                );
+            } else {
+                toast.error('Lỗi', res.message || 'Không thể gửi yêu cầu cập nhật khuôn mặt.');
+            }
         } catch (error) {
-            toast.error('Lỗi', 'Không thể gửi yêu cầu, vui lòng thử lại sau.');
+            console.error('Failed to request face update:', error);
+            toast.error('Lỗi', 'Lỗi kết nối khi gửi yêu cầu cập nhật khuôn mặt.');
         } finally {
             setIsRequestingFaceUpdate(false);
         }
@@ -229,6 +313,14 @@ export default function DetailEmployeesPage() {
                 );
 
             case 'history':
+                // Tính toán sơ bộ từ dữ liệu thật
+                const stats = {
+                    total: historyLogs.length,
+                    late: historyLogs.filter(l => l.status === 'late').length,
+                    half: historyLogs.filter(l => l.status === 'half_day').length,
+                    present: historyLogs.filter(l => l.status === 'present').length,
+                };
+
                 return (
                     <div className="history-tab-wrapper">
                         {/* 1. Summary & Filters */}
@@ -236,30 +328,30 @@ export default function DetailEmployeesPage() {
                             <div className="history-summary-cards">
                                 <div className="h-card">
                                     <span className="h-card-title">TỔNG CỘNG</span>
-                                    <span className="h-card-value text-blue">22/23</span>
-                                    <span className="h-card-desc">Ngày làm việc</span>
+                                    <span className="h-card-value text-blue">{stats.total}</span>
+                                    <span className="h-card-desc">Ngày có dữ liệu</span>
+                                </div>
+                                <div className="h-card">
+                                    <span className="h-card-title">ĐÚNG GIỜ</span>
+                                    <span className="h-card-value text-green">{stats.present}</span>
+                                    <span className="h-card-desc">Số lần trong tháng</span>
                                 </div>
                                 <div className="h-card">
                                     <span className="h-card-title">ĐI MUỘN</span>
-                                    <span className="h-card-value text-orange">2</span>
+                                    <span className="h-card-value text-orange">{stats.late}</span>
                                     <span className="h-card-desc">Số lần trong tháng</span>
                                 </div>
                                 <div className="h-card">
-                                    <span className="h-card-title">VỀ SỚM</span>
-                                    <span className="h-card-value text-orange">1</span>
+                                    <span className="h-card-title">NỬA NGÀY</span>
+                                    <span className="h-card-value text-red">{stats.half}</span>
                                     <span className="h-card-desc">Số lần trong tháng</span>
-                                </div>
-                                <div className="h-card">
-                                    <span className="h-card-title">NGHỈ PHÉP</span>
-                                    <span className="h-card-value text-green">1</span>
-                                    <span className="h-card-desc">Đã phê duyệt</span>
                                 </div>
                             </div>
 
                             <div className="history-filters">
                                 <select className="emp-select h-select">
-                                    <option>Tháng 10/2023</option>
-                                    <option>Tháng 09/2023</option>
+                                    <option>Tháng 03/2026</option>
+                                    <option>Tháng 02/2026</option>
                                 </select>
                                 <select className="emp-select h-select">
                                     <option>Mọi trạng thái</option>
@@ -277,66 +369,76 @@ export default function DetailEmployeesPage() {
                             <div className="card-header flex-between">
                                 <h2>Lịch sử chi tiết</h2>
                                 <div className="history-legend">
-                                    <span><span className="dot dot-green"></span> Đúng giờ</span>
-                                    <span><span className="dot dot-orange"></span> Đi muộn</span>
-                                    <span><span className="dot dot-gray"></span> Nghỉ</span>
+                                    <button className="btn-secondary">
+                                        <DownloadOutlined /> Xuất file excel
+                                    </button>
                                 </div>
                             </div>
                             <div className="history-table-wrap">
-                                <table className="history-table">
-                                    <thead>
-                                        <tr>
-                                            <th>NGÀY</th>
-                                            <th>THỨ</th>
-                                            <th>GIỜ VÀO</th>
-                                            <th>GIỜ RA</th>
-                                            <th>TỔNG GIỜ</th>
-                                            <th>TRẠNG THÁI</th>
-                                            <th>MINH CHỨNG</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {historyRecords.map(record => (
-                                            <tr key={record.id}>
-                                                <td className="fw-600">{record.date}</td>
-                                                <td className="text-gray">{record.day}</td>
-                                                <td className={`fw-600 ${record.isLateIn ? 'text-orange' : ''}`}>
-                                                    {record.timeIn}
-                                                </td>
-                                                <td className={`fw-600 ${record.isEarlyOut ? 'text-orange' : ''}`}>
-                                                    {record.timeOut}
-                                                </td>
-                                                <td>{record.total}</td>
-                                                <td>
-                                                    <span className={`h-badge badge-${record.statusType}`}>
-                                                        {record.status}
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    {record.proofs ? (
-                                                        <div className="proof-images">
-                                                            {record.proofs.map((img, idx) => (
-                                                                <img key={idx} src={img} alt="proof" />
-                                                            ))}
-                                                        </div>
-                                                    ) : (
-                                                        <span className="h-note">{record.note}</span>
-                                                    )}
-                                                </td>
+                                {historyLoading ? (
+                                    <div className="loading-state" style={{ padding: '40px', textAlign: 'center' }}>
+                                        <LoadingOutlined spin style={{ fontSize: '24px', marginRight: '10px' }} />
+                                        Đang tải lịch sử...
+                                    </div>
+                                ) : (
+                                    <table className="history-table">
+                                        <thead>
+                                            <tr>
+                                                <th>NGÀY</th>
+                                                <th>THỨ</th>
+                                                <th>GIỜ VÀO</th>
+                                                <th>GIỜ RA</th>
+                                                <th>TỔNG GIỜ</th>
+                                                <th>TRẠNG THÁI</th>
+                                                <th>MINH CHỨNG SỐ</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                            {historyLogs.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan={7} style={{ textAlign: 'center', padding: '20px', color: '#94a3b8' }}>
+                                                        Không tìm thấy lịch sử chấm công
+                                                    </td>
+                                                </tr>
+                                            ) : (
+                                                historyLogs.map((record, idx) => (
+                                                    <tr key={idx}>
+                                                        <td className="fw-600">{formatHistoryDate(record.log_date)}</td>
+                                                        <td className="text-gray">{getVietnameseDay(record.log_date)}</td>
+                                                        <td className={`fw-600 ${record.status === 'late' ? 'text-orange' : ''}`}>
+                                                            {formatHistoryTime(record.check_in_time)}
+                                                        </td>
+                                                        <td className="fw-600">
+                                                            {formatHistoryTime(record.check_out_time)}
+                                                        </td>
+                                                        <td className="fw-600">
+                                                            {calculateDuration(record.check_in_time, record.check_out_time)}
+                                                        </td>
+                                                        <td>
+                                                            <span className={`h-badge badge-${getHistoryStatusType(record.status)}`}>
+                                                                {getHistoryStatusLabel(record.status)}
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <div className="proof-images">
+                                                                {/* Vì API chưa trả về ảnh proofs thật, ta dùng avatar giả lập số lượng */}
+                                                                <img src={`https://ui-avatars.com/api/?name=AI&background=random`} alt="proof" title="Face recognition match" />
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            )}
+                                        </tbody>
+                                    </table>
+                                )}
                             </div>
 
                             {/* Pagination */}
                             <div className="h-pagination-wrap">
-                                <span className="h-pag-text">Hiển thị 1-5 trong số 22 ngày công</span>
+                                <span className="h-pag-text">Hiển thị {historyLogs.length} ngày công</span>
                                 <div className="h-pag-controls">
                                     <button className="h-pag-btn disabled">Trước</button>
                                     <button className="h-pag-btn active">1</button>
-                                    <button className="h-pag-btn">2</button>
-                                    <button className="h-pag-btn">3</button>
                                     <button className="h-pag-btn">Sau</button>
                                 </div>
                             </div>
@@ -534,6 +636,36 @@ export default function DetailEmployeesPage() {
                     {renderTabContent()}
                 </div>
             </div>
+
+            {/* Premium Confirmation Modal for Face Update */}
+            {showFaceConfirm && (
+                <div className="modal-overlay">
+                    <div className="confirm-modal">
+                        <div className="modal-header">
+                            <div className="modal-icon-container">
+                                <InfoCircleOutlined className="modal-icon-warn" />
+                            </div>
+                            <h3>Cảnh báo xoá dữ liệu</h3>
+                        </div>
+                        <div className="modal-body">
+                            <p>Bạn đang thực hiện yêu cầu cập nhật khuôn mặt của nhân viên <strong>{formData.full_name}</strong>.</p>
+                            <p>Hành động này <strong>sẽ xoá dữ khuôn mặt cũ</strong>. Nhân viên sẽ được yêu cầu quét lại khuôn mặt mới để xác thực danh tính.</p>
+
+                            <div className="modal-alert-box">
+                                <p className="modal-alert-text">Xác nhận thực hiện thay đổi này?</p>
+                            </div>
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn-modal-cancel" onClick={() => setShowFaceConfirm(false)}>
+                                Huỷ
+                            </button>
+                            <button className="btn-modal-confirm" onClick={confirmFaceUpdate}>
+                                <StopOutlined /> Xác nhận xoá
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

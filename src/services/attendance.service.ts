@@ -17,9 +17,20 @@ export interface AttendanceListResponse {
     data: AttendanceRecord[];
 }
 
+export interface EmployeeHistoryResponse {
+    success: boolean;
+    message: string;
+    total: number;
+    data: AttendanceRecord[];
+}
+
 export const attendanceService = {
     getDailyAttendance: async (date?: string): Promise<AttendanceListResponse> => {
         const endpoint = date ? `/attendance/list/daily?date=${date}` : '/attendance/list/daily';
         return apiClient.get(endpoint);
+    },
+
+    getEmployeeHistory: async (employeeId: number): Promise<EmployeeHistoryResponse> => {
+        return apiClient.get(`/attendance/history/${employeeId}`);
     }
 };

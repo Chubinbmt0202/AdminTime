@@ -18,5 +18,13 @@ export const apiClient = {
             method: 'DELETE',
         });
         return res.json();
+    },
+    put: async (endpoint: string, body: any) => {
+        const res = await fetch(`${ENV.API_URL}${endpoint}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        });
+        return res.json();
     }
 };
