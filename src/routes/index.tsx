@@ -3,6 +3,8 @@ import MainLayout from '../layouts/MainLayout';
 import EmployeesPage from '../pages/Employees/EmployeesPage';
 import DetailEmployeesPage from '../features/employees/components/DetailEmployee/DetailEmployeesPage';
 import LogsPage from '../pages/LogsPage/LogsPage';
+import WorkShiftConfigPage from '../features/settings/components/WorkShiftConfig/WorkShiftConfigPage';
+
 
 function PlaceholderPage({ title }: { title: string }) {
     return (
@@ -22,7 +24,8 @@ export default function AppRoutes() {
                 <Route path="logs" element={<LogsPage />} />
                 <Route path="leave-requests" element={<PlaceholderPage title="Leave Requests" />} />
                 <Route path="reports" element={<PlaceholderPage title="Reports" />} />
-                <Route path="settings" element={<PlaceholderPage title="Settings" />} />
+                <Route path="settings" element={<WorkShiftConfigPage />} />
+
             </Route>
         </Routes>
     );
