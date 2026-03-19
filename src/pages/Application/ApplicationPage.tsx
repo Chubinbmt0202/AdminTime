@@ -338,7 +338,7 @@ export default function LogsPage() {
 
             {/* DRAWER OVERLAY */}
             {isDrawerOpen && (
-                <div className="drawer-overlay" onClick={closeDrawer}></div>
+                <div className="drawer-overlay-application" onClick={closeDrawer}></div>
             )}
 
             {/* DRAWER */}
