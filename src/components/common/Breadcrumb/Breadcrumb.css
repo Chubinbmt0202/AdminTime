@@ -1,0 +1,31 @@
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.breadcrumb-item {
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.breadcrumb-item.text-gray {
+  color: #64748b;
+}
+
+.breadcrumb-item.text-gray:hover {
+  color: #334155;
+}
+
+.breadcrumb-item.text-dark {
+  color: #1e293b;
+  font-weight: 600;
+  cursor: default;
+}
+
+.breadcrumb-separator {
+  color: #94a3b8;
+  user-select: none;
+}

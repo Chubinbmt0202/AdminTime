@@ -1,7 +1,6 @@
 /* ===================== EMPLOYEES PAGE ===================== */
 .emp-page {
   padding: 32px 36px;
-  min-height: 100vh;
   font-family: 'Outfit', 'Segoe UI', system-ui, sans-serif;
   color: #1e293b;
 }

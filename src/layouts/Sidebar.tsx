@@ -51,7 +51,6 @@ export default function Sidebar() {
         { key: 'employees', label: 'Nhân viên', icon: <TeamOutlined />, path: '/employees' },
         { key: 'logs', label: 'Chấm công', icon: <HistoryOutlined />, path: '/logs' },
         { key: 'leave-requests', label: 'Đơn xin nghỉ', icon: <CalendarOutlined />, path: '/leave-requests' },
-        { key: 'settings', label: 'Cài đặt', icon: <SettingOutlined />, path: '/settings' },
       ]
     }
 
@@ -62,7 +61,7 @@ export default function Sidebar() {
         { key: 'admin-org-hr', label: 'Tổ chức và nhân sự', icon: <ApartmentOutlined />, path: '/admin/org-hr' },
         { key: 'admin-attendance', label: 'Thiết lập chấm công', icon: <RadarChartOutlined />, path: '/admin/attendance-setup' },
         { key: 'admin-security', label: 'Giám sát an ninh', icon: <SafetyCertificateOutlined />, path: '/admin/security' },
-        { key: 'admin-system', label: 'Cài đặt hệ thống', icon: <SettingOutlined />, path: '/admin/system-settings' },
+        { key: 'settings', label: 'Cài đặt', icon: <SettingOutlined />, path: '/settings' },
       ]
     }
 

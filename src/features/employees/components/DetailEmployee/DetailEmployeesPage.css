@@ -1,11 +1,8 @@
 /* ===================== DETAIL EMPLOYEES PAGE ===================== */
 .detail-page {
-    padding: 32px 12px;
-    min-height: 100vh;
+    padding: 32px 36px;
     font-family: 'Outfit', 'Segoe UI', system-ui, sans-serif;
     color: #1e293b;
-    max-width: 1200px;
-    margin: 0 auto;
 }
 
 /* ---- Header Card ---- */
