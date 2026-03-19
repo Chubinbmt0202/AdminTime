@@ -1,0 +1,891 @@
+/* ===================== LOGS PAGE ===================== */
+.logs-page {
+    padding: 32px 10px;
+    min-height: 100vh;
+    font-family: 'Outfit', 'Segoe UI', system-ui, sans-serif;
+    color: #1e293b;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* ---- Header ---- */
+.logs-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+}
+
+.logs-title {
+    margin: 0 0 4px 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.logs-subtitle {
+    margin: 0;
+    color: #64748b;
+    font-size: 14px;
+}
+
+.logs-header-actions {
+    display: flex;
+    gap: 12px;
+}
+
+/* ---- Summary Cards ---- */
+.logs-summary-cards {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.log-card {
+    flex: 1;
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.log-card-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.log-card-value {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 8px;
+}
+
+.log-card-desc {
+    font-size: 13px;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.text-blue {
+    color: #2563eb;
+}
+
+.text-green {
+    color: #10b981;
+}
+
+.text-orange {
+    color: #f59e0b;
+}
+
+.text-red {
+    color: #ef4444;
+}
+
+/* ---- Filters ---- */
+.logs-filters {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.date-picker-wrap,
+.search-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    color: #94a3b8;
+    left: 16px;
+    font-size: 16px;
+}
+
+.log-input {
+    height: 40px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0 16px 0 16px;
+    font-family: inherit;
+    font-size: 14px;
+    color: #1e293b;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.date-input {
+    width: 140px;
+    font-weight: 600;
+}
+
+.search-input {
+    width: 260px;
+}
+
+.log-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.log-select {
+    height: 40px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0 36px 0 16px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    color: #334155;
+    outline: none;
+    appearance: none;
+    background: #fff url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E") no-repeat right 14px top 55%;
+    background-size: 10px auto;
+}
+
+.btn-icon-filter {
+    height: 40px;
+    width: 40px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    background: #fff;
+    color: #475569;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.btn-icon-filter:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+/* ---- Table ---- */
+.logs-table-wrap {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    overflow: hidden;
+    margin-bottom: 24px;
+}
+
+.logs-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.logs-table th {
+    padding: 16px 24px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    letter-spacing: 0.5px;
+    background: #fff;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.logs-table td {
+    padding: 16px 24px;
+    font-size: 14px;
+    color: #334155;
+    border-bottom: 1px solid #f8fafc;
+    vertical-align: middle;
+}
+
+.logs-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.logs-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.log-emp-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.log-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+.log-emp-name {
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.log-emp-id {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+
+.fw-600 {
+    font-weight: 600;
+}
+
+/* Status Badges */
+.log-badge {
+    display: inline-flex;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.badge-success {
+    background: #dcfce7;
+    color: #10b981;
+}
+
+.badge-warning {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.badge-danger {
+    background: #fee2e2;
+    color: #ef4444;
+}
+
+/* Action Button */
+.btn-action-view {
+    background: transparent;
+    border: none;
+    color: #2563eb;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.btn-action-view:hover {
+    background: #eff6ff;
+}
+
+/* ---- Pagination ---- */
+.logs-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pag-text {
+    font-size: 13px;
+    color: #64748b;
+}
+
+.pag-controls {
+    display: flex;
+    gap: 4px;
+}
+
+.pag-btn {
+    height: 34px;
+    min-width: 34px;
+    padding: 0 12px;
+    background: #fff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    color: #475569;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pag-btn:hover:not(.disabled):not(.active) {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.pag-btn.active {
+    background: #2563eb;
+    color: #fff;
+    border-color: #2563eb;
+}
+
+.pag-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f8fafc;
+}
+
+/* --- CSS CHO DRAWER --- */
+
+.drawer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 999;
+    animation: fadeIn 0.3s ease forwards;
+}
+
+.drawer-container {
+    position: fixed;
+    top: 0;
+    right: -550px;
+    /* Drawer rộng hơn một chút */
+    width: 500px;
+    max-width: 90vw;
+    height: 100vh;
+    background-color: #fff;
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.08);
+    z-index: 1000;
+    transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+.drawer-container.open {
+    right: 0;
+}
+
+.drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.drawer-header h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.btn-close-drawer {
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: #888;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.btn-close-drawer:hover {
+    color: #333;
+}
+
+.drawer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+}
+
+/* 1. Thông tin nhân sự */
+.drawer-profile-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background-color: #f8f9fc;
+    border-radius: 12px;
+    border: 1px solid #f0f0f0;
+    margin-bottom: 32px;
+}
+
+.profile-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.profile-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.profile-name {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #222;
+}
+
+.profile-meta {
+    margin: 0;
+    font-size: 13px;
+    color: #666;
+}
+
+/* 2. Layout các section */
+.drawer-section {
+    margin-bottom: 36px;
+}
+
+.section-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 16px 0;
+}
+
+.section-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.section-header-flex .section-title {
+    margin-bottom: 0;
+}
+
+/* Thông tin chi tiết */
+.info-block {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.info-label {
+    font-size: 13px;
+    color: #666;
+}
+
+.info-value {
+    font-size: 14px;
+    color: #222;
+    line-height: 1.5;
+}
+
+.info-subtext {
+    font-size: 12px;
+}
+
+.text-blue {
+    color: #1890ff;
+}
+
+.text-gray {
+    color: #444;
+}
+
+.mb-16 {
+    margin-bottom: 16px;
+}
+
+.mt-16 {
+    margin-top: 16px;
+}
+
+.badge-leave-type {
+    display: inline-block;
+    padding: 4px 10px;
+    background-color: #e6f7ff;
+    color: #096dd9;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    width: fit-content;
+}
+
+.status-badge-warning {
+    padding: 4px 10px;
+    background-color: #fffbe6;
+    color: #d48806;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+/* Đính kèm */
+.attachment-box {
+    display: inline-flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    width: 250px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.attachment-box:hover {
+    border-color: #1890ff;
+    background-color: #fafafa;
+}
+
+.attachment-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #333;
+}
+
+.dl-icon {
+    color: #888;
+}
+
+/* 3. Timeline lịch sử */
+.approval-timeline {
+    padding-left: 8px;
+    margin-top: 10px;
+}
+
+.timeline-item {
+    position: relative;
+    padding-left: 24px;
+    padding-bottom: 24px;
+    border-left: 2px solid #e2e8f0;
+}
+
+.timeline-item:last-child {
+    border-left-color: transparent;
+    padding-bottom: 0;
+}
+
+.timeline-dot {
+    position: absolute;
+    left: -6px;
+    top: 2px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #e2e8f0;
+}
+
+.timeline-item.completed .timeline-dot {
+    background-color: #52c41a;
+}
+
+.timeline-item.pending .timeline-dot {
+    background-color: #d9d9d9;
+}
+
+.timeline-content {
+    position: relative;
+    top: -4px;
+}
+
+.tl-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #222;
+    margin-bottom: 2px;
+}
+
+.tl-meta {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 4px;
+}
+
+.tl-comment {
+    font-size: 13px;
+    color: #10b981;
+    font-style: italic;
+}
+
+/* Màu xanh lá cho comment */
+.timeline-item.pending .tl-title,
+.timeline-item.pending .tl-meta {
+    color: #999;
+}
+
+/* 4. Footer hai nút */
+.drawer-actions-split {
+    display: flex;
+    gap: 16px;
+    padding: 20px 24px;
+    border-top: 1px solid #f0f0f0;
+    background-color: #fff;
+}
+
+.btn-action-reject,
+.btn-action-approve {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-action-reject {
+    background-color: #fff;
+    border: 1px solid #ff4d4f;
+    color: #ff4d4f;
+}
+
+.btn-action-reject:hover {
+    background-color: #fff1f0;
+}
+
+.btn-action-approve {
+    background-color: #2563eb;
+    border: 1px solid #2563eb;
+    color: #fff;
+}
+
+.btn-action-approve:hover {
+    background-color: #1d4ed8;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* ====================================
+   CONFIRM MODAL — thêm vào ApplicationPage.css
+   ==================================== */
+
+/* Backdrop mờ phía sau modal */
+.confirm-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 1100;
+    animation: fadeIn 0.2s ease;
+}
+
+/* Modal container */
+.confirm-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1200;
+    background: #fff;
+    border-radius: 16px;
+    padding: 32px 28px 24px;
+    width: 420px;
+    max-width: calc(100vw - 32px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+    animation: slideUp 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    text-align: center;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -44%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* Icon vòng tròn */
+.confirm-icon-wrap {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 28px;
+}
+
+.confirm-icon-wrap.icon-approve {
+    background: #f0fdf4;
+    color: #16a34a;
+    border: 2px solid #bbf7d0;
+}
+
+.confirm-icon-wrap.icon-reject {
+    background: #fff7ed;
+    color: #ea580c;
+    border: 2px solid #fed7aa;
+}
+
+.confirm-icon {
+    font-size: 28px !important;
+}
+
+/* Tiêu đề */
+.confirm-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 10px;
+}
+
+/* Mô tả */
+.confirm-desc {
+    font-size: 14px;
+    color: #4b5563;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.confirm-desc strong {
+    color: #111827;
+}
+
+/* Đường kẻ phân cách */
+.confirm-divider {
+    height: 1px;
+    background: #f0f0f0;
+    margin: 24px 0 20px;
+}
+
+/* Nút hành động */
+.confirm-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.confirm-btn-cancel {
+    flex: 1;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 1.5px solid #d1d5db;
+    background: #fff;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.confirm-btn-cancel:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+}
+
+.confirm-btn-main {
+    flex: 1;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+}
+
+.btn-confirm-approve {
+    background: #16a34a;
+    color: #fff;
+}
+
+.btn-confirm-approve:hover {
+    background: #15803d;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.35);
+}
+
+.btn-confirm-reject {
+    background: #ea580c;
+    color: #fff;
+}
+
+.btn-confirm-reject:hover {
+    background: #c2410c;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(234, 88, 12, 0.35);
+}
+
+/* Badge trạng thái trong drawer (dùng dynamic class) */
+.status-badge-success {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+}
+
+.status-badge-warning {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #fffbeb;
+    color: #d97706;
+    border: 1px solid #fde68a;
+}
+
+.status-badge-danger {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}

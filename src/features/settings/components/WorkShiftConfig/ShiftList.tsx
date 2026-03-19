@@ -5,7 +5,6 @@ import {
   CarryOutOutlined,
   SunOutlined,
   CloudOutlined,
-  HistoryOutlined
 } from '@ant-design/icons';
 
 const ShiftList: React.FC = () => {

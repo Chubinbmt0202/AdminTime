@@ -8,7 +8,7 @@ import ShiftList from './ShiftList';
 import HolidaysWeekends from './HolidaysWeekends';
 
 const WorkShiftConfigPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'shifts' | 'rules' | 'holidays'>('shifts');
+  const [activeTab] = useState<'shifts' | 'rules' | 'holidays'>('shifts');
 
   return (
     <div className="config-page">

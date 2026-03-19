@@ -4,8 +4,7 @@ import {
     SyncOutlined,
     SearchOutlined,
     FilterOutlined,
-    EyeOutlined,
-    CalendarOutlined
+    EyeOutlined
 } from '@ant-design/icons';
 import './LogsPage.css';
 import { attendanceService, type AttendanceRecord } from '../../services/attendance.service';

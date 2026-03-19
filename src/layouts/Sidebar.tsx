@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useMemo, useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import {
   AppstoreOutlined,
@@ -7,17 +7,29 @@ import {
   CalendarOutlined,
   BarChartOutlined,
   SettingOutlined,
+  ApartmentOutlined,
+  RadarChartOutlined,
+  SafetyCertificateOutlined,
   BellOutlined, // Thêm icon chuông
 } from '@ant-design/icons'
+import { useAuth } from '../auth/AuthContext'
+import type { Role } from '../auth/auth.types'
 import './Sidebar.css'
 
-const navItems = [
-  { key: 'dashboard', label: 'Tổng quan', icon: <AppstoreOutlined />, path: '/' },
-  { key: 'employees', label: 'Nhân viên', icon: <TeamOutlined />, path: '/employees' },
-  { key: 'logs', label: 'Chấm công', icon: <HistoryOutlined />, path: '/logs' },
-  { key: 'leave-requests', label: 'Đơn xin nghỉ', icon: <CalendarOutlined />, path: '/leave-requests' },
-  { key: 'reports', label: 'Báo cáo', icon: <BarChartOutlined />, path: '/reports' },
-]
+type NavItem = { key: string; label: string; icon: React.ReactNode; path: string }
+
+function roleLabel(role: Role | null) {
+  switch (role) {
+    case 'giam_doc':
+      return 'Giám đốc'
+    case 'can_bo_nhan_su':
+      return 'Cán bộ nhân sự'
+    case 'quan_tri_vien':
+      return 'Quản trị viên'
+    default:
+      return 'Tài khoản'
+  }
+}
 
 // Dữ liệu thông báo mẫu
 const mockNotifications = [
@@ -29,6 +41,41 @@ const mockNotifications = [
 export default function Sidebar() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { user, role } = useAuth()
+
+  const navItems = useMemo<NavItem[]>(() => {
+    // 1) Giám đốc: Tổng quan + Báo cáo và phân tích
+    if (role === 'giam_doc') {
+      return [
+        { key: 'director-overview', label: 'Tổng quan', icon: <AppstoreOutlined />, path: '/director' },
+        { key: 'director-reports', label: 'Báo cáo và phân tích', icon: <BarChartOutlined />, path: '/director/reports' },
+      ]
+    }
+
+    // 2) Cán bộ nhân sự: Tổng quan (riêng) + nhân viên + chấm công + đơn xin nghỉ
+    if (role === 'can_bo_nhan_su') {
+      return [
+        { key: 'hr-overview', label: 'Tổng quan', icon: <AppstoreOutlined />, path: '/hr' },
+        { key: 'employees', label: 'Nhân viên', icon: <TeamOutlined />, path: '/employees' },
+        { key: 'logs', label: 'Chấm công', icon: <HistoryOutlined />, path: '/logs' },
+        { key: 'leave-requests', label: 'Đơn xin nghỉ', icon: <CalendarOutlined />, path: '/leave-requests' },
+      ]
+    }
+
+    // 3) Quản trị viên: Tổng quan (riêng) + Tổ chức & nhân sự + Thiết lập chấm công + Giám sát an ninh + Cài đặt hệ thống
+    if (role === 'quan_tri_vien') {
+      return [
+        { key: 'admin-overview', label: 'Tổng quan', icon: <AppstoreOutlined />, path: '/admin' },
+        { key: 'admin-org-hr', label: 'Tổ chức và nhân sự', icon: <ApartmentOutlined />, path: '/admin/org-hr' },
+        { key: 'admin-attendance', label: 'Thiết lập chấm công', icon: <RadarChartOutlined />, path: '/admin/attendance-setup' },
+        { key: 'admin-security', label: 'Giám sát an ninh', icon: <SafetyCertificateOutlined />, path: '/admin/security' },
+        { key: 'admin-system', label: 'Cài đặt hệ thống', icon: <SettingOutlined />, path: '/admin/system-settings' },
+      ]
+    }
+
+    // Fallback (nhân viên hoặc chưa xác định)
+    return [{ key: 'home', label: 'Tổng quan', icon: <AppstoreOutlined />, path: '/' }]
+  }, [role])
 
   // State quản lý việc hiển thị popup thông báo
   const [showNotif, setShowNotif] = useState(false)
@@ -45,14 +92,11 @@ export default function Sidebar() {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  const activeKey = location.pathname.startsWith('/settings')
-    ? 'settings'
-    : navItems.find(item => {
-      if (item.path === '/') {
-        return location.pathname === '/'
-      }
-      return location.pathname.startsWith(item.path)
-    })?.key ?? 'dashboard'
+  const activeKey =
+    navItems.find(item => {
+      if (item.path === '/') return location.pathname === '/'
+      return location.pathname === item.path || location.pathname.startsWith(item.path + '/')
+    })?.key ?? navItems[0]?.key ?? 'home'
 
   // Đếm số thông báo chưa đọc
   const unreadCount = mockNotifications.filter(n => n.unread).length
@@ -70,7 +114,7 @@ export default function Sidebar() {
         </div>
         <div className="sidebar-brand-text">
           <span className="sidebar-brand-name">MindCheck</span>
-          <span className="sidebar-brand-sub">Tài khoản Admin</span>
+          <span className="sidebar-brand-sub">{roleLabel(role)}</span>
         </div>
       </div>
 
@@ -90,21 +134,31 @@ export default function Sidebar() {
 
       {/* Bottom section */}
       <div className="sidebar-bottom">
-        <button
-          className={`sidebar-nav-item ${activeKey === 'settings' ? 'active' : ''}`}
-          onClick={() => navigate('/settings')}
-        >
-          <span className="sidebar-nav-icon"><SettingOutlined /></span>
-          <span className="sidebar-nav-label">Cài đặt</span>
-        </button>
+        {/* Giữ nút cài đặt chung cho HR (route /settings hiện có) */}
+        {role === 'can_bo_nhan_su' && (
+          <button
+            className={`sidebar-nav-item ${location.pathname.startsWith('/settings') ? 'active' : ''}`}
+            onClick={() => navigate('/settings')}
+          >
+            <span className="sidebar-nav-icon"><SettingOutlined /></span>
+            <span className="sidebar-nav-label">Cài đặt</span>
+          </button>
+        )}
 
         {/* User Info & Notification Area */}
         <div className="sidebar-user" ref={notifRef}>
           <div className="sidebar-user-profile">
-            <div className="sidebar-user-avatar">AR</div>
+            <div className="sidebar-user-avatar">
+              {(user?.full_name || user?.username || 'U')
+                .split(' ')
+                .filter(Boolean)
+                .slice(-2)
+                .map(w => w[0]?.toUpperCase())
+                .join('')}
+            </div>
             <div className="sidebar-user-info">
-              <span className="sidebar-user-name">Alex Rivera</span>
-              <span className="sidebar-user-role">Super Admin</span>
+              <span className="sidebar-user-name">{user?.full_name || user?.username || 'User'}</span>
+              <span className="sidebar-user-role">{roleLabel(role)}</span>
             </div>
           </div>
 
