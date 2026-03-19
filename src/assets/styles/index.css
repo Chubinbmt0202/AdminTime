@@ -27,3 +27,9 @@ body {
   overflow-y: auto;
   background: #f8fafc;
 }
+
+/* Main area becomes a column so header stays on top */
+.app-main {
+  display: flex;
+  flex-direction: column;
+}
