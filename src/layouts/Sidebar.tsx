@@ -10,6 +10,7 @@ import {
   ApartmentOutlined,
   RadarChartOutlined,
   SafetyCertificateOutlined,
+  LogoutOutlined,
 } from '@ant-design/icons'
 import { useAuth } from '../auth/AuthContext'
 import type { Role } from '../auth/auth.types'
@@ -33,7 +34,7 @@ function roleLabel(role: Role | null) {
 export default function Sidebar() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { role } = useAuth()
+  const { role, logout } = useAuth()
 
   const navItems = useMemo<NavItem[]>(() => {
     // 1) Giám đốc: Tổng quan + Báo cáo và phân tích
@@ -61,7 +62,7 @@ export default function Sidebar() {
         { key: 'admin-org-hr', label: 'Tổ chức và nhân sự', icon: <ApartmentOutlined />, path: '/admin/org-hr' },
         { key: 'admin-attendance', label: 'Thiết lập chấm công', icon: <RadarChartOutlined />, path: '/admin/attendance-setup' },
         { key: 'admin-security', label: 'Giám sát an ninh', icon: <SafetyCertificateOutlined />, path: '/admin/security' },
-        { key: 'settings', label: 'Cài đặt', icon: <SettingOutlined />, path: '/settings' },
+
       ]
     }
 
@@ -69,11 +70,15 @@ export default function Sidebar() {
     return [{ key: 'home', label: 'Tổng quan', icon: <AppstoreOutlined />, path: '/' }]
   }, [role])
 
-  const activeKey =
-    navItems.find(item => {
+  const activeKey = useMemo(() => {
+    // Tìm item có path trùng khớp nhất (dài nhất)
+    const sortedItems = [...navItems].sort((a, b) => b.path.length - a.path.length)
+    const match = sortedItems.find(item => {
       if (item.path === '/') return location.pathname === '/'
       return location.pathname === item.path || location.pathname.startsWith(item.path + '/')
-    })?.key ?? navItems[0]?.key ?? 'home'
+    })
+    return match?.key ?? navItems[0]?.key ?? 'home'
+  }, [navItems, location.pathname])
 
   return (
     <aside className="sidebar">
@@ -105,6 +110,24 @@ export default function Sidebar() {
           </button>
         ))}
       </nav>
+
+      {/* Bottom section */}
+      <div className="sidebar-bottom">
+        <button
+          className={`sidebar-nav-item ${activeKey === 'settings' ? 'active' : ''}`}
+          onClick={() => navigate('/settings')}
+        >
+          <span className="sidebar-nav-icon"><SettingOutlined /></span>
+          <span className="sidebar-nav-label">Cài đặt</span>
+        </button>
+        <button
+          className="sidebar-nav-item logout"
+          onClick={logout}
+        >
+          <span className="sidebar-nav-icon"><LogoutOutlined /></span>
+          <span className="sidebar-nav-label">Đăng xuất</span>
+        </button>
+      </div>
 
     </aside>
   )

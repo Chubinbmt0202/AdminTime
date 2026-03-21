@@ -9,6 +9,7 @@ import ApplicationPage from '../pages/Application/ApplicationPage';
 import LoginPage from '../pages/Login/LoginPage';
 import RequireAuth from '../auth/RequireAuth';
 import { useAuth } from '../auth/AuthContext';
+import OrgAndHRPage from '../pages/Admin/OrgAndHR/OrgAndHRPage';
 
 
 function PlaceholderPage({ title }: { title: string }) {
@@ -32,7 +33,7 @@ export default function AppRoutes() {
                     <Route path="director" element={role === 'giam_doc' ? <PlaceholderPage title="Trang chủ Giám đốc" /> : <PlaceholderPage title="Unauthorized" />} />
                     <Route path="hr" element={role === 'can_bo_nhan_su' ? <DashboardPage /> : <PlaceholderPage title="Trang chủ Nhân sự" />} />
                     <Route path="admin" element={role === 'quan_tri_vien' ? <PlaceholderPage title="Trang chủ Quản trị" /> : <PlaceholderPage title="Unauthorized" />} />
-                    <Route path="admin/org-hr" element={<PlaceholderPage title="Tổ chức và nhân sự (Quản trị)" />} />
+                    <Route path="admin/org-hr" element={<OrgAndHRPage />} />
                     <Route path="admin/attendance-setup" element={<PlaceholderPage title="Thiết lập chấm công (Quản trị)" />} />
                     <Route path="admin/security" element={<PlaceholderPage title="Giám sát an ninh (Quản trị)" />} />
                     <Route path="admin/system-settings" element={<PlaceholderPage title="Cài đặt hệ thống (Quản trị)" />} />

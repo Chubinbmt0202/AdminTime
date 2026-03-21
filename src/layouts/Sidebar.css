@@ -93,9 +93,9 @@
 }
 
 .sidebar-nav-item.active {
-  background: #2563eb;
-  color: #ffffff;
-  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.3);
+  background: #eff6ff;
+  color: #2563eb;
+  font-weight: 700;
 }
 
 .sidebar-nav-icon {
@@ -116,7 +116,16 @@
   gap: 4px;
   border-top: 1px solid #f0f0f0;
   padding-top: 12px;
-  margin-top: 8px;
+  margin-top: auto;
+}
+
+.sidebar-nav-item.logout {
+  color: #ef4444;
+}
+
+.sidebar-nav-item.logout:hover {
+  background: #fef2f2;
+  color: #dc2626;
 }
 
 /* ---- User ---- */

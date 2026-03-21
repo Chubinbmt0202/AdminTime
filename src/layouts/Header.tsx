@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { BellFilled } from '@ant-design/icons';
-import { QuestionCircleOutlined, SettingOutlined } from '@ant-design/icons';
+import { QuestionCircleOutlined, SearchOutlined } from '@ant-design/icons';
 import avatarImg from '../assets/images/avatar.png';
 import './Header.css';
 import Breadcrumb from '../components/common/Breadcrumb/Breadcrumb';
@@ -72,6 +72,12 @@ export default function Header() {
       {/* Right side: Notifications & Profile */}
       <div className="app-header-right" ref={wrapRef}>
 
+        {/* Search Input */}
+        <div className="header-search">
+          <SearchOutlined className="header-search-icon" />
+          <input type="text" placeholder="Tìm kiếm nhanh..." className="header-search-input" />
+        </div>
+
         {/* Notification Bell */}
         <div className="header-notification-wrapper">
           <button className={`header-icon-btn ${open ? 'active' : ''}`} onClick={() => setOpen((v) => !v)}>
@@ -119,10 +125,6 @@ export default function Header() {
           <QuestionCircleOutlined className="header-icon" />
         </button>
 
-        {/* Settings Icon */}
-        <button className="header-icon-btn">
-          <SettingOutlined className="header-icon" />
-        </button>
 
         {/* User Profile Avatar */}
         <div className="header-profile">
