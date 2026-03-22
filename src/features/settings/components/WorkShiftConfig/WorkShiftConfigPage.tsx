@@ -6,9 +6,11 @@ import {
 import './WorkShiftConfigPage.css';
 import ShiftList from './ShiftList';
 import HolidaysWeekends from './HolidaysWeekends';
+import AddShiftDrawer from './AddShiftDrawer';
 
 const WorkShiftConfigPage: React.FC = () => {
   const [activeTab] = useState<'shifts' | 'rules' | 'holidays'>('shifts');
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   return (
     <div className="config-page">
@@ -21,7 +23,7 @@ const WorkShiftConfigPage: React.FC = () => {
           <button className="btn btn-secondary">
             <DownloadOutlined /> Xuất báo cáo
           </button>
-          <button className="btn btn-primary">
+          <button className="btn btn-primary" onClick={() => setIsDrawerOpen(true)}>
             <PlusOutlined /> Thêm ca làm việc mới
           </button>
         </div>
@@ -38,6 +40,11 @@ const WorkShiftConfigPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      <AddShiftDrawer 
+        open={isDrawerOpen} 
+        onClose={() => setIsDrawerOpen(false)} 
+      />
     </div>
   );
 };

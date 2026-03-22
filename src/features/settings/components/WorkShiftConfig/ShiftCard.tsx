@@ -1,7 +1,6 @@
 import React from 'react';
-import { 
-  CopyOutlined, 
-  EditOutlined, 
+import {
+  EditOutlined,
   DeleteOutlined
 } from '@ant-design/icons';
 
@@ -44,7 +43,6 @@ const ShiftCard: React.FC<ShiftCardProps> = ({
           </div>
         </div>
         <div className="card-actions">
-          <button className="action-btn"><CopyOutlined /></button>
           <button className="action-btn"><EditOutlined /></button>
           <button className="action-btn"><DeleteOutlined /></button>
         </div>
