@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { 
-  TeamOutlined, 
-  ApartmentOutlined, 
+import {
+  TeamOutlined,
+  ApartmentOutlined,
   PlusCircleOutlined,
   SearchOutlined,
   UserAddOutlined,
@@ -122,7 +122,7 @@ export default function OrgAndHRPage() {
             <span className="growth-comparison">So với tháng trước</span>
           </div>
           <div className="growth-chart-bg">
-             <div className="wave"></div>
+            <div className="wave"></div>
           </div>
         </div>
       </div>
@@ -136,63 +136,63 @@ export default function OrgAndHRPage() {
           </div>
 
           <div className="org-tree">
-             <div className="tree-item active">
-               <ApartmentOutlined className="tree-icon" /> Ban Giám đốc
-             </div>
-             
-             <div className="tree-group">
-               <div className="tree-item group-parent">
-                 <CaretDownOutlined /> KHỐI CÔNG NGHỆ
-               </div>
-               <div className="tree-item child active">
-                 <span className="bullet"></span> Phòng IT
-               </div>
-               <div className="tree-item child">
-                 <span className="bullet"></span> Phòng R&D
-               </div>
-             </div>
+            <div className="tree-item active">
+              <ApartmentOutlined className="tree-icon" /> Ban Giám đốc
+            </div>
 
-             <div className="tree-group">
-               <div className="tree-item group-parent">
-                 <CaretDownOutlined /> KHỐI KINH DOANH
-               </div>
-               <div className="tree-item child">
-                 <span className="bullet"></span> Marketing
-               </div>
-               <div className="tree-item child">
-                 <span className="bullet"></span> Sales
-               </div>
-             </div>
+            <div className="tree-group">
+              <div className="tree-item group-parent">
+                <CaretDownOutlined /> KHỐI CÔNG NGHỆ
+              </div>
+              <div className="tree-item child active">
+                <span className="bullet"></span> Phòng IT
+              </div>
+              <div className="tree-item child">
+                <span className="bullet"></span> Phòng R&D
+              </div>
+            </div>
 
-             <div className="tree-group">
-               <div className="tree-item group-parent">
-                 <CaretDownOutlined /> KHỐI VẬN HÀNH
-               </div>
-               <div className="tree-item child">
-                 <span className="bullet"></span> Nhân sự (HR)
-               </div>
-               <div className="tree-item child">
-                 <span className="bullet"></span> Admin
-               </div>
-             </div>
+            <div className="tree-group">
+              <div className="tree-item group-parent">
+                <CaretDownOutlined /> KHỐI KINH DOANH
+              </div>
+              <div className="tree-item child">
+                <span className="bullet"></span> Marketing
+              </div>
+              <div className="tree-item child">
+                <span className="bullet"></span> Sales
+              </div>
+            </div>
+
+            <div className="tree-group">
+              <div className="tree-item group-parent">
+                <CaretDownOutlined /> KHỐI VẬN HÀNH
+              </div>
+              <div className="tree-item child">
+                <span className="bullet"></span> Nhân sự (HR)
+              </div>
+              <div className="tree-item child">
+                <span className="bullet"></span> Admin
+              </div>
+            </div>
           </div>
         </aside>
 
         {/* Right Column: Employee Table */}
         <div className="employee-section">
           <div className="employee-toolbar">
+            <div>
+              <span>Phòng ban: Marketing</span>
+            </div>
             <div className="search-box">
               <SearchOutlined />
-              <input 
-                type="text" 
-                placeholder="Tìm tên hoặc mã nhân viên..." 
+              <input
+                type="text"
+                placeholder="Tìm tên hoặc mã nhân viên..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <select className="filter-select">
-              <option>Tất cả phòng ban</option>
-            </select>
             <select className="filter-select">
               <option>Trạng thái</option>
             </select>
@@ -229,9 +229,9 @@ export default function OrgAndHRPage() {
                     <td><span className="emp-role">{emp.role}</span></td>
                     <td><span className={`dept-badge ${emp.department.toLowerCase().replace(' ', '-')}`}>{emp.department}</span></td>
                     <td>
-                       <span className={`status-badge ${emp.status}`}>
-                         <span className="dot"></span> {emp.status === 'active' ? 'Hoạt động' : 'Đã nghỉ việc'}
-                       </span>
+                      <span className={`status-badge ${emp.status}`}>
+                        <span className="dot"></span> {emp.status === 'active' ? 'Hoạt động' : 'Đã nghỉ việc'}
+                      </span>
                     </td>
                     <td>
                       <button className="more-action-btn"><MoreOutlined /></button>

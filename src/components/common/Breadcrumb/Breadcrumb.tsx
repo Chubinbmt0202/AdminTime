@@ -10,8 +10,9 @@ const routeLabels: Record<string, string> = {
   'admin': 'Quản trị',
   'org-hr': 'Tổ chức và nhân sự',
   'attendance-setup': 'Thiết lập chấm công',
-  'security': 'Giám sát an ninh',
+  // 'security': 'Giám sát an ninh',
   'system-settings': 'Cài đặt hệ thống',
+  'shifts': 'Ca làm việc',
   'employees': 'Nhân viên',
   'logs': 'Nhật ký',
   'leave-requests': 'Quản lý đơn từ',
@@ -30,7 +31,7 @@ const Breadcrumb: React.FC = () => {
       {pathnames.map((value, index) => {
         const last = index === pathnames.length - 1;
         const to = `/${pathnames.slice(0, index + 1).join('/')}`;
-        
+
         // Handle numeric IDs or specific dynamic segments
         let label = routeLabels[value];
         if (!label) {

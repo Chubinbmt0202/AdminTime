@@ -7,6 +7,7 @@ import {
   CalendarOutlined,
   BarChartOutlined,
   SettingOutlined,
+  ClockCircleOutlined,
   ApartmentOutlined,
   RadarChartOutlined,
   SafetyCertificateOutlined,
@@ -61,7 +62,8 @@ export default function Sidebar() {
         { key: 'admin-overview', label: 'Tổng quan', icon: <AppstoreOutlined />, path: '/admin' },
         { key: 'admin-org-hr', label: 'Tổ chức và nhân sự', icon: <ApartmentOutlined />, path: '/admin/org-hr' },
         { key: 'admin-attendance', label: 'Thiết lập chấm công', icon: <RadarChartOutlined />, path: '/admin/attendance-setup' },
-        { key: 'admin-security', label: 'Giám sát an ninh', icon: <SafetyCertificateOutlined />, path: '/admin/security' },
+        // { key: 'admin-security', label: 'Giám sát an ninh', icon: <SafetyCertificateOutlined />, path: '/admin/security' },
+        { key: 'shifts', label: 'Ca làm việc', icon: <ClockCircleOutlined />, path: '/admin/shifts' },
 
       ]
     }

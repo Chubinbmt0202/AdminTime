@@ -35,8 +35,15 @@
   margin-bottom: 12px;
 }
 
-.stat-icon-wrapper.blue { background-color: #eff6ff; color: #3b82f6; }
-.stat-icon-wrapper.purple { background-color: #f5f3ff; color: #8b5cf6; }
+.stat-icon-wrapper.blue {
+  background-color: #eff6ff;
+  color: #3b82f6;
+}
+
+.stat-icon-wrapper.purple {
+  background-color: #f5f3ff;
+  color: #8b5cf6;
+}
 
 .stat-label {
   font-size: 11px;
@@ -61,8 +68,14 @@
   font-weight: 600;
 }
 
-.stat-sub .working { color: #10b981; }
-.stat-sub .resigned { color: #94a3b8; }
+.stat-sub .working {
+  color: #10b981;
+}
+
+.stat-sub .resigned {
+  color: #94a3b8;
+}
+
 .stat-sub .dot {
   display: inline-block;
   width: 6px;
@@ -93,7 +106,9 @@
   transition: all 0.2s;
 }
 
-.stat-more-btn:hover { background: #dbeafe; }
+.stat-more-btn:hover {
+  background: #dbeafe;
+}
 
 .stat-value .unit {
   font-size: 14px;
@@ -149,10 +164,14 @@
 }
 
 @keyframes progress {
-  0% { stroke-dasharray: 0 100; }
+  0% {
+    stroke-dasharray: 0 100;
+  }
 }
 
-.circular-chart.blue .circle { stroke: #2563eb; }
+.circular-chart.blue .circle {
+  stroke: #2563eb;
+}
 
 .chart-legend {
   list-style: none;
@@ -165,13 +184,34 @@
   gap: 4px;
 }
 
-.chart-legend li { display: flex; align-items: center; gap: 6px; }
-.chart-legend li strong { color: #1e293b; margin-left: auto; }
+.chart-legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 
-.legend-dot { width: 8px; height: 8px; border-radius: 50%; }
-.legend-dot.it { background-color: #2563eb; }
-.legend-dot.sales { background-color: #3b82f6; }
-.legend-dot.marketing { background-color: #60a5fa; }
+.chart-legend li strong {
+  color: #1e293b;
+  margin-left: auto;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.legend-dot.it {
+  background-color: #2563eb;
+}
+
+.legend-dot.sales {
+  background-color: #3b82f6;
+}
+
+.legend-dot.marketing {
+  background-color: #60a5fa;
+}
 
 /* Growth Card */
 .growth-card {
@@ -274,8 +314,15 @@
   transition: all 0.2s;
 }
 
-.tree-item:hover { background-color: #f1f5f9; color: #1e293b; }
-.tree-item.active { background-color: #eff6ff; color: #2563eb; }
+.tree-item:hover {
+  background-color: #f1f5f9;
+  color: #1e293b;
+}
+
+.tree-item.active {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
 
 .tree-item.group-parent {
   color: #94a3b8;
@@ -285,7 +332,9 @@
   cursor: default;
 }
 
-.tree-item.group-parent:hover { background: none; }
+.tree-item.group-parent:hover {
+  background: none;
+}
 
 .tree-item.child {
   padding-left: 24px;
@@ -298,7 +347,9 @@
   background-color: #cbd5e1;
 }
 
-.tree-item.child.active .bullet { background-color: #2563eb; }
+.tree-item.child.active .bullet {
+  background-color: #2563eb;
+}
 
 /* Employee Section */
 .employee-section {
@@ -337,7 +388,7 @@
   border: none;
   background: transparent;
   outline: none;
-  width: 100%;
+  width: 50%;
   font-size: 13px;
   color: #1e293b;
   font-family: inherit;
@@ -375,7 +426,10 @@
   transition: all 0.2s;
 }
 
-.add-employee-btn:hover { background: #1e3a8a; transform: translateY(-1px); }
+.add-employee-btn:hover {
+  background: #1e3a8a;
+  transform: translateY(-1px);
+}
 
 /* Table Styling */
 .table-wrapper {
@@ -404,7 +458,10 @@
   vertical-align: middle;
 }
 
-.emp-id { font-weight: 600; color: #94a3b8; }
+.emp-id {
+  font-weight: 600;
+  color: #94a3b8;
+}
 
 .name-cell {
   display: flex;
@@ -419,10 +476,21 @@
   object-fit: cover;
 }
 
-.emp-name { font-weight: 700; color: #1e293b; }
-.emp-email { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+.emp-name {
+  font-weight: 700;
+  color: #1e293b;
+}
 
-.emp-role { font-weight: 600; color: #64748b; }
+.emp-email {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.emp-role {
+  font-weight: 600;
+  color: #64748b;
+}
 
 .dept-badge {
   padding: 4px 12px;
@@ -431,9 +499,20 @@
   font-weight: 800;
 }
 
-.dept-badge.phòng-it { background: #eff6ff; color: #2563eb; }
-.dept-badge.marketing { background: #fff7ed; color: #ea580c; }
-.dept-badge.admin { background: #f1f5f9; color: #64748b; }
+.dept-badge.phòng-it {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.dept-badge.marketing {
+  background: #fff7ed;
+  color: #ea580c;
+}
+
+.dept-badge.admin {
+  background: #f1f5f9;
+  color: #64748b;
+}
 
 .status-badge {
   display: flex;
@@ -443,8 +522,13 @@
   font-size: 12px;
 }
 
-.status-badge.active { color: #10b981; }
-.status-badge.resigned { color: #94a3b8; }
+.status-badge.active {
+  color: #10b981;
+}
+
+.status-badge.resigned {
+  color: #94a3b8;
+}
 
 .status-badge .dot {
   width: 6px;
@@ -463,7 +547,10 @@
   transition: all 0.2s;
 }
 
-.more-action-btn:hover { background: #f1f5f9; color: #1e293b; }
+.more-action-btn:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
 
 /* Pagination */
 .pagination {
@@ -500,6 +587,17 @@
   transition: all 0.2s;
 }
 
-.page-btn:hover:not(.disabled) { background: #f1f5f9; }
-.page-btn.active { background: #1e40af; color: #ffffff; border-color: #1e40af; }
-.page-btn.disabled { opacity: 0.5; cursor: not-allowed; }
+.page-btn:hover:not(.disabled) {
+  background: #f1f5f9;
+}
+
+.page-btn.active {
+  background: #1e40af;
+  color: #ffffff;
+  border-color: #1e40af;
+}
+
+.page-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
