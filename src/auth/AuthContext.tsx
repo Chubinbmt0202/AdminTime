@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(() => readInitialUser());
 
   const value = useMemo<AuthContextValue>(() => {
-    const role = user?.role ?? null;
+    const role = user?.ten_vai_tro ?? null;
     const isAuthenticated = Boolean(user);
 
     return {

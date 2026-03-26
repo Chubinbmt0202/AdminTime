@@ -21,11 +21,11 @@ type NavItem = { key: string; label: string; icon: React.ReactNode; path: string
 
 function roleLabel(role: Role | null) {
   switch (role) {
-    case 'giam_doc':
+    case 'Director':
       return 'Giám đốc'
-    case 'can_bo_nhan_su':
+    case 'HR':
       return 'Cán bộ nhân sự'
-    case 'quan_tri_vien':
+    case 'Admin':
       return 'Quản trị viên'
     default:
       return 'Tài khoản'
@@ -36,10 +36,11 @@ export default function Sidebar() {
   const navigate = useNavigate()
   const location = useLocation()
   const { role, logout } = useAuth()
+  console.log("role", role)
 
   const navItems = useMemo<NavItem[]>(() => {
     // 1) Giám đốc: Tổng quan + Báo cáo và phân tích
-    if (role === 'giam_doc') {
+    if (role === 'Director') {
       return [
         { key: 'director-overview', label: 'Tổng quan', icon: <AppstoreOutlined />, path: '/director' },
         { key: 'director-reports', label: 'Báo cáo và phân tích', icon: <BarChartOutlined />, path: '/director/reports' },
@@ -47,7 +48,7 @@ export default function Sidebar() {
     }
 
     // 2) Cán bộ nhân sự: Tổng quan (riêng) + nhân viên + chấm công + đơn xin nghỉ
-    if (role === 'can_bo_nhan_su') {
+    if (role === 'HR') {
       return [
         { key: 'hr-overview', label: 'Tổng quan', icon: <AppstoreOutlined />, path: '/hr' },
         { key: 'employees', label: 'Nhân viên', icon: <TeamOutlined />, path: '/employees' },
@@ -57,10 +58,11 @@ export default function Sidebar() {
     }
 
     // 3) Quản trị viên: Tổng quan (riêng) + Tổ chức & nhân sự + Thiết lập chấm công + Giám sát an ninh + Cài đặt hệ thống
-    if (role === 'quan_tri_vien') {
+    if (role === 'Admin') {
       return [
         { key: 'admin-overview', label: 'Tổng quan', icon: <AppstoreOutlined />, path: '/admin' },
         { key: 'admin-org-hr', label: 'Tổ chức và nhân sự', icon: <ApartmentOutlined />, path: '/admin/org-hr' },
+        { key: 'employees', label: 'Nhân viên', icon: <TeamOutlined />, path: '/employees' },
         { key: 'admin-attendance', label: 'Thiết lập chấm công', icon: <RadarChartOutlined />, path: '/admin/attendance-setup' },
         // { key: 'admin-security', label: 'Giám sát an ninh', icon: <SafetyCertificateOutlined />, path: '/admin/security' },
         { key: 'shifts', label: 'Ca làm việc', icon: <ClockCircleOutlined />, path: '/admin/shifts' },

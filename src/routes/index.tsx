@@ -11,7 +11,7 @@ import RequireAuth from '../auth/RequireAuth';
 import { useAuth } from '../auth/AuthContext';
 import OrgAndHRPage from '../pages/Admin/OrgAndHR/OrgAndHRPage';
 import AttendanceSetupPage from '../pages/Admin/AttendanceSetup/AttendanceSetupPage';
-
+import AdminDetailEmployeePage from '../pages/Admin/DetailEmployee/AdminDetailEmployeePage';
 
 function PlaceholderPage({ title }: { title: string }) {
     return (
@@ -35,6 +35,7 @@ export default function AppRoutes() {
                     <Route path="hr" element={role === 'can_bo_nhan_su' ? <DashboardPage /> : <PlaceholderPage title="Trang chủ Nhân sự" />} />
                     <Route path="admin" element={role === 'quan_tri_vien' ? <PlaceholderPage title="Trang chủ Quản trị" /> : <PlaceholderPage title="Unauthorized" />} />
                     <Route path="admin/org-hr" element={<OrgAndHRPage />} />
+                    <Route path="admin/employees/:id" element={<AdminDetailEmployeePage />} />
                     <Route path="admin/attendance-setup" element={<AttendanceSetupPage />} />
                     {/* <Route path="admin/security" element={<PlaceholderPage title="Giám sát an ninh (Quản trị)" />} /> */}
                     <Route path="admin/system-settings" element={<PlaceholderPage title="Cài đặt hệ thống (Quản trị)" />} />

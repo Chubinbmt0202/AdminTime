@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   TeamOutlined,
   ApartmentOutlined,
@@ -6,53 +7,88 @@ import {
   SearchOutlined,
   UserAddOutlined,
   MoreOutlined,
-  CaretDownOutlined,
-  ArrowUpOutlined
+  EyeOutlined,
+  ArrowUpOutlined,
+  CrownOutlined,
+  CodeOutlined,
+  BulbOutlined,
+  DollarOutlined,
+  SettingOutlined,
+  AuditOutlined,
+  DesktopOutlined,
+  RobotOutlined,
+  ShareAltOutlined,
+  FundProjectionScreenOutlined
 } from '@ant-design/icons';
 import './OrgAndHRPage.css';
+import { departmentApi } from '../../../features/departments/api/department.api';
+import { employeeApi } from '../../../features/employees/api/employee.api';
+import type { Department } from '../../../types/department.types';
+import type { Employee } from '../../../features/employees/types';
+import { Spin } from 'antd'; // Assuming antd is used since icons are from antd
 
-interface Employee {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  department: string;
-  status: 'active' | 'resigned';
-  avatar: string;
-}
-
-const mockEmployees: Employee[] = [
-  {
-    id: '#TM120',
-    name: 'Nguyễn Văn An',
-    email: 'an.nv@timemaster.vn',
-    role: 'Trưởng phòng IT',
-    department: 'PHÒNG IT',
-    status: 'active',
-    avatar: 'https://i.pravatar.cc/150?u=1'
-  },
-  {
-    id: '#TM121',
-    name: 'Trần Thị Bình',
-    email: 'binh.tt@timemaster.vn',
-    role: 'Chuyên viên Marketing',
-    department: 'MARKETING',
-    status: 'active',
-    avatar: 'https://i.pravatar.cc/150?u=2'
-  },
-  {
-    id: '#TM122',
-    name: 'Lê Mạnh Cường',
-    email: 'cuong.lm@timemaster.vn',
-    role: 'Nhân viên Vận hành',
-    department: 'ADMIN',
-    status: 'resigned',
-    avatar: 'https://i.pravatar.cc/150?u=3'
-  }
-];
 
 export default function OrgAndHRPage() {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedDeptId, setSelectedDeptId] = useState<number | null>(null);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [loadingEmployees, setLoadingEmployees] = useState(false);
+
+  const getDeptIcon = (mo_ta: string | null) => {
+    const name = mo_ta?.toLowerCase() || '';
+    if (name.includes('giám đốc')) return <CrownOutlined className="tree-icon" />;
+    if (name.includes('it')) return <CodeOutlined className="tree-icon" />;
+    if (name.includes('r&d') || name.includes('nghiên cứu')) return <RobotOutlined className="tree-icon" />;
+    if (name.includes('marketing')) return <BulbOutlined className="tree-icon" />;
+    if (name.includes('sales') || name.includes('bán hàng')) return <DollarOutlined className="tree-icon" />;
+    if (name.includes('nhân sự') || name.includes('hr')) return <TeamOutlined className="tree-icon" />;
+    if (name.includes('admin') || name.includes('hành chính')) return <SettingOutlined className="tree-icon" />;
+    if (name.includes('kế toán')) return <AuditOutlined className="tree-icon" />;
+    if (name.includes('vận hành')) return <ShareAltOutlined className="tree-icon" />;
+    if (name.includes('công nghệ')) return <DesktopOutlined className="tree-icon" />;
+    if (name.includes('kinh doanh')) return <FundProjectionScreenOutlined className="tree-icon" />;
+    return <ApartmentOutlined className="tree-icon" />;
+  };
+
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const response = await departmentApi.getAll();
+        if (response.success) {
+          setDepartments(response.data);
+          if (response.data.length > 0) {
+            setSelectedDeptId(response.data[0].id_phong_ban);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching departments:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDepartments();
+  }, []);
+
+  useEffect(() => {
+    const fetchEmployeesByDept = async () => {
+      if (selectedDeptId === null) return;
+      setLoadingEmployees(true);
+      try {
+        const response = await employeeApi.getByDepartment(selectedDeptId);
+        if (response.success) {
+          setEmployees(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching employees:', error);
+      } finally {
+        setLoadingEmployees(false);
+      }
+    };
+    fetchEmployeesByDept();
+  }, [selectedDeptId]);
 
   return (
     <div className="org-hr-container">
@@ -136,45 +172,21 @@ export default function OrgAndHRPage() {
           </div>
 
           <div className="org-tree">
-            <div className="tree-item active">
-              <ApartmentOutlined className="tree-icon" /> Ban Giám đốc
-            </div>
-
-            <div className="tree-group">
-              <div className="tree-item group-parent">
-                <CaretDownOutlined /> KHỐI CÔNG NGHỆ
-              </div>
-              <div className="tree-item child active">
-                <span className="bullet"></span> Phòng IT
-              </div>
-              <div className="tree-item child">
-                <span className="bullet"></span> Phòng R&D
-              </div>
-            </div>
-
-            <div className="tree-group">
-              <div className="tree-item group-parent">
-                <CaretDownOutlined /> KHỐI KINH DOANH
-              </div>
-              <div className="tree-item child">
-                <span className="bullet"></span> Marketing
-              </div>
-              <div className="tree-item child">
-                <span className="bullet"></span> Sales
-              </div>
-            </div>
-
-            <div className="tree-group">
-              <div className="tree-item group-parent">
-                <CaretDownOutlined /> KHỐI VẬN HÀNH
-              </div>
-              <div className="tree-item child">
-                <span className="bullet"></span> Nhân sự (HR)
-              </div>
-              <div className="tree-item child">
-                <span className="bullet"></span> Admin
-              </div>
-            </div>
+            {loading ? (
+              <div className="loading-wrapper"><Spin size="small" /> Đang tải...</div>
+            ) : (
+              <>
+                {departments.map(dept => (
+                  <div
+                    key={dept.id_phong_ban}
+                    className={`tree-item ${selectedDeptId === dept.id_phong_ban ? 'active' : ''}`}
+                    onClick={() => setSelectedDeptId(dept.id_phong_ban)}
+                  >
+                    {getDeptIcon(dept.mo_ta)} {dept.mo_ta}
+                  </div>
+                ))}
+              </>
+            )}
           </div>
         </aside>
 
@@ -208,36 +220,61 @@ export default function OrgAndHRPage() {
                   <th>MÃ NV</th>
                   <th>HỌ VÀ TÊN</th>
                   <th>CHỨC VỤ</th>
-                  <th>PHÒNG BAN</th>
+                  <th>SỐ ĐIỆN THOẠI</th>
+                  <th>EMAIL</th>
                   <th>TRẠNG THÁI</th>
                   <th>THAO TÁC</th>
                 </tr>
               </thead>
               <tbody>
-                {mockEmployees.map((emp) => (
-                  <tr key={emp.id}>
-                    <td><span className="emp-id">{emp.id}</span></td>
-                    <td>
-                      <div className="name-cell">
-                        <img src={emp.avatar} alt={emp.name} className="emp-avatar" />
-                        <div>
-                          <div className="emp-name">{emp.name}</div>
-                          <div className="emp-email">{emp.email}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td><span className="emp-role">{emp.role}</span></td>
-                    <td><span className={`dept-badge ${emp.department.toLowerCase().replace(' ', '-')}`}>{emp.department}</span></td>
-                    <td>
-                      <span className={`status-badge ${emp.status}`}>
-                        <span className="dot"></span> {emp.status === 'active' ? 'Hoạt động' : 'Đã nghỉ việc'}
-                      </span>
-                    </td>
-                    <td>
-                      <button className="more-action-btn"><MoreOutlined /></button>
+                {loadingEmployees ? (
+                  <tr>
+                    <td colSpan={6} style={{ textAlign: 'center', padding: '40px' }}>
+                      <Spin /> Đang tải nhân viên...
                     </td>
                   </tr>
-                ))}
+                ) : employees.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} style={{ textAlign: 'center', padding: '40px' }}>
+                      Không có nhân viên nào trong phòng ban này.
+                    </td>
+                  </tr>
+                ) : (
+                  employees.map((emp) => (
+                    <tr key={emp.id_nhan_vien}>
+                      <td><span className="emp-id">#{emp.id_nhan_vien}</span></td>
+                      <td>
+                        <div className="name-cell">
+                          <img src={`https://i.pravatar.cc/150?u=${emp.id_nhan_vien}`} alt={emp.full_name} className="emp-avatar" />
+                          <div>
+                            <div className="emp-name">{emp.full_name}</div>
+                            <div className="emp-email">{emp.username}@timemaster.vn</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td><span className="emp-role">{emp.role_name}</span></td>
+                      <td><span className={`dept-badge ${emp.phone_number?.toLowerCase().replace(' ', '-')}`}>{emp.phone_number}</span></td>
+                      <td><span className="emp-email">{emp.email}</span></td>
+                      <td>
+                        <span className={`status-badge ${emp.trang_thai ? 'active' : 'resigned'}`}>
+                          <span className="dot"></span> {emp.trang_thai ? 'Hoạt động' : 'Đã nghỉ việc'}
+                        </span>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button 
+                            className="more-action-btn"
+                            title="Xem chi tiết"
+                            onClick={() => navigate(`/admin/employees/${emp.id_nhan_vien}`)}
+                          >
+                            <EyeOutlined />
+                          </button>
+                          <button className="more-action-btn"><MoreOutlined /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
