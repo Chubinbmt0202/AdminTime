@@ -9,8 +9,10 @@ import {
 interface ShiftCardProps {
   title: string;
   subtitle?: string;
-  timeRange: string;
-  lunchBreak: string;
+  timeRange?: string; // Left for backwards compatibility
+  startTime?: string;
+  endTime?: string;
+  lunchBreak: any;
   workingDays: number | string;
   status: string;
   icon: React.ReactNode;
@@ -22,6 +24,8 @@ const ShiftCard: React.FC<ShiftCardProps> = ({
   title,
   subtitle,
   timeRange,
+  startTime,
+  endTime,
   lunchBreak,
   workingDays,
   status,
@@ -50,12 +54,16 @@ const ShiftCard: React.FC<ShiftCardProps> = ({
 
       <div className="card-body">
         <div className="info-group">
-          <label>Thời gian</label>
-          <div className="info-value">{timeRange}</div>
+          <label>Giờ vào ca</label>
+          <div className="info-value">{startTime || (timeRange ? timeRange.split(' - ')[0] : 'Chưa cấu hình')}</div>
+        </div>
+        <div className="info-group">
+          <label>Giờ ra ca</label>
+          <div className="info-value">{endTime || (timeRange ? timeRange.split(' - ')[1] : 'Chưa cấu hình')}</div>
         </div>
         <div className="info-group">
           <label>Nghỉ trưa</label>
-          <div className="info-value">{lunchBreak}</div>
+          <div className="info-value">{lunchBreak ? 'Có' : 'Không'}</div>
         </div>
         <div className="info-group">
           <label>Số công tính</label>

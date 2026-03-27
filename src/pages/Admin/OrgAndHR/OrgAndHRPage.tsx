@@ -26,7 +26,7 @@ import { employeeApi } from '../../../features/employees/api/employee.api';
 import type { Department } from '../../../types/department.types';
 import type { Employee } from '../../../features/employees/types';
 import { Spin } from 'antd'; // Assuming antd is used since icons are from antd
-
+import AddDepartmentDrawer from '../../../features/departments/components/AddDepartmentDrawer';
 
 export default function OrgAndHRPage() {
   const navigate = useNavigate();
@@ -36,6 +36,7 @@ export default function OrgAndHRPage() {
   const [selectedDeptId, setSelectedDeptId] = useState<number | null>(null);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loadingEmployees, setLoadingEmployees] = useState(false);
+  const [isAddDeptDrawerOpen, setIsAddDeptDrawerOpen] = useState(false);
 
   const getDeptIcon = (mo_ta: string | null) => {
     const name = mo_ta?.toLowerCase() || '';
@@ -53,22 +54,23 @@ export default function OrgAndHRPage() {
     return <ApartmentOutlined className="tree-icon" />;
   };
 
-  useEffect(() => {
-    const fetchDepartments = async () => {
-      try {
-        const response = await departmentApi.getAll();
-        if (response.success) {
-          setDepartments(response.data);
-          if (response.data.length > 0) {
-            setSelectedDeptId(response.data[0].id_phong_ban);
-          }
+  const fetchDepartments = async () => {
+    try {
+      const response = await departmentApi.getAll();
+      if (response.success) {
+        setDepartments(response.data);
+        if (response.data.length > 0 && selectedDeptId === null) {
+          setSelectedDeptId(response.data[0].id_phong_ban);
         }
-      } catch (error) {
-        console.error('Error fetching departments:', error);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching departments:', error);
+    } finally {
+      if (loading) setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchDepartments();
   }, []);
 
@@ -168,7 +170,7 @@ export default function OrgAndHRPage() {
         <aside className="org-sidebar">
           <div className="org-header">
             <h3>Cơ cấu tổ chức</h3>
-            <PlusCircleOutlined className="add-icon" />
+            <PlusCircleOutlined className="add-icon" onClick={() => setIsAddDeptDrawerOpen(true)} style={{ cursor: 'pointer' }} />
           </div>
 
           <div className="org-tree">
@@ -182,7 +184,7 @@ export default function OrgAndHRPage() {
                     className={`tree-item ${selectedDeptId === dept.id_phong_ban ? 'active' : ''}`}
                     onClick={() => setSelectedDeptId(dept.id_phong_ban)}
                   >
-                    {getDeptIcon(dept.mo_ta)} {dept.mo_ta}
+                    {getDeptIcon(dept.mo_ta)} {dept.ten_phong_ban}
                   </div>
                 ))}
               </>
@@ -262,7 +264,7 @@ export default function OrgAndHRPage() {
                       </td>
                       <td>
                         <div style={{ display: 'flex', gap: '8px' }}>
-                          <button 
+                          <button
                             className="more-action-btn"
                             title="Xem chi tiết"
                             onClick={() => navigate(`/admin/employees/${emp.id_nhan_vien}`)}
@@ -291,6 +293,12 @@ export default function OrgAndHRPage() {
           </div>
         </div>
       </div>
+
+      <AddDepartmentDrawer
+        open={isAddDeptDrawerOpen}
+        onClose={() => setIsAddDeptDrawerOpen(false)}
+        onSuccess={fetchDepartments}
+      />
     </div>
   );
 }

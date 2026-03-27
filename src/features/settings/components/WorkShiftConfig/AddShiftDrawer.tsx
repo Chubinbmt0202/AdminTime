@@ -93,20 +93,6 @@ const AddShiftDrawer: React.FC<Props> = ({ open, onClose }) => {
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Mã ca <span className="required">*</span></label>
-                  <input
-                    type="text"
-                    name="shiftCode"
-                    className="form-input"
-                    placeholder="VD: HC-SANG"
-                    value={form.shiftCode}
-                    onChange={handleChange}
-                  />
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
                   <label className="form-label">Loại ca</label>
                   <select
                     name="shiftType"
@@ -118,9 +104,6 @@ const AddShiftDrawer: React.FC<Props> = ({ open, onClose }) => {
                     <option value="flexible">Ca linh hoạt</option>
                     <option value="split">Ca gãy</option>
                   </select>
-                </div>
-                <div className="form-group">
-                  {/* Reserved for content 4 if needed, or keeping spacing */}
                 </div>
               </div>
             </section>
@@ -303,22 +286,6 @@ const AddShiftDrawer: React.FC<Props> = ({ open, onClose }) => {
                     Thêm bộ phận +
                   </div>
                 </div>
-              </div>
-
-              <div className="status-row">
-                <div className="status-text">
-                  <h4>Trạng thái hoạt động</h4>
-                  <p>Cho phép áp dụng ca này ngay sau khi lưu</p>
-                </div>
-                <label className="toggle-switch">
-                  <input
-                    type="checkbox"
-                    name="isActive"
-                    checked={form.isActive}
-                    onChange={handleChange}
-                  />
-                  <span className="toggle-slider"></span>
-                </label>
               </div>
             </section>
           </div>
