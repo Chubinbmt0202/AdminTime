@@ -31,11 +31,11 @@ export default function LoginPage() {
 
   const roleHome = (role: Role) => {
     switch (role) {
-      case 'giam_doc':
+      case 'Director':
         return '/director';
-      case 'can_bo_nhan_su':
+      case 'HR':
         return '/hr';
-      case 'quan_tri_vien':
+      case 'Admin':
         return '/admin';
       default:
         return '/';
@@ -50,7 +50,7 @@ export default function LoginPage() {
       const user = await login({ username, password, remember });
       alert('Đăng nhập thành công');
       // ưu tiên quay lại trang đang định vào; nếu không có thì về home theo role
-      const target = from && from !== '/login' ? from : roleHome(user.role);
+      const target = from && from !== '/login' ? from : roleHome(user.ten_vai_tro);
       navigate(target, { replace: true });
     } catch (err) {
       setError(getErrorMessage(err));
