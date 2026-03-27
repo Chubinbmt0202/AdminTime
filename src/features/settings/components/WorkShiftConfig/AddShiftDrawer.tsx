@@ -5,30 +5,67 @@ import {
   CoffeeOutlined,
   SettingOutlined
 } from '@ant-design/icons';
+import { shiftApi } from '../../api/shift.api';
+import { message } from 'antd';
 import './AddShiftDrawer.css';
 
 interface Props {
   open: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
+  initialData?: any;
 }
 
-const AddShiftDrawer: React.FC<Props> = ({ open, onClose }) => {
+const AddShiftDrawer: React.FC<Props> = ({ open, onClose, onSuccess, initialData }) => {
+  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     shiftName: '',
-    shiftCode: '',
     shiftType: 'fixed',
-    startTime: '08:00 AM',
-    endTime: '05:30 PM',
+    startTime: '08:00',
+    endTime: '17:00',
     hasBreak: true,
-    breakStart: '12:00 PM',
-    breakEnd: '01:30 PM',
+    breakStart: '12:00',
+    breakEnd: '13:00',
     workingDays: '1.0',
     lateGrace: '15',
     earlyGrace: '5',
     checkInBefore: '60',
     checkOutAfter: '120',
-    isActive: true
   });
+
+  useEffect(() => {
+    if (initialData) {
+      setForm({
+        shiftName: initialData.shift_name || initialData.ten_ca || '',
+        shiftType: 'fixed',
+        startTime: initialData.start_time || (initialData.gio_bat_dau ? initialData.gio_bat_dau.substring(0, 5) : '08:00'),
+        endTime: initialData.end_time || (initialData.gio_ket_thuc ? initialData.gio_ket_thuc.substring(0, 5) : '17:30'),
+        hasBreak: initialData.has_lunch_break !== undefined ? initialData.has_lunch_break : (initialData.has_lunch_break_old ?? true),
+        breakStart: initialData.lunch_start_time || (initialData.gio_bat_dau_nghi ? initialData.gio_bat_dau_nghi.substring(0, 5) : '12:00'),
+        breakEnd: initialData.lunch_end_time || (initialData.gio_ket_thuc_nghi ? initialData.gio_ket_thuc_nghi.substring(0, 5) : '13:00'),
+        workingDays: initialData.coefficient?.toString() || initialData.so_cong?.toString() || '1.0',
+        lateGrace: initialData.late_tolerance_mins?.toString() || '15',
+        earlyGrace: '5',
+        checkInBefore: '60',
+        checkOutAfter: '120',
+      });
+    } else {
+      setForm({
+        shiftName: '',
+        shiftType: 'fixed',
+        startTime: '08:00',
+        endTime: '17:00',
+        hasBreak: true,
+        breakStart: '12:00',
+        breakEnd: '13:00',
+        workingDays: '1.0',
+        lateGrace: '15',
+        earlyGrace: '5',
+        checkInBefore: '60',
+        checkOutAfter: '120',
+      });
+    }
+  }, [initialData, open]);
 
   // Close on ESC
   useEffect(() => {
@@ -49,9 +86,40 @@ const AddShiftDrawer: React.FC<Props> = ({ open, onClose }) => {
     }
   };
 
-  const handleSave = () => {
-    console.log('Saving shift:', form);
-    onClose();
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      const payload = {
+        shift_name: form.shiftName,
+        start_time: form.startTime,
+        end_time: form.endTime,
+        late_tolerance_mins: parseInt(form.lateGrace),
+        coefficient: parseFloat(form.workingDays),
+        has_lunch_break: form.hasBreak,
+        lunch_start_time: form.hasBreak ? form.breakStart : null,
+        lunch_end_time: form.hasBreak ? form.breakEnd : null
+      };
+
+      let response;
+      if (initialData?.id_ca_lam_viec || initialData?.id) {
+        response = await shiftApi.updateShift(initialData.id_ca_lam_viec || initialData.id, payload);
+      } else {
+        response = await shiftApi.addShift(payload);
+      }
+
+      if (response.success) {
+        message.success(initialData ? 'Cập nhật ca làm việc thành công' : 'Thêm ca làm việc thành công');
+        onSuccess?.();
+        onClose();
+      } else {
+        message.error(response.message || 'Có lỗi xảy ra');
+      }
+    } catch (error: any) {
+      console.error('Error saving shift:', error);
+      message.error(error.message || 'Lỗi kết nối máy chủ');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -63,7 +131,7 @@ const AddShiftDrawer: React.FC<Props> = ({ open, onClose }) => {
       <div className={`drawer-panel ${open ? 'drawer-panel-open' : ''}`}>
         <div className="drawer-header">
           <div className="drawer-header-left">
-            <h2>Thêm ca làm việc mới</h2>
+            <h2>{initialData ? 'Chỉnh sửa ca làm việc' : 'Thêm ca làm việc mới'}</h2>
             <p>Thiết lập thông số và quy tắc cho ca làm việc.</p>
           </div>
           <button className="drawer-close-btn" onClick={onClose}>
@@ -292,8 +360,10 @@ const AddShiftDrawer: React.FC<Props> = ({ open, onClose }) => {
         </div>
 
         <div className="drawer-footer">
-          <button className="btn-cancel" onClick={onClose}>Hủy bỏ</button>
-          <button className="btn-save" onClick={handleSave}>Lưu ca làm việc</button>
+          <button className="btn-cancel" onClick={onClose} disabled={loading}>Hủy bỏ</button>
+          <button className="btn-save" onClick={handleSave} disabled={loading}>
+            {loading ? 'Đang lưu...' : initialData ? 'Cập nhật ca làm việc' : 'Lưu ca làm việc'}
+          </button>
         </div>
       </div>
     </>

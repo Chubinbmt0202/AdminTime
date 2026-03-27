@@ -7,15 +7,23 @@ import {
   SunOutlined,
   CloudOutlined,
 } from '@ant-design/icons';
-import { Spin, message } from 'antd';
+import { Spin, message, Modal } from 'antd';
+import { ExclamationCircleOutlined } from '@ant-design/icons';
 
-const ShiftList: React.FC = () => {
+const { confirm } = Modal;
+
+interface ShiftListProps {
+  refreshKey?: number;
+  onEdit?: (shift: any) => void;
+}
+
+const ShiftList: React.FC<ShiftListProps> = ({ refreshKey, onEdit }) => {
   const [shifts, setShifts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchShifts();
-  }, []);
+  }, [refreshKey]);
 
   const fetchShifts = async () => {
     setLoading(true);
@@ -38,6 +46,30 @@ const ShiftList: React.FC = () => {
     }
   };
 
+  const handleDelete = (shift: any) => {
+    confirm({
+      title: 'Xóa ca làm việc',
+      icon: <ExclamationCircleOutlined />,
+      content: `Bạn có chắc chắn muốn xóa ca "${shift.shift_name || shift.ten_ca}" không?`,
+      okText: 'Xóa',
+      okType: 'danger',
+      cancelText: 'Hủy',
+      onOk: async () => {
+        try {
+          const response = await shiftApi.deleteShift(shift.id_ca_lam_viec || shift.id);
+          if (response.success) {
+            message.success('Xóa ca làm việc thành công');
+            fetchShifts();
+          } else {
+            message.error(response.message || 'Không thể xóa ca làm việc');
+          }
+        } catch (error: any) {
+          message.error(error.message || 'Lỗi khi xóa ca làm việc');
+        }
+      },
+    });
+  };
+
   const mapShiftToCard = (shift: any, index: number) => {
     // Handling different potential time formats
     const startStr = shift.start_time ? shift.start_time.toString().substring(0, 5) : (shift.gio_bat_dau ? shift.gio_bat_dau.toString().substring(0, 5) : '');
@@ -53,7 +85,7 @@ const ShiftList: React.FC = () => {
       subtitle: shift.description || (shift.la_mac_dinh ? 'Mặc định' : ''),
       startTime: startStr || 'Chưa cấu hình',
       endTime: endStr || 'Chưa cấu hình',
-      has_lunch_break: shift.has_lunch_break,
+      lunchBreak: shift.has_lunch_break,
       workingDays: `${shift.so_cong !== undefined ? shift.so_cong : 1.0} công`,
       status: shift.trang_thai === 1 || shift.trang_thai === true ? 'Đang áp dụng' : 'Không áp dụng',
       icon: icon,
@@ -79,7 +111,16 @@ const ShiftList: React.FC = () => {
         <div className="shift-grid">
           {shifts.map((shift, index) => {
             const mappedShift = mapShiftToCard(shift, index);
-            return <ShiftCard lunchBreak={shift.has_lunch_break} key={shift.id_ca_lam_viec || shift.id || index} {...mappedShift} />;
+            return (
+              <ShiftCard
+                key={shift.id_ca_lam_viec || shift.id || index}
+                {...mappedShift}
+                lunchBreak={shift.has_lunch_break}
+                workingDays={shift.coefficient}
+                onEdit={() => onEdit?.(shift)}
+                onDelete={() => handleDelete(shift)}
+              />
+            );
           })}
           {shifts.length === 0 && (
             <div style={{ padding: '20px', color: '#6b7280' }}>Không có ca làm việc nào.</div>

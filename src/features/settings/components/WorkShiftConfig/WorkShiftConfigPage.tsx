@@ -11,6 +11,22 @@ import AddShiftDrawer from './AddShiftDrawer';
 const WorkShiftConfigPage: React.FC = () => {
   const [activeTab] = useState<'shifts' | 'rules' | 'holidays'>('shifts');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [selectedShift, setSelectedShift] = useState<any>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleAdd = () => {
+    setSelectedShift(null);
+    setIsDrawerOpen(true);
+  };
+
+  const handleEdit = (shift: any) => {
+    setSelectedShift(shift);
+    setIsDrawerOpen(true);
+  };
+
+  const handleSuccess = () => {
+    setRefreshKey(prev => prev + 1);
+  };
 
   return (
     <div className="config-page">
@@ -23,7 +39,7 @@ const WorkShiftConfigPage: React.FC = () => {
           <button className="btn btn-secondary">
             <DownloadOutlined /> Xuất báo cáo
           </button>
-          <button className="btn btn-primary" onClick={() => setIsDrawerOpen(true)}>
+          <button className="btn btn-primary" onClick={handleAdd}>
             <PlusOutlined /> Thêm ca làm việc mới
           </button>
         </div>
@@ -31,7 +47,12 @@ const WorkShiftConfigPage: React.FC = () => {
 
       <div className="main-content-wrapper">
         <div className="tab-content">
-          {activeTab === 'shifts' && <ShiftList />}
+          {activeTab === 'shifts' && (
+            <ShiftList 
+              refreshKey={refreshKey} 
+              onEdit={handleEdit} 
+            />
+          )}
 
           {activeTab === 'holidays' && (
             <div className="secondary-sections" style={{ gridTemplateColumns: 'minmax(0, 1fr)' }}>
@@ -44,6 +65,8 @@ const WorkShiftConfigPage: React.FC = () => {
       <AddShiftDrawer 
         open={isDrawerOpen} 
         onClose={() => setIsDrawerOpen(false)} 
+        onSuccess={handleSuccess}
+        initialData={selectedShift}
       />
     </div>
   );

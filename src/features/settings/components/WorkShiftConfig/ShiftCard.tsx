@@ -18,6 +18,8 @@ interface ShiftCardProps {
   icon: React.ReactNode;
   iconBg: string;
   isDefault?: boolean;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
 const ShiftCard: React.FC<ShiftCardProps> = ({
@@ -31,7 +33,9 @@ const ShiftCard: React.FC<ShiftCardProps> = ({
   status,
   icon,
   iconBg,
-  isDefault
+  isDefault,
+  onEdit,
+  onDelete
 }) => {
   return (
     <div className="shift-card">
@@ -47,8 +51,8 @@ const ShiftCard: React.FC<ShiftCardProps> = ({
           </div>
         </div>
         <div className="card-actions">
-          <button className="action-btn"><EditOutlined /></button>
-          <button className="action-btn"><DeleteOutlined /></button>
+          <button className="action-btn" onClick={onEdit} title="Chỉnh sửa"><EditOutlined /></button>
+          <button className="action-btn" onClick={onDelete} title="Xóa"><DeleteOutlined /></button>
         </div>
       </div>
 
