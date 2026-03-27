@@ -1,9 +1,7 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Form, Input, Slider, Button, Row, Col, AutoComplete, message } from 'antd';
 import {
-  CloseOutlined,
-  SearchOutlined,
   CheckCircleOutlined,
   AimOutlined,
   InfoCircleOutlined

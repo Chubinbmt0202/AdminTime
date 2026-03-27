@@ -5,11 +5,9 @@ import {
   ClockCircleOutlined, 
   UserAddOutlined,
   CalendarOutlined,
-  SendOutlined,
   HistoryOutlined,
-  MoreOutlined
 } from '@ant-design/icons';
-import { Progress, Avatar, Button, Card, Row, Col, Space, Typography } from 'antd';
+import { Progress, Avatar, Button, Card, Typography } from 'antd';
 import './DashboardPage.css';
 
 const { Title, Text } = Typography;
@@ -97,7 +95,7 @@ const DashboardPage: React.FC = () => {
               </div>
             </div>
             <div className="bar-chart">
-              {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map((day, i) => (
+              {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map((day) => (
                 <div key={day} className="bar-group">
                   <div className="bar-rail">
                     <div className="bar on-time" style={{ height: `${60 + Math.random() * 30}%` }}></div>

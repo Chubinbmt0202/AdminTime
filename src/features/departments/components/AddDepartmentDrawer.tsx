@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Drawer, Form, Input, Button, message, Select, Row, Col } from 'antd';
+import { Drawer, Form, Input, Button, message, Row, Col } from 'antd';
 import { InfoCircleOutlined, SearchOutlined, AppstoreAddOutlined, CloseOutlined } from '@ant-design/icons';
 import { departmentApi } from '../api/department.api';
 

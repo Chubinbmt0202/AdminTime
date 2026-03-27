@@ -1,4 +1,5 @@
 export interface Employee {
+    id: number;
     email: string;
     id_nhan_vien: number;
     full_name: string;
@@ -11,7 +12,9 @@ export interface Employee {
     username: string;
     id_vai_tro: number | null;
     role_name: string | null;
+    role: string;
     trang_thai: boolean;
+    is_face_updated: boolean;
     created_at: string;
 }
 

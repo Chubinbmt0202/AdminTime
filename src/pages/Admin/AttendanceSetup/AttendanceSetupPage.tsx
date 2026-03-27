@@ -48,8 +48,7 @@ export default function AttendanceSetupPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'wifi' | 'gps'>('wifi');
   const [wifiEnabled, setWifiEnabled] = useState(true);
-  const [gpsEnabled, setGpsEnabled] = useState(true);
-  const [radius, setRadius] = useState(150);
+  const [radius] = useState(150);
 
   return (
     <div className="attendance-setup-container">

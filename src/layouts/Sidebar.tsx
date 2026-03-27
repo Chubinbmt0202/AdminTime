@@ -10,7 +10,6 @@ import {
   ClockCircleOutlined,
   ApartmentOutlined,
   RadarChartOutlined,
-  SafetyCertificateOutlined,
   LogoutOutlined,
 } from '@ant-design/icons'
 import { useAuth } from '../auth/AuthContext'
