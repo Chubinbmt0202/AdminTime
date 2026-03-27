@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { officeApi } from '../../../features/offices/api/office.api';
 import { Form, Input, Slider, Button, Row, Col, AutoComplete, message } from 'antd';
 import {
   CheckCircleOutlined,
@@ -69,6 +70,7 @@ const AddGPSLocationPage: React.FC = () => {
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const [radius, setRadius] = useState<number>(150);
+  const [saving, setSaving] = useState(false);
 
   const [mapCenter, setMapCenter] = useState({ lat: 21.0285, lng: 105.7831 });
   const [markerPosition, setMarkerPosition] = useState({ lat: 21.0285, lng: 105.7831 });
@@ -157,9 +159,28 @@ const AddGPSLocationPage: React.FC = () => {
   };
 
   const handleSave = () => {
-    form.validateFields().then(values => {
-      console.log('Saving GPS location:', { ...values, radius });
-      navigate('/admin/attendance-setup');
+    form.validateFields().then(async (values) => {
+      setSaving(true);
+      try {
+        const payload = {
+          locationName: values.locationName,
+          address: values.address,
+          latitude: values.latitude,
+          longitude: values.longitude,
+          radius: radius
+        };
+        const response = await officeApi.addGPS(payload);
+        if (response.success) {
+          message.success(response.message || 'Thêm vị trí GPS thành công');
+          navigate('/admin/attendance-setup');
+        } else {
+          message.error(response.message || 'Lỗi khi thêm vị trí');
+        }
+      } catch (error: any) {
+        message.error(error.message || 'Lỗi hệ thống');
+      } finally {
+        setSaving(false);
+      }
     }).catch(info => {
       console.log('Validate Failed:', info);
     });
@@ -330,7 +351,7 @@ const AddGPSLocationPage: React.FC = () => {
         <Button onClick={handleClose} className="gps-btn-cancel-new">
           Hủy bỏ
         </Button>
-        <Button type="primary" onClick={handleSave} className="gps-btn-save-new">
+        <Button type="primary" onClick={handleSave} className="gps-btn-save-new" loading={saving}>
           Lưu địa điểm
         </Button>
       </div>

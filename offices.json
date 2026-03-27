@@ -1,0 +1,33 @@
+{
+  "success": true,
+  "message": "Lấy dữ liệu văn phòng thành công",
+  "data": [
+    {
+      "id_van_phong": 3,
+      "locationname": "Vị trí mới",
+      "address": "The Local Bean, 186, Đường Phan Châu Trinh, Phước Ninh, Hải Châu Ward, Đà Nẵng, 02363, Vietnam",
+      "id_gps": 3,
+      "longitude": "108.2194240",
+      "latitude": "16.0615010",
+      "radius": 50
+    },
+    {
+      "id_van_phong": 2,
+      "locationname": "Chi nhánh HN",
+      "address": "456 Trần Duy Hưng, Cầu Giấy, Hà Nội",
+      "id_gps": 2,
+      "longitude": "105.7993128",
+      "latitude": "21.0284834",
+      "radius": 100
+    },
+    {
+      "id_van_phong": 1,
+      "locationname": "Trụ sở chính",
+      "address": "123 Nguyễn Huệ, Q.1, TP.HCM",
+      "id_gps": 1,
+      "longitude": "106.7009355",
+      "latitude": "10.7757788",
+      "radius": 100
+    }
+  ]
+}

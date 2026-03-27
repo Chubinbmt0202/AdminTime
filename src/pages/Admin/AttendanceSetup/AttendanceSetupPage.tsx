@@ -1,5 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { message } from 'antd';
+import { officeApi } from '../../../features/offices/api/office.api';
+import type { Office } from '../../../features/offices/types';
 import {
   WifiOutlined,
   GlobalOutlined,
@@ -10,7 +13,37 @@ import {
   AimOutlined,
   EnvironmentOutlined
 } from '@ant-design/icons';
+import { MapContainer, TileLayer, Marker, Circle, useMap } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 import './AttendanceSetupPage.css';
+
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconRetina from 'leaflet/dist/images/marker-icon-2x.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+  iconUrl: icon,
+  iconRetinaUrl: iconRetina,
+  shadowUrl: iconShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  tooltipAnchor: [16, -28],
+  shadowSize: [41, 41]
+});
+
+L.Marker.prototype.options.icon = DefaultIcon;
+
+const MapUpdater = ({ center }: { center: { lat: number, lng: number } }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (center.lat && center.lng) {
+      map.setView([center.lat, center.lng], map.getZoom(), { animate: true });
+    }
+  }, [center, map]);
+  return null;
+};
 
 interface WifiConfig {
   id: number;
@@ -49,6 +82,33 @@ export default function AttendanceSetupPage() {
   const [activeTab, setActiveTab] = useState<'wifi' | 'gps'>('wifi');
   const [wifiEnabled, setWifiEnabled] = useState(true);
   const [radius] = useState(150);
+  const [offices, setOffices] = useState<Office[]>([]);
+  const [loadingOffices, setLoadingOffices] = useState(false);
+  const [activeOfficeId, setActiveOfficeId] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetchOffices();
+  }, []);
+
+  const fetchOffices = async () => {
+    setLoadingOffices(true);
+    try {
+      const response = await officeApi.getAll();
+      console.log("Dữ liệu chi nhánh", response.data);
+      if (response.success) {
+        setOffices(response.data);
+        if (response.data.length > 0) {
+          setActiveOfficeId(response.data[0].id_van_phong);
+        }
+      } else {
+        message.error(response.message || 'Không thể tải danh sách chi nhánh');
+      }
+    } catch (error) {
+      message.error('Không thể kết nối đến máy chủ');
+    } finally {
+      setLoadingOffices(false);
+    }
+  };
 
   return (
     <div className="attendance-setup-container">
@@ -171,51 +231,89 @@ export default function AttendanceSetupPage() {
               <div className="location-list">
                 <h4 className="list-title">DANH SÁCH ĐỊA ĐIỂM</h4>
 
-                <div className="location-card active">
-                  <div className="card-header">
-                    <h5>Văn phòng Bitexco</h5>
-                    <CheckCircleFilled className="check-icon" />
-                  </div>
-                  <p className="card-address">Tòa nhà Bitexco, Hải Triều, Bến Nghé, Quận 1, TP. HCM</p>
-                  <div className="card-meta">
-                    <span><EnvironmentOutlined /> 10.7715° N, 106.7042° E</span>
-                    <span className="radius-info"><AimOutlined /> Bán kính: 150m</span>
-                  </div>
-                </div>
-
-                <div className="location-card">
-                  <div className="card-header">
-                    <h5>Chi nhánh Hà Nội</h5>
-                    <button className="card-more"><MoreOutlined /></button>
-                  </div>
-                  <p className="card-address">Tòa nhà Keangnam, Mễ Trì, Nam Từ Liêm, Hà Nội</p>
-                  <div className="card-meta">
-                    <span><EnvironmentOutlined /> 21.0173° N, 105.7838° E</span>
-                    <span className="radius-info"><AimOutlined /> Bán kính: 200m</span>
-                  </div>
-                </div>
+                {loadingOffices ? (
+                  <div style={{ padding: '20px', textAlign: 'center' }}>Đang tải...</div>
+                ) : offices.length === 0 ? (
+                  <div style={{ padding: '20px', textAlign: 'center' }}>Chưa có địa điểm nào</div>
+                ) : (
+                  offices.map((office) => (
+                    <div 
+                      key={office.id_van_phong} 
+                      className={`location-card ${activeOfficeId === office.id_van_phong ? 'active' : ''}`}
+                      onClick={() => setActiveOfficeId(office.id_van_phong)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <div className="card-header">
+                        <h5>{office.locationname}</h5>
+                        {activeOfficeId === office.id_van_phong ? (
+                          <CheckCircleFilled className="check-icon" />
+                        ) : (
+                          <button className="card-more" onClick={(e) => e.stopPropagation()}><MoreOutlined /></button>
+                        )}
+                      </div>
+                      <p className="card-address">{office.address}</p>
+                      {office.id_gps ? (
+                        <div className="card-meta">
+                          <span><EnvironmentOutlined /> {office.latitude}° N, {office.longitude}° E</span>
+                          <span className="radius-info"><AimOutlined /> Bán kính: {office.radius}m</span>
+                        </div>
+                      ) : (
+                        <div className="card-meta" style={{ color: '#f59e0b' }}>
+                          <span>Chưa cấu hình GPS</span>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
 
 
               </div>
 
               <div className="map-container">
-                <div className="map-view-mock">
-                  <div className="map-label">Đang xem: Bitexco Tower</div>
-
-                  {/* Mock Map UI */}
-                  <div className="mock-map-elements">
-                    <div className="map-marker-v">
-                      <div className="marker-pin"></div>
-                      <div className="marker-radius" style={{ width: radius * 1.5, height: radius * 1.5 }}></div>
+                {(() => {
+                  const activeOffice = offices.find(o => o.id_van_phong === activeOfficeId);
+                  const lat = activeOffice?.latitude ? parseFloat(activeOffice.latitude) : null;
+                  const lng = activeOffice?.longitude ? parseFloat(activeOffice.longitude) : null;
+                  
+                  if (activeOffice && lat && lng) {
+                    return (
+                      <div className="gps-map-full-container" style={{ position: 'relative', height: '100%', minHeight: '400px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #e5e7eb' }}>
+                        <div className="map-label" style={{ position: 'absolute', top: 10, left: 10, zIndex: 1000, background: 'rgba(255,255,255,0.9)', padding: '5px 10px', borderRadius: '6px', fontWeight: 'bold', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                          Đang xem: {activeOffice.locationname}
+                        </div>
+                        <MapContainer 
+                          center={[lat, lng]} 
+                          zoom={16} 
+                          style={{ height: '100%', width: '100%' }}
+                        >
+                          <TileLayer
+                            attribution='&copy; OpenStreetMap'
+                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                          />
+                          <MapUpdater center={{ lat, lng }} />
+                          <Marker position={[lat, lng]} />
+                          <Circle 
+                            center={[lat, lng]} 
+                            radius={activeOffice.radius || 100} 
+                            pathOptions={{
+                              fillColor: '#3b82f6',
+                              fillOpacity: 0.2,
+                              color: '#3b82f6',
+                              weight: 2,
+                              opacity: 0.8
+                            }} 
+                          />
+                        </MapContainer>
+                      </div>
+                    );
+                  }
+                  
+                  return (
+                    <div className="map-view-mock" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: '400px', background: '#f3f4f6', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
+                      <p style={{ color: '#6b7280', fontWeight: 500 }}>Chưa có tọa độ GPS cho văn phòng này</p>
                     </div>
-                  </div>
-
-                  <div className="map-controls">
-                    <button className="map-ctrl-btn">+</button>
-                    <button className="map-ctrl-btn">-</button>
-                    <button className="map-ctrl-btn active"><AimOutlined /></button>
-                  </div>
-                </div>
+                  );
+                })()}
               </div>
             </div>
           </div>
