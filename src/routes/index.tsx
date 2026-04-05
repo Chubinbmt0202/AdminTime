@@ -12,6 +12,7 @@ import { useAuth } from '../auth/AuthContext';
 import OrgAndHRPage from '../pages/Admin/OrgAndHR/OrgAndHRPage';
 import AttendanceSetupPage from '../pages/Admin/AttendanceSetup/AttendanceSetupPage';
 import AddGPSLocationPage from '../pages/Admin/AttendanceSetup/AddGPSLocationPage';
+import AddWifiPage from '../pages/Admin/AttendanceSetup/AddWifiPage';
 import AdminDetailEmployeePage from '../pages/Admin/DetailEmployee/AdminDetailEmployeePage';
 
 function PlaceholderPage({ title }: { title: string }) {
@@ -39,6 +40,9 @@ export default function AppRoutes() {
                     <Route path="admin/employees/:id" element={<AdminDetailEmployeePage />} />
                     <Route path="admin/attendance-setup" element={<AttendanceSetupPage />} />
                     <Route path="admin/attendance-setup/add-gps" element={<AddGPSLocationPage />} />
+                    <Route path="admin/attendance-setup/edit-gps/:id" element={<AddGPSLocationPage />} />
+                    <Route path="admin/attendance-setup/add-wifi" element={<AddWifiPage />} />
+                    <Route path="admin/attendance-setup/edit-wifi/:id" element={<AddWifiPage />} />
                     {/* <Route path="admin/security" element={<PlaceholderPage title="Giám sát an ninh (Quản trị)" />} /> */}
                     <Route path="admin/system-settings" element={<PlaceholderPage title="Cài đặt hệ thống (Quản trị)" />} />
                     <Route path="employees" element={<EmployeesPage />} />

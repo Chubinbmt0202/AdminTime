@@ -15,3 +15,19 @@ export interface AddOfficeGPSPayload {
     latitude: string;
     radius: number;
 }
+
+export interface WifiConfig {
+    id_wifi: string | number;
+    id_van_phong: string | number;
+    locationname?: string;
+    address?: string;
+    wifiName: string;
+    wifiAddress: string;
+    status?: 'active' | 'inactive';
+}
+
+export interface AddWifiPayload {
+    id_van_phong: number | string;
+    wifiName: string;
+    wifiAddress: string;
+}

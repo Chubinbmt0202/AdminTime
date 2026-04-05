@@ -1,8 +1,17 @@
 .attendance-setup-container {
   padding: 24px;
   background-color: #f8fafc;
-  min-height: calc(100vh - 64px);
+  height: calc(100vh - 64px);
   font-family: 'Outfit', sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+.setup-content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .setup-header {
@@ -65,6 +74,10 @@
   border-radius: 16px;
   padding: 24px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .section-header {
@@ -188,6 +201,12 @@ input:checked + .slider:before { transform: translateX(22px); }
 .btn-ghost:hover { background: #f8fafc; color: #1e293b; }
 
 /* Table */
+.wifi-table-wrapper {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
 .setup-table {
   width: 100%;
   border-collapse: collapse;
@@ -273,6 +292,35 @@ input:checked + .slider:before { transform: translateX(22px); }
   display: grid;
   grid-template-columns: 320px 1fr;
   gap: 24px;
+  flex: 1;
+  min-height: 0;
+}
+
+.location-list {
+  overflow-y: auto;
+  padding-right: 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.location-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.location-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.location-list::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 10px;
+}
+
+.map-container {
+  height: 100%;
+  min-height: 0;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .list-title {
@@ -469,3 +517,48 @@ input:checked + .slider:before { transform: translateX(22px); }
 }
 
 .mt-32 { margin-top: 32px; }
+
+/* Custom Action Buttons */
+.card-actions-wrapper {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px dashed #e2e8f0;
+  display: flex;
+  gap: 12px;
+}
+
+.card-actions-wrapper .ant-btn {
+  flex: 1;
+  height: 36px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;
+}
+
+.card-actions-wrapper .ant-btn-primary {
+  background-color: #eff6ff !important;
+  color: #2563eb !important;
+  border: none !important;
+  transition: all 0.2s;
+}
+
+.card-actions-wrapper .ant-btn-primary:not(:disabled):hover {
+  background-color: #dbeafe !important;
+  transform: translateY(-1px);
+}
+
+.card-actions-wrapper .ant-btn-dangerous {
+  background-color: #fef2f2 !important;
+  color: #ef4444 !important;
+  border: none !important;
+  transition: all 0.2s;
+}
+
+.card-actions-wrapper .ant-btn-dangerous:not(:disabled):hover {
+  background-color: #fee2e2 !important;
+  transform: translateY(-1px);
+}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { officeApi } from '../../../features/offices/api/office.api';
 import { Form, Input, Slider, Button, Row, Col, AutoComplete, message } from 'antd';
 import {
@@ -44,22 +44,39 @@ const LocationMarker = ({
   position, 
   setPosition, 
   form, 
-  setAddressDisplay 
+  setAddressDisplay,
+  setSearchValue
 }: { 
   position: {lat: number, lng: number}, 
   setPosition: any, 
   form: any, 
-  setAddressDisplay: any 
+  setAddressDisplay: any,
+  setSearchValue: any
 }) => {
   useMapEvents({
-    click(e) {
+    async click(e) {
       const newPos = { lat: e.latlng.lat, lng: e.latlng.lng };
       setPosition(newPos);
       form.setFieldsValue({
         latitude: newPos.lat.toFixed(6),
         longitude: newPos.lng.toFixed(6)
       });
-      setAddressDisplay('Vị trí đã chọn trên bản đồ');
+      setAddressDisplay('Đang tải địa chỉ...');
+      
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${newPos.lat}&lon=${newPos.lng}`);
+        const data = await res.json();
+        if (data && data.display_name) {
+          const address = data.display_name;
+          setAddressDisplay(address);
+          setSearchValue(address);
+          form.setFieldsValue({ address: address });
+        } else {
+          setAddressDisplay('Vị trí đã chọn trên bản đồ');
+        }
+      } catch (err) {
+        setAddressDisplay('Vị trí đã chọn trên bản đồ');
+      }
     },
   });
 
@@ -68,6 +85,10 @@ const LocationMarker = ({
 
 const AddGPSLocationPage: React.FC = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const location = useLocation();
+  const officeToEdit = location.state?.office;
+  
   const [form] = Form.useForm();
   const [radius, setRadius] = useState<number>(150);
   const [saving, setSaving] = useState(false);
@@ -81,7 +102,22 @@ const AddGPSLocationPage: React.FC = () => {
   const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (navigator.geolocation) {
+    if (id && officeToEdit) {
+      const lat = parseFloat(officeToEdit.latitude);
+      const lng = parseFloat(officeToEdit.longitude);
+      setMapCenter({ lat, lng });
+      setMarkerPosition({ lat, lng });
+      setRadius(parseInt(officeToEdit.radius) || 150);
+      setAddressDisplay(officeToEdit.address);
+      setSearchValue(officeToEdit.address);
+      
+      form.setFieldsValue({
+        locationName: officeToEdit.locationname,
+        address: officeToEdit.address,
+        latitude: lat.toFixed(6),
+        longitude: lng.toFixed(6)
+      });
+    } else if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const lat = position.coords.latitude;
@@ -108,7 +144,7 @@ const AddGPSLocationPage: React.FC = () => {
     } else {
       message.error('Trình duyệt của bạn không hỗ trợ chức năng định vị vị trí.');
     }
-  }, [form]);
+  }, [form, id, officeToEdit]);
 
   const handleSearchChange = (val: string) => {
     setSearchValue(val);
@@ -169,12 +205,23 @@ const AddGPSLocationPage: React.FC = () => {
           longitude: values.longitude,
           radius: radius
         };
-        const response = await officeApi.addGPS(payload);
-        if (response.success) {
-          message.success(response.message || 'Thêm vị trí GPS thành công');
-          navigate('/admin/attendance-setup');
+        let response;
+        if (id) {
+          response = await officeApi.updateGPS(id, payload);
+          if (response.success) {
+            message.success(response.message || 'Cập nhật vị trí GPS thành công');
+            navigate('/admin/attendance-setup');
+          } else {
+            message.error(response.message || 'Lỗi khi cập nhật vị trí');
+          }
         } else {
-          message.error(response.message || 'Lỗi khi thêm vị trí');
+          response = await officeApi.addGPS(payload);
+          if (response.success) {
+            message.success(response.message || 'Thêm vị trí GPS thành công');
+            navigate('/admin/attendance-setup');
+          } else {
+            message.error(response.message || 'Lỗi khi thêm vị trí');
+          }
         }
       } catch (error: any) {
         message.error(error.message || 'Lỗi hệ thống');
@@ -189,7 +236,7 @@ const AddGPSLocationPage: React.FC = () => {
   return (
     <div className="add-gps-page-container">
       <div className="add-gps-page-header">
-        <h2>Thêm địa điểm GPS mới</h2>
+        <h2>{id ? 'Cập nhật địa điểm GPS' : 'Thêm địa điểm GPS mới'}</h2>
         <p>Xác định ranh giới ảo để tự động hóa quy trình chấm công dựa trên vị trí thực tế của nhân viên.</p>
       </div>
 
@@ -319,6 +366,7 @@ const AddGPSLocationPage: React.FC = () => {
                 setPosition={setMarkerPosition} 
                 form={form} 
                 setAddressDisplay={setAddressDisplay} 
+                setSearchValue={setSearchValue}
               />
               <Circle 
                 center={[markerPosition.lat, markerPosition.lng]} 
@@ -352,7 +400,7 @@ const AddGPSLocationPage: React.FC = () => {
           Hủy bỏ
         </Button>
         <Button type="primary" onClick={handleSave} className="gps-btn-save-new" loading={saving}>
-          Lưu địa điểm
+          {id ? 'Lưu cập nhật' : 'Lưu địa điểm'}
         </Button>
       </div>
     </div>
