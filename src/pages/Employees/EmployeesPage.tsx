@@ -61,6 +61,7 @@ export default function EmployeesPage() {
     try {
       const json = await employeeApi.getAll();
       if (!json.success) throw new Error(json.message || 'Lỗi không xác định');
+      console.log("Dữ liệu nhân viên nè", json.data);
       setEmployees(json.data);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Không thể kết nối tới server';
@@ -276,16 +277,16 @@ export default function EmployeesPage() {
                     <td colSpan={8} className="emp-empty">Không tìm thấy nhân viên nào.</td>
                   </tr>
                 ) : paginated.map((emp, idx) => (
-                  <tr key={emp.id} className={selected.has(emp.id) ? 'row-selected' : ''}>
+                  <tr key={emp.id_nhan_vien} className={selected.has(emp.id_nhan_vien) ? 'row-selected' : ''}>
                     <td className="col-check">
                       <input
                         type="checkbox"
                         className="emp-checkbox"
-                        checked={selected.has(emp.id)}
-                        onChange={() => toggleOne(emp.id)}
+                        checked={selected.has(emp.id_nhan_vien)}
+                        onChange={() => toggleOne(emp.id_nhan_vien)}
                       />
                     </td>
-                    <td className="col-id">#{emp.id}</td>
+                    <td className="col-id">#{emp.id_nhan_vien}</td>
                     <td className="col-username">{emp.username}</td>
                     <td className="col-name">
                       <div
@@ -296,7 +297,15 @@ export default function EmployeesPage() {
                       </div>
                       <span className="emp-name">{emp.full_name}</span>
                     </td>
-                    <td className="col-role">{emp.role || <span className="col-empty">—</span>}</td>
+                    {
+                      emp.role_name === 'Admin' ? (
+                        <td className="col-role"><span className="role-admin">Quản trị viên</span></td>
+                      ) : emp.role_name === 'Manager' ? (
+                        <td className="col-role"><span className="role-manager">Quản lý nhân sự</span></td>
+                      ) : (
+                        <td className="col-role"><span className="role-employee">Nhân viên</span></td>
+                      )
+                    }
                     <td className="col-face">
                       {emp.is_face_updated ? (
                         <span className="face-badge face-registered">

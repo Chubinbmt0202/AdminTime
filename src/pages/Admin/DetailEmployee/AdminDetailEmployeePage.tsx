@@ -26,7 +26,7 @@ export default function AdminDetailEmployeePage() {
       if (!id) return;
       setLoading(true);
       try {
-        const res = await employeeApi.getByID(Number(id));
+        const res = await employeeApi.getByID(id);
         if (res.success) {
           setEmployee(res.data);
         }
@@ -199,12 +199,12 @@ export default function AdminDetailEmployeePage() {
             <div className="face-confidence">
               {employee.is_face_updated ? (
                 <>
-                  <span className="conf-value" style={{color: '#22c55e'}}><UserOutlined className="check-icon" /> Sẵn sàng</span>
+                  <span className="conf-value" style={{ color: '#22c55e' }}><UserOutlined className="check-icon" /> Sẵn sàng</span>
                   <span className="conf-label">TRẠNG THÁI</span>
                 </>
               ) : (
                 <>
-                  <span className="conf-value" style={{color: '#ef4444'}}>Trống</span>
+                  <span className="conf-value" style={{ color: '#ef4444' }}>Trống</span>
                   <span className="conf-label">TRẠNG THÁI</span>
                 </>
               )}
@@ -230,15 +230,15 @@ export default function AdminDetailEmployeePage() {
           <div className="aed-chart-placeholder">
             {/* Mock chart layout just to look like the image visually */}
             <div className="mock-chart-lines">
-               {/* Very basic manual scatter plot simulation to match layout */}
+              {/* Very basic manual scatter plot simulation to match layout */}
             </div>
             <div className="chart-x-axis">
-               <span>Tháng 1</span>
-               <span>Tháng 2</span>
-               <span>Tháng 3</span>
-               <span>Tháng 4</span>
-               <span>Tháng 5</span>
-               <span className="current">Hiện tại</span>
+              <span>Tháng 1</span>
+              <span>Tháng 2</span>
+              <span>Tháng 3</span>
+              <span>Tháng 4</span>
+              <span>Tháng 5</span>
+              <span className="current">Hiện tại</span>
             </div>
           </div>
         </div>
@@ -247,7 +247,7 @@ export default function AdminDetailEmployeePage() {
         <div className="aed-activity-card">
           <h4>Hoạt động gần đây</h4>
           <div className="activity-timeline">
-            
+
             <div className="timeline-item">
               <div className="t-dot green"></div>
               <div className="t-content">

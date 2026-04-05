@@ -57,6 +57,7 @@ export default function OrgAndHRPage() {
   const fetchDepartments = async () => {
     try {
       const response = await departmentApi.getAll();
+      console.log("Dữ liệu phòng ban", response.data);
       if (response.success) {
         setDepartments(response.data);
         if (response.data.length > 0 && selectedDeptId === null) {
@@ -80,6 +81,7 @@ export default function OrgAndHRPage() {
       setLoadingEmployees(true);
       try {
         const response = await employeeApi.getByDepartment(selectedDeptId);
+        console.log("Dữ liệu nhân viên", response.data);
         if (response.success) {
           setEmployees(response.data);
         }

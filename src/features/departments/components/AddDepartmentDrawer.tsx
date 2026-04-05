@@ -37,7 +37,7 @@ export default function AddDepartmentDrawer({ open, onClose, onSuccess }: AddDep
     <Drawer
       title={null}
       closable={false}
-      width={480}
+      size={480}
       open={open}
       onClose={onClose}
       destroyOnClose
