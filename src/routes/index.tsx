@@ -13,7 +13,7 @@ import OrgAndHRPage from '../pages/Admin/OrgAndHR/OrgAndHRPage';
 import AttendanceSetupPage from '../pages/Admin/AttendanceSetup/AttendanceSetupPage';
 import AddGPSLocationPage from '../pages/Admin/AttendanceSetup/AddGPSLocationPage';
 import AddWifiPage from '../pages/Admin/AttendanceSetup/AddWifiPage';
-import AdminDetailEmployeePage from '../pages/Admin/DetailEmployee/AdminDetailEmployeePage';
+
 
 function PlaceholderPage({ title }: { title: string }) {
     return (
@@ -37,7 +37,7 @@ export default function AppRoutes() {
                     <Route path="hr" element={role === 'HR' ? <DashboardPage /> : <PlaceholderPage title="Trang chủ Nhân sự" />} />
                     <Route path="admin" element={role === 'Admin' ? <PlaceholderPage title="Trang chủ Quản trị" /> : <PlaceholderPage title="Unauthorized" />} />
                     <Route path="admin/org-hr" element={<OrgAndHRPage />} />
-                    <Route path="admin/employees/:id" element={<AdminDetailEmployeePage />} />
+
                     <Route path="admin/attendance-setup" element={<AttendanceSetupPage />} />
                     <Route path="admin/attendance-setup/add-gps" element={<AddGPSLocationPage />} />
                     <Route path="admin/attendance-setup/edit-gps/:id" element={<AddGPSLocationPage />} />

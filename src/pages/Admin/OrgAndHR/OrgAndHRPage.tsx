@@ -267,9 +267,7 @@ export default function OrgAndHRPage() {
                       <td>
                         <div style={{ display: 'flex', gap: '8px' }}>
                           <button
-                            className="more-action-btn"
-                            title="Xem chi tiết"
-                            onClick={() => navigate(`/admin/employees/${emp.id_nhan_vien}`)}
+                            onClick={() => navigate(`/employees/${emp.id_nhan_vien}`)}
                           >
                             <EyeOutlined />
                           </button>

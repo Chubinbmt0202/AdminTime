@@ -85,10 +85,11 @@ export default function EmployeesPage() {
         String(emp.id).includes(q) ||
         emp.role.toLowerCase().includes(q);
       const matchRole = role === 'Tất cả vai trò' || emp.role === role;
+      const hasFaceData = emp.du_lieu_khuon_mat && Object.keys(emp.du_lieu_khuon_mat).length > 0;
       const matchStatus =
         status === 'Tất cả trạng thái' ||
-        (status === 'Đã đăng ký' && emp.is_face_updated) ||
-        (status === 'Chưa đăng ký' && !emp.is_face_updated);
+        (status === 'Đã đăng ký' && hasFaceData) ||
+        (status === 'Chưa đăng ký' && !hasFaceData);
       return matchSearch && matchRole && matchStatus;
     });
   }, [employees, search, role, status]);
@@ -307,7 +308,7 @@ export default function EmployeesPage() {
                       )
                     }
                     <td className="col-face">
-                      {emp.is_face_updated ? (
+                      {(emp.du_lieu_khuon_mat && Object.keys(emp.du_lieu_khuon_mat).length > 0) ? (
                         <span className="face-badge face-registered">
                           <CheckCircleFilled />
                           Đã đăng ký
@@ -322,8 +323,8 @@ export default function EmployeesPage() {
                     <td className="col-date">{formatDate(emp.created_at)}</td>
                     <td className="col-action">
                       <div className="row-actions">
-                        <button className="row-btn" title="Xem" onClick={() => handleDetailEmployee(emp.id)}><EyeOutlined /></button>
-                        <button className="row-btn" title="Sửa" onClick={() => handleDetailEmployee(emp.id)}><EditOutlined /></button>
+                        <button className="row-btn" title="Xem" onClick={() => handleDetailEmployee(emp.id_nhan_vien)}><EyeOutlined /></button>
+                        <button className="row-btn" title="Sửa" onClick={() => handleDetailEmployee(emp.id_nhan_vien)}><EditOutlined /></button>
                         <button className="row-btn row-btn-danger" title="Xóa" onClick={() => setConfirmDelete(emp)}><DeleteOutlined /></button>
                       </div>
                     </td>

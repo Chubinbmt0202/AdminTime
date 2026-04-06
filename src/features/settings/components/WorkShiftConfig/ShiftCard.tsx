@@ -73,12 +73,6 @@ const ShiftCard: React.FC<ShiftCardProps> = ({
           <label>Số công tính</label>
           <div className="info-value">{workingDays}</div>
         </div>
-        <div className="info-group">
-          <label>Tình trạng / NV áp dụng</label>
-          <div className={`info-value ${status.includes('áp dụng') ? 'status-active' : 'status-inactive'}`}>
-            {status}
-          </div>
-        </div>
       </div>
     </div>
   );

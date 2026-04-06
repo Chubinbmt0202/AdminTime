@@ -15,6 +15,7 @@ export interface Employee {
     role: string;
     trang_thai: boolean;
     is_face_updated: boolean;
+    du_lieu_khuon_mat?: any;
     created_at: string;
 }
 

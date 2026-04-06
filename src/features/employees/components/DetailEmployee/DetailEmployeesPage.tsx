@@ -16,7 +16,8 @@ import {
     FilterOutlined,
     SendOutlined,
     LoginOutlined,
-    StopOutlined
+    StopOutlined,
+    CloseOutlined
 } from '@ant-design/icons';
 import './DetailEmployeesPage.css';
 import { useToast } from '../../../../components/common/Toast/Toast';
@@ -36,7 +37,8 @@ const initialFormData = {
     department: '',
     title: '',
     joinDate: '',
-    manager: ''
+    manager: '',
+    du_lieu_khuon_mat: null as any
 };
 
 type FieldKey = keyof typeof initialFormData;
@@ -186,8 +188,10 @@ export default function DetailEmployeesPage() {
                         department: json.data.department || 'Chưa cập nhật',
                         title: json.data.role || 'Chưa cập nhật', // Gán role làm chức vụ
                         joinDate: json.data.created_at ? new Date(json.data.created_at).toLocaleDateString('vi-VN') : 'Chưa cập nhật',
-                        manager: json.data.manager || 'Chưa cập nhật'
+                        manager: json.data.manager || 'Chưa cập nhật',
+                        du_lieu_khuon_mat: json.data.du_lieu_khuon_mat
                     });
+                    console.log("Dữ liệu nhân viên:", json.data);
                 } else {
                     toast.error('Lỗi', json.message || 'Không tìm thấy thông tin nhân viên');
                 }
@@ -455,9 +459,15 @@ export default function DetailEmployeesPage() {
                                 <h2>Dữ liệu khuôn mặt</h2>
                             </div>
                             <div className='flex'>
-                                <span className="status-tag success mr-2">
-                                    <CheckCircleFilled /> Đã đăng ký
-                                </span>
+                                {(formData.du_lieu_khuon_mat && Object.keys(formData.du_lieu_khuon_mat).length > 0) ? (
+                                    <span className="status-tag success mr-2">
+                                        <CheckCircleFilled /> Đã đăng ký
+                                    </span>
+                                ) : (
+                                    <span className="status-tag danger mr-2" style={{ backgroundColor: '#fee2e2', color: '#ef4444' }}>
+                                        <CloseOutlined /> Chưa đăng ký
+                                    </span>
+                                )}
                                 <button
                                     className="btn-secondary"
                                     onClick={handleRequestFaceUpdate}

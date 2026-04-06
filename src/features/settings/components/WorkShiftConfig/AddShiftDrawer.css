@@ -20,7 +20,7 @@
   top: 0;
   right: 0;
   height: 100vh;
-  width: 1000px;
+  width: 500px;
   background: #fff;
   z-index: 1001;
   display: flex;
@@ -39,6 +39,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 20px 24px;
   border-bottom: 1px solid #f1f5f9;
   flex-shrink: 0;
 }
@@ -85,10 +86,9 @@
 
 .sections-horizontal-wrapper {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px;
+  grid-template-columns: 1fr;
+  gap: 24px;
   margin-bottom: 24px;
-  padding-bottom: 24px;
 }
 
 /* ---- Section Headers ---- */
@@ -129,7 +129,7 @@
 }
 
 .form-row-3col {
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
 }
 
 .form-group {

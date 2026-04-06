@@ -336,26 +336,6 @@ const AddShiftDrawer: React.FC<Props> = ({ open, onClose, onSuccess, initialData
                 </div>
               </div>
             </section>
-
-            {/* Section 4: Tùy chọn áp dụng */}
-            <section className="drawer-section-shift">
-              <div className="section-header-shift">
-                <div className="section-number">4</div>
-                <h3>Tùy chọn áp dụng</h3>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Đối tượng áp dụng</label>
-                <div className="audience-selector">
-                  <div className="audience-tag tag-blue">
-                    Toàn công ty <span className="tag-close">×</span>
-                  </div>
-                  <div className="audience-tag tag-dashed">
-                    Thêm bộ phận +
-                  </div>
-                </div>
-              </div>
-            </section>
           </div>
         </div>
 
