@@ -189,9 +189,9 @@ const AddShiftDrawer: React.FC<Props> = ({ open, onClose, onSuccess, initialData
                     <label className="form-label">GIỜ VÀO CA</label>
                     <div className="time-input-wrapper">
                       <input
-                        type="text"
+                        type="time"
                         name="startTime"
-                        className="form-input"
+                        className="form-input time-picker-input"
                         value={form.startTime}
                         onChange={handleChange}
                       />
@@ -202,9 +202,9 @@ const AddShiftDrawer: React.FC<Props> = ({ open, onClose, onSuccess, initialData
                     <label className="form-label">GIỜ RA CA</label>
                     <div className="time-input-wrapper">
                       <input
-                        type="text"
+                        type="time"
                         name="endTime"
-                        className="form-input"
+                        className="form-input time-picker-input"
                         value={form.endTime}
                         onChange={handleChange}
                       />
@@ -238,9 +238,9 @@ const AddShiftDrawer: React.FC<Props> = ({ open, onClose, onSuccess, initialData
                       <label className="form-label">Bắt đầu nghỉ</label>
                       <div className="time-input-wrapper">
                         <input
-                          type="text"
+                          type="time"
                           name="breakStart"
-                          className="form-input"
+                          className="form-input time-picker-input"
                           value={form.breakStart}
                           onChange={handleChange}
                         />
@@ -251,9 +251,9 @@ const AddShiftDrawer: React.FC<Props> = ({ open, onClose, onSuccess, initialData
                       <label className="form-label">Kết thúc nghỉ</label>
                       <div className="time-input-wrapper">
                         <input
-                          type="text"
+                          type="time"
                           name="breakEnd"
-                          className="form-input"
+                          className="form-input time-picker-input"
                           value={form.breakEnd}
                           onChange={handleChange}
                         />

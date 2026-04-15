@@ -24,7 +24,6 @@ import { useToast } from '../../../../components/common/Toast/Toast';
 import { attendanceService, type AttendanceRecord } from '../../../../services/attendance.service';
 import { employeeApi } from '../../api/employee.api';
 
-// Khởi tạo form trống ban đầu (để không bị flash dữ liệu giả trước khi API load xong)
 const initialFormData = {
     full_name: 'Đang tải...',
     id: '',
@@ -125,9 +124,10 @@ export default function DetailEmployeesPage() {
         if (!id) return;
         setHistoryLoading(true);
         try {
-            const res = await attendanceService.getEmployeeHistory(Number(id));
+            const res = await attendanceService.getEmployeeHistory(id);
+            console.log("dữ liệu lịch sử chấm công:", res.data)
             if (res.success) {
-                setHistoryLogs(res.data);
+                setHistoryLogs(Array.isArray(res.data) ? res.data : []);
             } else {
                 toast.error('Lỗi', res.message || 'Không thể lấy lịch sử chấm công');
             }
@@ -168,6 +168,7 @@ export default function DetailEmployeesPage() {
     // ================== FETCH API ==================
     useEffect(() => {
         const fetchEmployeeDetail = async () => {
+            console.log("ID: ", id);
             if (!id) return;
             setLoading(true);
             try {

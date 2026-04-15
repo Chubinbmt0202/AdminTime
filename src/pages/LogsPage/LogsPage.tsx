@@ -103,8 +103,8 @@ export default function LogsPage() {
 
     const filteredLogs = dailyLogs.filter(log => {
         // 1. Search Filter
-        const matchesSearch = log.full_name.toLowerCase().includes(search.toLowerCase()) ||
-            log.username.toLowerCase().includes(search.toLowerCase());
+        const matchesSearch = (log.full_name ?? '').toLowerCase().includes(search.toLowerCase()) ||
+            (log.username ?? '').toLowerCase().includes(search.toLowerCase());
 
         // 2. Status Filter
         const matchesStatus = selectedStatus === 'all' ||

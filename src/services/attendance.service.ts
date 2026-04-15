@@ -30,7 +30,7 @@ export const attendanceService = {
         return apiClient.get(endpoint);
     },
 
-    getEmployeeHistory: async (employeeId: number): Promise<EmployeeHistoryResponse> => {
+    getEmployeeHistory: async (employeeId: string): Promise<EmployeeHistoryResponse> => {
         return apiClient.get(`/attendance/history/${employeeId}`);
     }
 };

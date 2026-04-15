@@ -271,6 +271,11 @@
     color: #ef4444;
 }
 
+.badge-info {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
 /* Action Button */
 .btn-action-view {
     background: transparent;

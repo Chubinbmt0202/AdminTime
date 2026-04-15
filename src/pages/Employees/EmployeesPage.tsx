@@ -80,10 +80,10 @@ export default function EmployeesPage() {
       const q = search.toLowerCase();
       const matchSearch =
         !q ||
-        emp.full_name.toLowerCase().includes(q) ||
-        emp.username.toLowerCase().includes(q) ||
-        String(emp.id).includes(q) ||
-        emp.role.toLowerCase().includes(q);
+        (emp.full_name ?? '').toLowerCase().includes(q) ||
+        (emp.username ?? '').toLowerCase().includes(q) ||
+        String(emp.id_nhan_vien).includes(q) ||
+        (emp.role ?? '').toLowerCase().includes(q);
       const matchRole = role === 'Tất cả vai trò' || emp.role === role;
       const hasFaceData = emp.du_lieu_khuon_mat && Object.keys(emp.du_lieu_khuon_mat).length > 0;
       const matchStatus =

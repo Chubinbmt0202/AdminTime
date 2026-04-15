@@ -205,6 +205,30 @@
   pointer-events: none;
 }
 
+/* Hide the manual clock icon when using native time picker */
+.time-input-wrapper:has(.time-picker-input) .time-icon {
+  display: none;
+}
+
+/* Native time picker styling */
+.time-picker-input {
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+
+.time-picker-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  opacity: 0.6;
+  transition: opacity 0.2s, background 0.2s;
+}
+
+.time-picker-input::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  background: rgba(37, 99, 235, 0.08);
+}
+
 /* ---- Section Box ---- */
 .section-box {
   background: #f8fafc;
