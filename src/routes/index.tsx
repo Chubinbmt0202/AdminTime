@@ -32,10 +32,10 @@ export default function AppRoutes() {
 
             <Route element={<RequireAuth />}>
                 <Route path="/" element={<MainLayout />}>
-                    <Route index element={role === 'HR' ? <DashboardPage /> : <PlaceholderPage title="Dashboard" />} />
+                    <Route index element={(role === 'HR' || role === 'Admin') ? <DashboardPage /> : <PlaceholderPage title="Dashboard" />} />
                     <Route path="director" element={role === 'Director' ? <PlaceholderPage title="Trang chủ Giám đốc" /> : <PlaceholderPage title="Unauthorized" />} />
                     <Route path="hr" element={role === 'HR' ? <DashboardPage /> : <PlaceholderPage title="Trang chủ Nhân sự" />} />
-                    <Route path="admin" element={role === 'Admin' ? <PlaceholderPage title="Trang chủ Quản trị" /> : <PlaceholderPage title="Unauthorized" />} />
+                    <Route path="admin" element={role === 'Admin' ? <DashboardPage /> : <PlaceholderPage title="Unauthorized" />} />
                     <Route path="admin/org-hr" element={<OrgAndHRPage />} />
 
                     <Route path="admin/attendance-setup" element={<AttendanceSetupPage />} />
