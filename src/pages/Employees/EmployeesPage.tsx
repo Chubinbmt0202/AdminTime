@@ -101,17 +101,17 @@ export default function EmployeesPage() {
   const handleRole = (v: string) => { setRole(v); setPage(1); };
   const handleStatus = (v: string) => { setStatus(v); setPage(1); };
 
-  const allChecked = paginated.length > 0 && paginated.every(e => selected.has(e.id));
-  const someChecked = paginated.some(e => selected.has(e.id));
+  const allChecked = paginated.length > 0 && paginated.every(e => selected.has(e.id_nhan_vien));
+  const someChecked = paginated.some(e => selected.has(e.id_nhan_vien));
 
   const toggleAll = () => {
     if (allChecked) {
       const next = new Set(selected);
-      paginated.forEach(e => next.delete(e.id));
+      paginated.forEach(e => next.delete(e.id_nhan_vien));
       setSelected(next);
     } else {
       const next = new Set(selected);
-      paginated.forEach(e => next.add(e.id));
+      paginated.forEach(e => next.add(e.id_nhan_vien));
       setSelected(next);
     }
   };
@@ -129,14 +129,14 @@ export default function EmployeesPage() {
     if (!confirmDelete) return;
     setDeleting(true);
     try {
-      const json = await employeeApi.delete(confirmDelete.id);
+      const json = await employeeApi.delete(String(confirmDelete.id_nhan_vien));
       if (!json.success) throw new Error(json.message || 'Xóa thất bại');
       toast.success('Xóa nhân viên thành công', `Đã xóa ${confirmDelete.full_name}`);
 
       // Xóa khỏi selected nếu có
       setSelected(prev => {
         const next = new Set(prev);
-        next.delete(confirmDelete.id);
+        next.delete(confirmDelete.id_nhan_vien);
         return next;
       });
       fetchEmployees();
@@ -389,7 +389,7 @@ export default function EmployeesPage() {
             </div>
             <h3 className="confirm-title">Xác nhận xoá nhân viên</h3>
             <p className="confirm-message">
-              Bạn có chắc chắn muốn xoá <strong>{confirmDelete.full_name}</strong> (#{confirmDelete.id})?
+              Bạn có chắc chắn muốn xoá <strong>{confirmDelete.full_name}</strong> (#{confirmDelete.id_nhan_vien})?
               <br />Hành động này không thể hoàn tác.
             </p>
             <div className="confirm-actions">

@@ -8,7 +8,7 @@ export const employeeApi = {
     add: (data: EmployeeFormData): Promise<{ success: boolean; message?: string }> => {
         return apiClient.post('/employees/add', data);
     },
-    delete: (id: number): Promise<{ success: boolean; message?: string }> => {
+    delete: (id: string): Promise<{ success: boolean; message?: string }> => {
         return apiClient.delete(`/employees/delete/${id}`);
     },
     getByID: (id: string): Promise<{ success: boolean; data: Employee; message?: string }> => {
