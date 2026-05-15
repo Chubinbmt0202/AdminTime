@@ -26,8 +26,9 @@ interface Props {
 }
 
 const ROLE_OPTIONS = [
-  'employee',
-  'admin',
+  'Nhân viên',
+  'Admin',
+  'HR'
 ]
 
 const INITIAL_FORM: FormData = {
@@ -162,6 +163,7 @@ export default function AddEmployeeDrawer({ open, onClose, onSuccess }: Props) {
         }),
       })
       const json = await res.json()
+      console.log("Dữ liệu json thêm nhân viên", json);
       if (!res.ok || !json.success) throw new Error(json.message || 'Tạo nhân viên thất bại')
       toast.success('Thêm nhân viên thành công!', `Đã tạo tài khoản cho ${form.full_name.trim()}`)
       onSuccess()

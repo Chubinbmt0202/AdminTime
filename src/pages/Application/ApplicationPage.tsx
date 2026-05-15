@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
     DownloadOutlined,
     SyncOutlined,
@@ -9,66 +9,27 @@ import {
     PaperClipOutlined,
     CloseCircleOutlined,
     CheckCircleOutlined,
-    WarningOutlined
+    WarningOutlined,
+    LoadingOutlined,
+    ReloadOutlined
 } from '@ant-design/icons';
 import './ApplicationPage.css';
+import { leaveApi } from '../../features/leaves/api/leave.api';
+import { useAuth } from '../../auth/AuthContext';
+import { formatDate } from '../../utils/date';
+import type { LeaveRequest } from '../../features/leaves/types';
+import { useToast } from '../../components/common/Toast/Toast';
 
-const mockLeaveRequests = [
-    {
-        id: 'LV-001',
-        employeeName: 'Nguyễn Văn A',
-        employeeId: 'EMP-1001',
-        leaveType: 'Nghỉ phép năm',
-        time: '18/03/2026 - 19/03/2026',
-        reason: 'Việc gia đình',
-        status: 'pending'
-    },
-    {
-        id: 'LV-002',
-        employeeName: 'Trần Thị B',
-        employeeId: 'EMP-1002',
-        leaveType: 'Nghỉ ốm',
-        time: '18/03/2026 (Sáng)',
-        reason: 'Đi khám bệnh định kỳ',
-        status: 'approved'
-    },
-    {
-        id: 'LV-003',
-        employeeName: 'Lê Hoàng C',
-        employeeId: 'EMP-1005',
-        leaveType: 'Nghỉ không lương',
-        time: '20/03/2026 - 25/03/2026',
-        reason: 'Du lịch nước ngoài',
-        status: 'rejected'
-    },
-    {
-        id: 'LV-004',
-        employeeName: 'Phạm Thị D',
-        employeeId: 'EMP-1008',
-        leaveType: 'Nghỉ thai sản',
-        time: '01/04/2026 - 01/10/2026',
-        reason: 'Nghỉ sinh em bé theo quy định',
-        status: 'pending'
-    }
-];
-
-const getStatusLabel = (status: string | null) => {
-    switch (status) {
-        case 'approved': return 'Đã duyệt';
-        case 'pending': return 'Chờ duyệt';
-        case 'rejected': return 'Từ chối';
-        case null: return 'Không xác định';
-        default: return status;
-    }
+const getStatusLabel = (status: boolean | null) => {
+    if (status === true) return 'Đã duyệt';
+    if (status === false) return 'Từ chối';
+    return 'Chờ duyệt';
 };
 
-const getStatusType = (status: string | null) => {
-    switch (status) {
-        case 'approved': return 'success';
-        case 'pending': return 'warning';
-        case 'rejected': return 'danger';
-        default: return 'info';
-    }
+const getStatusType = (status: boolean | null) => {
+    if (status === true) return 'success';
+    if (status === false) return 'danger';
+    return 'warning';
 };
 
 // ---- CONFIRM MODAL COMPONENT ----
@@ -140,18 +101,44 @@ function ConfirmModal({ isOpen, action, employeeName, leaveType, onConfirm, onCa
 }
 
 // ---- MAIN PAGE ----
-export default function LogsPage() {
+export default function ApplicationPage() {
+    const { user } = useAuth();
+    const toast = useToast();
     const [search, setSearch] = useState('');
-    const [selectedDate, setSelectedDate] = useState(new Date().toLocaleDateString('en-CA'));
     const [selectedStatus, setSelectedStatus] = useState('all');
-    const [selectedLog, setSelectedLog] = useState<any>(null);
+    const [selectedLog, setSelectedLog] = useState<LeaveRequest | null>(null);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     // Confirm modal state
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
 
-    const handleViewDetails = (log: any) => {
+    const fetchLeaveRequests = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const res = await leaveApi.getAll();
+            if (res.success) {
+                setLeaveRequests(res.data);
+            } else {
+                throw new Error(res.message || 'Lỗi khi tải danh sách đơn xin nghỉ');
+            }
+        } catch (err: any) {
+            setError(err.message);
+            toast.error('Lỗi', err.message);
+        } finally {
+            setLoading(false);
+        }
+    }, [toast]);
+
+    useEffect(() => {
+        fetchLeaveRequests();
+    }, [fetchLeaveRequests]);
+
+    const handleViewDetails = (log: LeaveRequest) => {
         setSelectedLog(log);
         setIsDrawerOpen(true);
     };
@@ -174,18 +161,55 @@ export default function LogsPage() {
     };
 
     // Xác nhận hành động
-    const handleConfirmOk = () => {
-        if (confirmAction === 'approve') {
-            // TODO: Gọi API phê duyệt
-            console.log('Đã phê duyệt đơn:', selectedLog?.id);
-        } else if (confirmAction === 'reject') {
-            // TODO: Gọi API từ chối
-            console.log('Đã từ chối đơn:', selectedLog?.id);
+    const handleConfirmOk = async () => {
+        if (!selectedLog || !user?.id_nhan_vien) return;
+
+        setLoading(true);
+        try {
+            const status = confirmAction === 'approve' ? 'approved' : 'rejected';
+            const res = await leaveApi.updateStatus({
+                id_don_xin_nghi: selectedLog.id_don_xin_nghi,
+                status: status,
+                id_nguoi_duyet: user.id_nhan_vien,
+                ghi_chu: status === 'approved' ? 'Đã duyệt' : 'Từ chối'
+            });
+
+            if (res.success) {
+                toast.success('Thành công', res.message || 'Đã cập nhật trạng thái đơn');
+                await fetchLeaveRequests();
+            } else {
+                throw new Error(res.message || 'Lỗi khi cập nhật trạng thái');
+            }
+        } catch (err: any) {
+            toast.error('Lỗi', err.message);
+        } finally {
+            setLoading(false);
+            setConfirmOpen(false);
+            setConfirmAction(null);
+            closeDrawer();
         }
-        setConfirmOpen(false);
-        setConfirmAction(null);
-        closeDrawer();
     };
+
+    const filteredRequests = useMemo(() => {
+        return leaveRequests.filter(req => {
+            const matchSearch = req.ho_ten_nhan_vien.toLowerCase().includes(search.toLowerCase()) ||
+                req.id_don_xin_nghi.toLowerCase().includes(search.toLowerCase());
+            const matchStatus = selectedStatus === 'all' ||
+                (selectedStatus === 'approved' && req.trang_thai === true) ||
+                (selectedStatus === 'pending' && req.trang_thai === null) ||
+                (selectedStatus === 'rejected' && req.trang_thai === false);
+            return matchSearch && matchStatus;
+        });
+    }, [leaveRequests, search, selectedStatus]);
+
+    const stats = useMemo(() => {
+        return {
+            total: leaveRequests.length,
+            pending: leaveRequests.filter(r => r.trang_thai === null).length,
+            approved: leaveRequests.filter(r => r.trang_thai === true).length,
+            rejected: leaveRequests.filter(r => r.trang_thai === false).length,
+        };
+    }, [leaveRequests]);
 
     return (
         <div className="logs-page">
@@ -196,8 +220,8 @@ export default function LogsPage() {
                     <p className="logs-subtitle">Theo dõi và quản lý dữ liệu đơn xin nghỉ của toàn bộ nhân viên.</p>
                 </div>
                 <div className="logs-header-actions">
-                    <button className="btn-secondary">
-                        <SyncOutlined /> Làm mới
+                    <button className="btn-secondary" onClick={fetchLeaveRequests} disabled={loading}>
+                        <SyncOutlined spin={loading} /> Làm mới
                     </button>
                     <button className="btn-primary">
                         <DownloadOutlined /> Xuất báo cáo
@@ -208,70 +232,55 @@ export default function LogsPage() {
             {/* 2. SUMMARY CARDS */}
             <div className="logs-summary-cards">
                 <div className="log-card">
-                    <span className="log-card-title">TỔNG NHÂN ĐƠN TỪ</span>
-                    <span className="log-card-value text-blue">12</span>
-                    <span className="log-card-desc">Đã chấm công: 10</span>
+                    <span className="log-card-title">TỔNG NHẬN ĐƠN TỪ</span>
+                    <span className="log-card-value text-blue">{stats.total}</span>
+                    <span className="log-card-desc">Đơn từ trong hệ thống</span>
                 </div>
                 <div className="log-card">
                     <span className="log-card-title">CHỜ DUYỆT</span>
-                    <span className="log-card-value text-orange">10</span>
-                    <span className="log-card-desc">Tỷ lệ: 83%</span>
+                    <span className="log-card-value text-orange">{stats.pending}</span>
+                    <span className="log-card-desc">Tỷ lệ: {stats.total ? Math.round((stats.pending / stats.total) * 100) : 0}%</span>
                 </div>
                 <div className="log-card">
                     <span className="log-card-title">ĐÃ DUYỆT</span>
-                    <span className="log-card-value text-green">2</span>
-                    <span className="log-card-desc">Tỷ lệ: 17%</span>
+                    <span className="log-card-value text-green">{stats.approved}</span>
+                    <span className="log-card-desc">Tỷ lệ: {stats.total ? Math.round((stats.approved / stats.total) * 100) : 0}%</span>
                 </div>
                 <div className="log-card">
                     <span className="log-card-title">TỪ CHỐI</span>
-                    <span className="log-card-value text-red">0</span>
-                    <span className="log-card-desc">Tỷ lệ: 0%</span>
+                    <span className="log-card-value text-red">{stats.rejected}</span>
+                    <span className="log-card-desc">Tỷ lệ: {stats.total ? Math.round((stats.rejected / stats.total) * 100) : 0}%</span>
                 </div>
             </div>
 
             {/* 3. FILTERS */}
             <div className="logs-filters">
                 <div className="filter-group">
-                    <div className="date-picker-wrap">
-                        <input
-                            type="date"
-                            className="log-input date-input"
-                            style={{ width: "170px" }}
-                            value={selectedDate}
-                            onChange={(e) => setSelectedDate(e.target.value)}
-                        />
-                    </div>
                     <div className="search-wrap">
                         <SearchOutlined className="input-icon" />
                         <input
                             type="text"
                             style={{ padding: "0 16px 0 38px" }}
                             className="log-input search-input"
-                            placeholder="Tìm theo tên, username..."
+                            placeholder="Tìm theo tên, mã đơn..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
                 </div>
                 <div className="filter-group">
-                    <select className="log-select" disabled>
-                        <option>Tất cả phòng ban</option>
-                        <option>Engineering</option>
-                        <option>Marketing</option>
-                        <option>Design</option>
-                    </select>
                     <select
                         className="log-select"
                         value={selectedStatus}
                         onChange={(e) => setSelectedStatus(e.target.value)}
                     >
                         <option value="all">Mọi trạng thái</option>
-                        <option value="present">Đã duyệt</option>
-                        <option value="late">Chờ duyệt</option>
-                        <option value="absent">Từ chối</option>
+                        <option value="approved">Đã duyệt</option>
+                        <option value="pending">Chờ duyệt</option>
+                        <option value="rejected">Từ chối</option>
                     </select>
-                    <button className="btn-icon-filter">
-                        <FilterOutlined />
+                    <button className="btn-icon-filter" onClick={fetchLeaveRequests} disabled={loading}>
+                        <SyncOutlined spin={loading} />
                     </button>
                 </div>
             </div>
@@ -291,28 +300,41 @@ export default function LogsPage() {
                         </tr>
                     </thead>
                     <tbody>
-                        {mockLeaveRequests.map((log, idx) => (
-                            <tr key={idx}>
-                                <td className="fw-600">{log.id}</td>
+                        {loading ? (
+                            <tr>
+                                <td colSpan={7} className="text-center py-20">
+                                    <LoadingOutlined style={{ fontSize: 24 }} spin />
+                                    <p>Đang tải dữ liệu...</p>
+                                </td>
+                            </tr>
+                        ) : filteredRequests.length === 0 ? (
+                            <tr>
+                                <td colSpan={7} className="text-center py-20">Không có đơn xin nghỉ nào.</td>
+                            </tr>
+                        ) : filteredRequests.map((log) => (
+                            <tr key={log.id_don_xin_nghi}>
+                                <td className="fw-600">{log.id_don_xin_nghi}</td>
                                 <td>
                                     <div className="log-emp-info">
                                         <img
-                                            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(log.employeeName)}&background=random`}
-                                            alt={log.employeeName}
+                                            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(log.ho_ten_nhan_vien)}&background=random`}
+                                            alt={log.ho_ten_nhan_vien}
                                             className="log-avatar"
                                         />
                                         <div>
-                                            <div className="log-emp-name">{log.employeeName}</div>
-                                            <div className="log-emp-id">{log.employeeId}</div>
+                                            <div className="log-emp-name">{log.ho_ten_nhan_vien}</div>
+                                            <div className="log-emp-id">{log.id_nguoi_dung}</div>
                                         </div>
                                     </div>
                                 </td>
-                                <td>{log.leaveType}</td>
-                                <td className="fw-600">{log.time}</td>
-                                <td>{log.reason}</td>
+                                <td>{log.ten_phep}</td>
+                                <td className="fw-600">
+                                    {formatDate(log.ngay_bat_dau)} - {formatDate(log.ngay_ket_thuc)}
+                                </td>
+                                <td>{log.ly_do}</td>
                                 <td>
-                                    <span className={`log-badge badge-${getStatusType(log.status)}`}>
-                                        {getStatusLabel(log.status)}
+                                    <span className={`log-badge badge-${getStatusType(log.trang_thai)}`}>
+                                        {getStatusLabel(log.trang_thai)}
                                     </span>
                                 </td>
                                 <td>
@@ -328,11 +350,11 @@ export default function LogsPage() {
 
             {/* 5. PAGINATION */}
             <div className="logs-pagination">
-                <span className="pag-text">Hiển thị 0 trong số 0 nhân viên</span>
+                <span className="pag-text">Hiển thị {filteredRequests.length} trong số {leaveRequests.length} đơn</span>
                 <div className="pag-controls">
                     <button className="pag-btn disabled">Trước</button>
                     <button className="pag-btn active">1</button>
-                    <button className="pag-btn">Sau</button>
+                    <button className="pag-btn disabled">Sau</button>
                 </div>
             </div>
 
@@ -356,14 +378,14 @@ export default function LogsPage() {
                             {/* 1. Thông tin nhân sự */}
                             <div className="drawer-profile-card">
                                 <img
-                                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(selectedLog.employeeName)}&background=random`}
+                                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(selectedLog.ho_ten_nhan_vien)}&background=random`}
                                     alt="avatar"
                                     className="profile-avatar"
                                 />
                                 <div className="profile-info">
-                                    <h3 className="profile-name">{selectedLog.employeeName}</h3>
-                                    <p className="profile-meta">Mã NV: {selectedLog.employeeId}</p>
-                                    <p className="profile-meta">Phòng Kỹ thuật</p>
+                                    <h3 className="profile-name">{selectedLog.ho_ten_nhan_vien}</h3>
+                                    <p className="profile-meta">Mã NV: {selectedLog.id_nguoi_dung}</p>
+                                    <p className="profile-meta">{selectedLog.ten_phong_ban || 'Phòng ban chưa cập nhật'}</p>
                                 </div>
                             </div>
 
@@ -372,16 +394,18 @@ export default function LogsPage() {
                                 <h4 className="section-title">THÔNG TIN NGHỈ PHÉP</h4>
                                 <div className="info-block mb-16">
                                     <span className="info-label">Loại đơn</span>
-                                    <span className="badge-leave-type">{selectedLog.leaveType}</span>
+                                    <span className="badge-leave-type">{selectedLog.ten_phep}</span>
                                 </div>
                                 <div className="info-grid">
                                     <div className="info-block">
                                         <span className="info-label">Thời gian</span>
-                                        <span className="info-value fw-600">{selectedLog.time}</span>
+                                        <span className="info-value fw-600">
+                                            {formatDate(selectedLog.ngay_bat_dau)} - {formatDate(selectedLog.ngay_ket_thuc)}
+                                        </span>
                                     </div>
                                     <div className="info-block">
                                         <span className="info-label">Lý do</span>
-                                        <span className="info-value text-gray">{selectedLog.reason}</span>
+                                        <span className="info-value text-gray">{selectedLog.ly_do}</span>
                                     </div>
                                 </div>
                                 <div className="info-block mt-16">
@@ -389,9 +413,14 @@ export default function LogsPage() {
                                     <div className="attachment-box">
                                         <div className="attachment-name">
                                             <PaperClipOutlined style={{ color: '#1890ff' }} />
-                                            <span>medical_certificate.pdf</span>
+                                            <span>{selectedLog.url_minh_chung ? 'minh_chung.png' : 'Không có đính kèm'}</span>
                                         </div>
-                                        <DownloadOutlined className="dl-icon" />
+                                        {selectedLog.url_minh_chung && (
+                                            <DownloadOutlined
+                                                className="dl-icon"
+                                                onClick={() => window.open(selectedLog.url_minh_chung!, '_blank')}
+                                            />
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -400,8 +429,8 @@ export default function LogsPage() {
                             <div className="drawer-section">
                                 <div className="section-header-flex">
                                     <h4 className="section-title">LỊCH SỬ PHÊ DUYỆT</h4>
-                                    <span className={`status-badge-${getStatusType(selectedLog.status)}`}>
-                                        {getStatusLabel(selectedLog.status)}
+                                    <span className={`status-badge-${getStatusType(selectedLog.trang_thai)}`}>
+                                        {getStatusLabel(selectedLog.trang_thai)}
                                     </span>
                                 </div>
                                 <div className="approval-timeline">
@@ -409,25 +438,29 @@ export default function LogsPage() {
                                         <div className="timeline-dot"></div>
                                         <div className="timeline-content">
                                             <div className="tl-title">Khởi tạo đơn</div>
-                                            <div className="tl-meta">Bởi {selectedLog.employeeName} • 09/10/2023 14:30</div>
-                                            <div className="tl-comment">"Gửi sớm để team sắp xếp người thay thế."</div>
+                                            <div className="tl-meta">Bởi {selectedLog.ho_ten_nhan_vien} • {formatDate(selectedLog.ngay_tao)}</div>
+                                            <div className="tl-comment">"{selectedLog.ly_do}"</div>
                                         </div>
                                     </div>
-                                    <div className="timeline-item completed">
-                                        <div className="timeline-dot"></div>
-                                        <div className="timeline-content">
-                                            <div className="tl-title">Quản lý trực tiếp đã duyệt</div>
-                                            <div className="tl-meta">Trần Minh Cường • 09/10/2023 16:00</div>
-                                            <div className="tl-comment">"Đã xác nhận bàn giao công việc ổn định."</div>
+                                    {selectedLog.trang_thai !== null && (
+                                        <div className="timeline-item completed">
+                                            <div className="timeline-dot"></div>
+                                            <div className="timeline-content">
+                                                <div className="tl-title">Đã được xử lý</div>
+                                                <div className="tl-meta">Người duyệt: {selectedLog.ten_nguoi_duyet || 'Admin'} • {selectedLog.ngay_duyet ? formatDate(selectedLog.ngay_duyet) : ''}</div>
+                                                <div className="tl-comment">"{selectedLog.ghi_chu}"</div>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="timeline-item pending">
-                                        <div className="timeline-dot"></div>
-                                        <div className="timeline-content">
-                                            <div className="tl-title">Chờ Nhân sự (HR) phê duyệt</div>
-                                            <div className="tl-meta">Đang chờ xử lý...</div>
+                                    )}
+                                    {selectedLog.trang_thai === null && (
+                                        <div className="timeline-item pending">
+                                            <div className="timeline-dot"></div>
+                                            <div className="timeline-content">
+                                                <div className="tl-title">Đang chờ phê duyệt</div>
+                                                <div className="tl-meta">Chờ Quản lý/HR xử lý...</div>
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
                                 </div>
                             </div>
                         </>
@@ -436,14 +469,22 @@ export default function LogsPage() {
                     )}
                 </div>
 
-                {/* DRAWER FOOTER — gọi openConfirm thay vì đóng thẳng */}
+                {/* DRAWER FOOTER */}
                 <div className="drawer-footer drawer-actions-split">
-                    <button className="btn-action-reject" onClick={() => openConfirm('reject')}>
-                        <CloseCircleOutlined /> Từ chối
-                    </button>
-                    <button className="btn-action-approve" onClick={() => openConfirm('approve')}>
-                        <CheckCircleOutlined /> Phê duyệt
-                    </button>
+                    {selectedLog?.trang_thai === null ? (
+                        <>
+                            <button className="btn-action-reject" onClick={() => openConfirm('reject')} disabled={loading}>
+                                <CloseCircleOutlined /> Từ chối
+                            </button>
+                            <button className="btn-action-approve" onClick={() => openConfirm('approve')} disabled={loading}>
+                                <CheckCircleOutlined /> Phê duyệt
+                            </button>
+                        </>
+                    ) : (
+                        <button className="btn-action-view" style={{ width: '100%' }} onClick={closeDrawer}>
+                            Đóng
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -451,8 +492,8 @@ export default function LogsPage() {
             <ConfirmModal
                 isOpen={confirmOpen}
                 action={confirmAction}
-                employeeName={selectedLog?.employeeName}
-                leaveType={selectedLog?.leaveType}
+                employeeName={selectedLog?.ho_ten_nhan_vien}
+                leaveType={selectedLog?.ten_phep}
                 onConfirm={handleConfirmOk}
                 onCancel={handleConfirmCancel}
             />

@@ -42,5 +42,17 @@ export const apiClient = {
             throw new Error(text || `Request failed (${res.status})`);
         }
         return res.json() as Promise<T>;
+    },
+    patch: async <T = unknown>(endpoint: string, body: unknown): Promise<T> => {
+        const res = await fetch(`${ENV.API_URL}${endpoint}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        });
+        if (!res.ok) {
+            const text = await res.text().catch(() => '');
+            throw new Error(text || `Request failed (${res.status})`);
+        }
+        return res.json() as Promise<T>;
     }
 };

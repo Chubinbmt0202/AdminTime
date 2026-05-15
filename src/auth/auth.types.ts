@@ -2,11 +2,11 @@
 export type Role = 'Admin' | 'HR' | 'Director' | 'Employee';
 
 export type AuthUser = {
-  id: string;
-  username: string;
-  full_name: string;
+  id_tai_khoan: string;
+  ten_dang_nhap: string;
+  ho_va_ten: string;
   ten_vai_tro: Role;
-  nhan_vien_id?: string;
+  id_nhan_vien: string;
   is_face_updated?: boolean;
 };
 
