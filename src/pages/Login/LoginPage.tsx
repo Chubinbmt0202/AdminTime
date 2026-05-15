@@ -47,6 +47,7 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
     try {
+      console.log(`[LOGIN CLICK] Username: ${username} | BSSID: (Browser limited)`);
       const user = await login({ username, password, remember });
       alert('Đăng nhập thành công');
       // ưu tiên quay lại trang đang định vào; nếu không có thì về home theo role

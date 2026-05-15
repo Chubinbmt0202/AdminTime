@@ -10,7 +10,7 @@ type AuthState = {
 };
 
 type AuthContextValue = AuthState & {
-  login: (params: { username: string; password: string; remember?: boolean }) => Promise<AuthUser>;
+  login: (params: { username: string; password: string; remember?: boolean; wifi_bssid?: string }) => Promise<AuthUser>;
   logout: () => void;
 };
 
@@ -38,10 +38,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isAuthenticated,
       user,
       role,
-      async login({ username, password, remember = true }) {
+      async login({ username, password, remember = true, wifi_bssid }) {
         const res = await apiClient.post<LoginResponse>('/auth/login', {
           username,
           password,
+          wifi_bssid,
         });
 
         if (!res.success) {
