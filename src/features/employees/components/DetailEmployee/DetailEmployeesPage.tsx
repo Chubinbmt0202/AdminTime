@@ -148,17 +148,21 @@ export default function DetailEmployeesPage() {
 
     const handleRequestInfoUpdate = async (e: React.MouseEvent) => {
         e.preventDefault();
-        if (isRequestingInfoUpdate) return;
+        if (isRequestingInfoUpdate || !id) return;
 
         setIsRequestingInfoUpdate(true);
         try {
-            // Giả lập API mất 1 giây
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            toast.success(
-                'Đã gửi yêu cầu',
-                `Nhân viên ${formData.full_name} sẽ nhận được thông báo yêu cầu cập nhật thông tin cá nhân.`
-            );
+            const res = await employeeApi.requestProfileUpdate(id);
+            if (res.success) {
+                toast.success(
+                    'Đã gửi yêu cầu',
+                    `Nhân viên ${formData.full_name} sẽ nhận được thông báo yêu cầu cập nhật thông tin cá nhân.`
+                );
+            } else {
+                toast.error('Lỗi', res.message || 'Không thể gửi yêu cầu cập nhật thông tin cá nhân.');
+            }
         } catch (error) {
+            console.error('Failed to request profile update:', error);
             toast.error('Lỗi', 'Không thể gửi yêu cầu, vui lòng thử lại sau.');
         } finally {
             setIsRequestingInfoUpdate(false);
@@ -222,7 +226,7 @@ export default function DetailEmployeesPage() {
         setShowFaceConfirm(false);
         setIsRequestingFaceUpdate(true);
         try {
-            const res = await employeeApi.requestFaceUpdate(Number(id));
+            const res = await employeeApi.requestFaceUpdate(id);
             if (res.success) {
                 toast.success(
                     'Yêu cầu thành công',

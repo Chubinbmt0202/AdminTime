@@ -17,7 +17,10 @@ export const employeeApi = {
     getByDepartment: (id: number): Promise<{ success: boolean; data: Employee[]; message?: string }> => {
         return apiClient.get(`/employees/by-department/${id}`);
     },
-    requestFaceUpdate: (id: number): Promise<{ success: boolean; message?: string }> => {
+    requestFaceUpdate: (id: string): Promise<{ success: boolean; message?: string }> => {
         return apiClient.put(`/employees/request-face-update/${id}`, {});
+    },
+    requestProfileUpdate: (id: string): Promise<{ success: boolean; message?: string }> => {
+        return apiClient.put(`/employees/request-profile-update/${id}`, {});
     }
 };
