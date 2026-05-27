@@ -4,54 +4,58 @@ import { QuestionCircleOutlined, SearchOutlined } from '@ant-design/icons';
 import avatarImg from '../assets/images/avatar.png';
 import './Header.css';
 import Breadcrumb from '../components/common/Breadcrumb/Breadcrumb';
-
-type NotificationItem = {
-  id: number;
-  title: string;
-  time: string;
-  unread: boolean;
-  type: 'leave' | 'attendance' | 'system' | 'award';
-  avatar?: string;
-};
-
-const mockNotifications: NotificationItem[] = [
-  {
-    id: 1,
-    title: 'Nguyễn Văn A vừa nộp đơn xin nghỉ phép.',
-    time: '5 phút trước',
-    unread: true,
-    type: 'leave',
-    avatar: 'https://i.pravatar.cc/150?u=1'
-  },
-  {
-    id: 2,
-    title: 'Trần Thị B đã điểm danh muộn.',
-    time: '1 giờ trước',
-    unread: true,
-    type: 'attendance',
-    avatar: 'https://i.pravatar.cc/150?u=2'
-  },
-  {
-    id: 3,
-    title: 'Cập nhật hệ thống thành công.',
-    time: '2 giờ trước',
-    unread: false,
-    type: 'system'
-  },
-  {
-    id: 4,
-    title: 'Chúc mừng bạn nhận được giải nhân viên xuất sắc!',
-    time: '3 giờ trước',
-    unread: false,
-    type: 'award'
-  },
-];
+import { useNavigate } from 'react-router-dom';
+import { ref, onValue, update, get, query, limitToLast } from 'firebase/database';
+import { database } from '../config/firebase';
+import { useAuth } from '../auth/AuthContext';
 
 export default function Header() {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  const auth = useAuth();
 
-  const unreadCount = useMemo(() => mockNotifications.filter((n) => n.unread).length, []);
+  const [notifications, setNotifications] = useState<any[]>([]);
+
+  // Định dạng thời gian trôi qua
+  const formatTimeAgo = (timestamp: number) => {
+    const diff = Date.now() - timestamp;
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'Vừa xong';
+    if (mins < 60) return `${mins} phút trước`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours} giờ trước`;
+    const days = Math.floor(hours / 24);
+    return `${days} ngày trước`;
+  };
+
+  useEffect(() => {
+    if (!auth.isAuthenticated || auth.role === 'Employee') {
+      return;
+    }
+
+    const notifRef = ref(database, 'admin_notifications');
+    const notifQuery = query(notifRef, limitToLast(50));
+
+    const unsubscribe = onValue(notifQuery, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const list = Object.keys(data).map((key) => ({
+          id: key,
+          ...data[key],
+        })).sort((a, b) => b.ngay_tao - a.ngay_tao);
+        setNotifications(list);
+      } else {
+        setNotifications([]);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [auth.isAuthenticated, auth.role]);
+
+  const unreadCount = useMemo(() => notifications.filter((n) => !n.da_doc).length, [notifications]);
 
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
@@ -61,6 +65,42 @@ export default function Header() {
     document.addEventListener('mousedown', onDocClick);
     return () => document.removeEventListener('mousedown', onDocClick);
   }, []);
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      const notifRef = ref(database, 'admin_notifications');
+      const snapshot = await get(notifRef);
+      if (snapshot.exists()) {
+        const updates: any = {};
+        snapshot.forEach((child) => {
+          const key = child.key;
+          const val = child.val();
+          if (val && !val.da_doc) {
+            updates[`${key}/da_doc`] = true;
+          }
+        });
+        if (Object.keys(updates).length > 0) {
+          await update(notifRef, updates);
+        }
+      }
+      setOpen(false);
+    } catch (error) {
+      console.error('Lỗi khi đánh dấu tất cả đã đọc:', error);
+    }
+  };
+
+  const handleNotifClick = async (n: any) => {
+    try {
+      const itemRef = ref(database, `admin_notifications/${n.id}`);
+      await update(itemRef, { da_doc: true });
+    } catch (error) {
+      console.error('Lỗi khi đánh dấu đã đọc:', error);
+    }
+    setOpen(false);
+    if (n.loai_thong_bao === 'LEAVE_REQUEST') {
+      navigate('/leave-requests');
+    }
+  };
 
   return (
     <header className="app-header">
@@ -88,33 +128,44 @@ export default function Header() {
           {open && (
             <div className="header-popover">
               <div className="header-popover-head">
-                <div className="header-popover-title">Thông báo</div>
-                <button className="header-popover-link" onClick={() => setOpen(false)}>
+                <div className="header-popover-title">Thông báo ({unreadCount})</div>
+                <button className="header-popover-link" onClick={handleMarkAllAsRead}>
                   Đánh dấu tất cả là đã đọc
                 </button>
               </div>
               <div className="header-popover-list">
-                {mockNotifications.map((n) => (
-                  <div key={n.id} className={`header-notif-item ${n.unread ? 'unread' : ''}`}>
-                    <div className="header-notif-avatar-wrapper">
-                      {n.avatar ? (
-                        <img src={n.avatar} alt="Avatar" className="header-notif-avatar" />
-                      ) : (
-                        <div className={`header-notif-icon-placeholder ${n.type}`}>
-                          {n.type === 'system' ? '⚙️' : '🏆'}
-                        </div>
-                      )}
-                      {n.unread && <span className="header-notif-dot"></span>}
-                    </div>
-                    <div className="header-notif-content">
-                      <div className="header-notif-text">{n.title}</div>
-                      <div className="header-notif-time">{n.time}</div>
-                    </div>
+                {notifications.length === 0 ? (
+                  <div style={{ padding: '16px', textAlign: 'center', color: '#64748b' }}>
+                    Không có thông báo mới
                   </div>
-                ))}
+                ) : (
+                  notifications.map((n) => (
+                    <div
+                      key={n.id}
+                      className={`header-notif-item ${!n.da_doc ? 'unread' : ''}`}
+                      onClick={() => handleNotifClick(n)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <div className="header-notif-avatar-wrapper">
+                        <div className="header-notif-icon-placeholder leave">
+                          📝
+                        </div>
+                        {!n.da_doc && <span className="header-notif-dot"></span>}
+                      </div>
+                      <div className="header-notif-content">
+                        <div className="header-notif-text">
+                          <strong>{n.ho_ten_nhan_vien}</strong>: {n.tieu_de} - {n.noi_dung}
+                        </div>
+                        <div className="header-notif-time">{formatTimeAgo(n.ngay_tao)}</div>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
               <div className="header-popover-footer">
-                <button className="header-popover-footer-btn">Xem tất cả thông báo</button>
+                <button className="header-popover-footer-btn" onClick={() => { setOpen(false); navigate('/leave-requests'); }}>
+                  Xem tất cả đơn nghỉ phép
+                </button>
               </div>
             </div>
           )}
