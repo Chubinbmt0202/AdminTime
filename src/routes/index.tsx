@@ -6,6 +6,8 @@ import DetailEmployeesPage from '../features/employees/components/DetailEmployee
 import LogsPage from '../pages/LogsPage/LogsPage';
 import WorkShiftConfigPage from '../features/settings/components/WorkShiftConfig/WorkShiftConfigPage';
 import ApplicationPage from '../pages/Application/ApplicationPage';
+import OvertimePage from '../pages/Overtime/OvertimePage';
+import LeaveTypeConfigPage from '../features/settings/components/LeaveTypeConfig/LeaveTypeConfigPage';
 import LoginPage from '../pages/Login/LoginPage';
 import RequireAuth from '../auth/RequireAuth';
 import { useAuth } from '../auth/AuthContext';
@@ -43,12 +45,14 @@ export default function AppRoutes() {
                     <Route path="admin/attendance-setup/edit-gps/:id" element={<AddGPSLocationPage />} />
                     <Route path="admin/attendance-setup/add-wifi" element={<AddWifiPage />} />
                     <Route path="admin/attendance-setup/edit-wifi/:id" element={<AddWifiPage />} />
+                    <Route path="leave-types" element={<LeaveTypeConfigPage />} />
                     {/* <Route path="admin/security" element={<PlaceholderPage title="Giám sát an ninh (Quản trị)" />} /> */}
                     <Route path="admin/system-settings" element={<PlaceholderPage title="Cài đặt hệ thống (Quản trị)" />} />
                     <Route path="employees" element={<EmployeesPage />} />
                     <Route path="employees/:id" element={<DetailEmployeesPage />} />
                     <Route path="logs" element={<LogsPage />} />
                     <Route path="leave-requests" element={<ApplicationPage />} />
+                    <Route path="overtime-requests" element={<OvertimePage />} />
                     <Route path="reports" element={<PlaceholderPage title="Reports" />} />
                     <Route path="admin/shifts" element={<WorkShiftConfigPage />} />
 

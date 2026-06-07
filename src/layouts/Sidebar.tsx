@@ -53,6 +53,8 @@ export default function Sidebar() {
         { key: 'employees', label: 'Nhân viên', icon: <TeamOutlined />, path: '/employees' },
         { key: 'logs', label: 'Chấm công', icon: <HistoryOutlined />, path: '/logs' },
         { key: 'leave-requests', label: 'Đơn xin nghỉ', icon: <CalendarOutlined />, path: '/leave-requests' },
+        { key: 'overtime-requests', label: 'Đơn xin tăng ca', icon: <ClockCircleOutlined />, path: '/overtime-requests' },
+        { key: 'leave-types', label: 'Thiết lập đơn từ', icon: <SettingOutlined />, path: '/leave-types' },
       ]
     }
 

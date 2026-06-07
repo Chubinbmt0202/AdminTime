@@ -1,0 +1,164 @@
+.leave-type-page {
+    padding: 24px;
+    background-color: #f8fafc;
+    min-height: 100vh;
+}
+
+.leave-type-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.leave-type-header h1 {
+    font-size: 24px;
+    color: #0f172a;
+    margin: 0 0 8px 0;
+    font-weight: 600;
+}
+
+.leave-type-header p {
+    color: #64748b;
+    margin: 0;
+    font-size: 14px;
+}
+
+.leave-type-content {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.leave-type-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.leave-type-table th {
+    background-color: #f1f5f9;
+    color: #475569;
+    font-weight: 600;
+    font-size: 13px;
+    text-align: left;
+    padding: 16px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.leave-type-table td {
+    padding: 16px;
+    border-bottom: 1px solid #e2e8f0;
+    color: #334155;
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+.leave-type-table tr:last-child td {
+    border-bottom: none;
+}
+
+.leave-type-table tr:hover {
+    background-color: #f8fafc;
+}
+
+.editing-row {
+    background-color: #f0fdf4 !important;
+}
+
+.fw-600 {
+    font-weight: 600;
+}
+
+.text-gray {
+    color: #64748b;
+}
+
+.badge-days {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 16px;
+    background: #e0e7ff;
+    color: #4338ca;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.badge-salary {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.badge-salary.yes {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.badge-salary.no {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.form-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.form-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-edit {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.btn-edit:hover {
+    background: #dbeafe;
+}
+
+.btn-save {
+    background: #10b981;
+    color: white;
+}
+
+.btn-save:hover {
+    background: #059669;
+}
+
+.btn-cancel {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.btn-cancel:hover {
+    background: #e2e8f0;
+}
