@@ -342,3 +342,20 @@
 .notif-footer button:hover {
   color: #2563eb;
 }
+
+/* Badge số lượng thông báo trong các mục điều hướng Sidebar */
+.sidebar-badge {
+  margin-left: auto;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  background-color: #ef4444;
+  border-radius: 9px;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}

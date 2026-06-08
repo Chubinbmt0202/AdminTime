@@ -99,6 +99,8 @@ export default function Header() {
     setOpen(false);
     if (n.loai_thong_bao === 'LEAVE_REQUEST') {
       navigate('/leave-requests');
+    } else if (n.loai_thong_bao === 'OVERTIME_REQUEST') {
+      navigate('/overtime-requests');
     }
   };
 

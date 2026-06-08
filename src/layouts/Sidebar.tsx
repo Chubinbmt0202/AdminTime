@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import {
   AppstoreOutlined,
@@ -12,6 +12,8 @@ import {
   RadarChartOutlined,
   LogoutOutlined,
 } from '@ant-design/icons'
+import { ref, onValue, query, limitToLast, get, update } from 'firebase/database'
+import { database } from '../config/firebase'
 import { useAuth } from '../auth/AuthContext'
 import type { Role } from '../auth/auth.types'
 import './Sidebar.css'
@@ -36,6 +38,72 @@ export default function Sidebar() {
   const location = useLocation()
   const { role, logout } = useAuth()
   console.log("role", role)
+
+  const [notifications, setNotifications] = useState<any[]>([])
+
+  useEffect(() => {
+    if (!role || role === 'Employee') {
+      return
+    }
+
+    const notifRef = ref(database, 'admin_notifications')
+    const notifQuery = query(notifRef, limitToLast(50))
+
+    const unsubscribe = onValue(notifQuery, (snapshot) => {
+      const data = snapshot.val()
+      if (data) {
+        const list = Object.keys(data).map((key) => ({
+          id: key,
+          ...data[key],
+        }))
+        setNotifications(list)
+      } else {
+        setNotifications([])
+      }
+    })
+
+    return () => {
+      unsubscribe()
+    }
+  }, [role])
+
+  const markNotificationsAsRead = async (type: 'LEAVE_REQUEST' | 'OVERTIME_REQUEST') => {
+    try {
+      const notifRef = ref(database, 'admin_notifications')
+      const snapshot = await get(notifRef)
+      if (snapshot.exists()) {
+        const updates: any = {}
+        snapshot.forEach((child) => {
+          const key = child.key
+          const val = child.val()
+          if (val && val.loai_thong_bao === type && !val.da_doc) {
+            updates[`${key}/da_doc`] = true
+          }
+        })
+        if (Object.keys(updates).length > 0) {
+          await update(notifRef, updates)
+        }
+      }
+    } catch (error) {
+      console.error(`Lỗi khi đánh dấu đã đọc thông báo loại ${type}:`, error)
+    }
+  }
+
+  useEffect(() => {
+    if (location.pathname.startsWith('/leave-requests')) {
+      markNotificationsAsRead('LEAVE_REQUEST')
+    } else if (location.pathname.startsWith('/overtime-requests')) {
+      markNotificationsAsRead('OVERTIME_REQUEST')
+    }
+  }, [location.pathname])
+
+  const leaveNotificationCount = useMemo(() => {
+    return notifications.filter(n => n.loai_thong_bao === 'LEAVE_REQUEST' && !n.da_doc).length
+  }, [notifications])
+
+  const overtimeNotificationCount = useMemo(() => {
+    return notifications.filter(n => n.loai_thong_bao === 'OVERTIME_REQUEST' && !n.da_doc).length
+  }, [notifications])
 
   const navItems = useMemo<NavItem[]>(() => {
     // 1) Giám đốc: Tổng quan + Báo cáo và phân tích
@@ -104,16 +172,26 @@ export default function Sidebar() {
 
       {/* Navigation */}
       <nav className="sidebar-nav">
-        {navItems.map(item => (
-          <button
-            key={item.key}
-            className={`sidebar-nav-item ${activeKey === item.key ? 'active' : ''}`}
-            onClick={() => navigate(item.path)}
-          >
-            <span className="sidebar-nav-icon">{item.icon}</span>
-            <span className="sidebar-nav-label">{item.label}</span>
-          </button>
-        ))}
+        {navItems.map(item => {
+          let count = 0
+          if (item.key === 'leave-requests') {
+            count = leaveNotificationCount
+          } else if (item.key === 'overtime-requests') {
+            count = overtimeNotificationCount
+          }
+
+          return (
+            <button
+              key={item.key}
+              className={`sidebar-nav-item ${activeKey === item.key ? 'active' : ''}`}
+              onClick={() => navigate(item.path)}
+            >
+              <span className="sidebar-nav-icon">{item.icon}</span>
+              <span className="sidebar-nav-label">{item.label}</span>
+              {count > 0 && <span className="sidebar-badge">{count}</span>}
+            </button>
+          )
+        })}
       </nav>
 
       {/* Bottom section */}
