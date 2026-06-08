@@ -290,12 +290,16 @@ export default function EmployeesPage() {
                     <td className="col-id">#{emp.id_nhan_vien}</td>
                     <td className="col-username">{emp.username}</td>
                     <td className="col-name">
-                      <div
-                        className="emp-avatar"
-                        style={{ background: AVATAR_COLORS[idx % AVATAR_COLORS.length] }}
-                      >
-                        {getInitials(emp.full_name)}
-                      </div>
+                      {emp.hinh_anh ? (
+                        <img src={emp.hinh_anh} alt={emp.full_name} className="emp-avatar" style={{ objectFit: 'cover' }} />
+                      ) : (
+                        <div
+                          className="emp-avatar"
+                          style={{ background: AVATAR_COLORS[idx % AVATAR_COLORS.length] }}
+                        >
+                          {getInitials(emp.full_name)}
+                        </div>
+                      )}
                       <span className="emp-name">{emp.full_name}</span>
                     </td>
                     {

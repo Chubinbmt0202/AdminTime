@@ -37,7 +37,8 @@ const initialFormData = {
     title: '',
     joinDate: '',
     manager: '',
-    du_lieu_khuon_mat: null as any
+    du_lieu_khuon_mat: null as any,
+    hinh_anh: ''
 };
 
 type FieldKey = keyof typeof initialFormData;
@@ -194,7 +195,8 @@ export default function DetailEmployeesPage() {
                         title: json.data.role || 'Chưa cập nhật', // Gán role làm chức vụ
                         joinDate: json.data.created_at ? new Date(json.data.created_at).toLocaleDateString('vi-VN') : 'Chưa cập nhật',
                         manager: json.data.manager || 'Chưa cập nhật',
-                        du_lieu_khuon_mat: json.data.du_lieu_khuon_mat
+                        du_lieu_khuon_mat: json.data.du_lieu_khuon_mat,
+                        hinh_anh: json.data.hinh_anh || ''
                     });
                     console.log("Dữ liệu nhân viên:", json.data);
                 } else {
@@ -489,7 +491,7 @@ export default function DetailEmployeesPage() {
                         </div>
                         <div className="card-content face-data-wrap">
                             <div className="face-image-box">
-                                <img src={`https://ui-avatars.com/api/?name=${formData.full_name}&background=random&size=300`} alt="Face Data" />
+                                <img src={formData.hinh_anh ? formData.hinh_anh : `https://ui-avatars.com/api/?name=${formData.full_name}&background=random&size=300`} alt="Face Data" style={formData.hinh_anh ? { objectFit: 'cover' } : {}} />
                                 <span className="preview-label">Preview Mode</span>
                             </div>
 
@@ -579,7 +581,7 @@ export default function DetailEmployeesPage() {
             <div className="detail-header-card">
                 <div className="header-info-wrap">
                     <div className="header-avatar">
-                        <img src={`https://ui-avatars.com/api/?name=${formData.full_name}&background=random`} alt={formData.full_name} />
+                        <img src={formData.hinh_anh ? formData.hinh_anh : `https://ui-avatars.com/api/?name=${formData.full_name}&background=random`} alt={formData.full_name} style={formData.hinh_anh ? { objectFit: 'cover' } : {}} />
                         <div className="status-badge-icon"><CheckCircleFilled /></div>
                     </div>
                     <div className="header-text">

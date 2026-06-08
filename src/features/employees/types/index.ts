@@ -16,6 +16,7 @@ export interface Employee {
     trang_thai: boolean;
     is_face_updated: boolean;
     du_lieu_khuon_mat?: any;
+    hinh_anh?: string | null;
     created_at: string;
 }
 

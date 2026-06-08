@@ -249,7 +249,7 @@ export default function OrgAndHRPage() {
                       <td><span className="emp-id">#{emp.id_nhan_vien}</span></td>
                       <td>
                         <div className="name-cell">
-                          <img src={`https://i.pravatar.cc/150?u=${emp.id_nhan_vien}`} alt={emp.full_name} className="emp-avatar" />
+                          <img src={emp.hinh_anh || `https://i.pravatar.cc/150?u=${emp.id_nhan_vien}`} alt={emp.full_name} className="emp-avatar" style={{ objectFit: 'cover' }} />
                           <div>
                             <div className="emp-name">{emp.full_name}</div>
                             <div className="emp-email">{emp.username}@timemaster.vn</div>
