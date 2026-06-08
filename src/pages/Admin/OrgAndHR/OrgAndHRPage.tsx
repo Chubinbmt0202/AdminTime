@@ -38,8 +38,8 @@ export default function OrgAndHRPage() {
   const [loadingEmployees, setLoadingEmployees] = useState(false);
   const [isAddDeptDrawerOpen, setIsAddDeptDrawerOpen] = useState(false);
 
-  const getDeptIcon = (mo_ta: string | null) => {
-    const name = mo_ta?.toLowerCase() || '';
+  const getDeptIcon = (nameInput: string | null) => {
+    const name = nameInput?.toLowerCase() || '';
     if (name.includes('giám đốc')) return <CrownOutlined className="tree-icon" />;
     if (name.includes('it')) return <CodeOutlined className="tree-icon" />;
     if (name.includes('r&d') || name.includes('nghiên cứu')) return <RobotOutlined className="tree-icon" />;
@@ -186,7 +186,7 @@ export default function OrgAndHRPage() {
                     className={`tree-item ${selectedDeptId === dept.id_phong_ban ? 'active' : ''}`}
                     onClick={() => setSelectedDeptId(dept.id_phong_ban)}
                   >
-                    {getDeptIcon(dept.mo_ta)} {dept.ten_phong_ban}
+                    {getDeptIcon(dept.ten_phong_ban || dept.mo_ta)} {dept.ten_phong_ban || dept.mo_ta}
                   </div>
                 ))}
               </>

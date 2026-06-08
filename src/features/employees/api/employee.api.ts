@@ -11,6 +11,9 @@ export const employeeApi = {
     delete: (id: string): Promise<{ success: boolean; message?: string }> => {
         return apiClient.delete(`/employees/delete/${id}`);
     },
+    update: (id: string, data: any): Promise<{ success: boolean; message?: string }> => {
+        return apiClient.put(`/employees/update/${id}`, data);
+    },
     getByID: (id: string): Promise<{ success: boolean; data: Employee; message?: string }> => {
         return apiClient.get(`/employees/getByID/${id}`);
     },

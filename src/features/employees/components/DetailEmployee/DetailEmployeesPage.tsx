@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import {
     EditOutlined,
@@ -17,12 +17,16 @@ import {
     SendOutlined,
     LoginOutlined,
     StopOutlined,
-    CloseOutlined
+    CloseOutlined,
+    TeamOutlined
 } from '@ant-design/icons';
 import './DetailEmployeesPage.css';
 import { useToast } from '../../../../components/common/Toast/Toast';
 import { attendanceService, type AttendanceRecord } from '../../../../services/attendance.service';
 import { employeeApi } from '../../api/employee.api';
+import { departmentApi } from '../../../departments/api/department.api';
+import type { Department } from '../../../../types/department.types';
+import AttendanceDetailDrawer from './AttendanceDetailDrawer';
 
 const initialFormData = {
     full_name: 'Đang tải...',
@@ -34,6 +38,7 @@ const initialFormData = {
     gender: '',
     address: '',
     department: '',
+    department_id: '',
     title: '',
     joinDate: '',
     manager: '',
@@ -112,6 +117,15 @@ export default function DetailEmployeesPage() {
     const [isEditing, setIsEditing] = useState(false);
     const [isRequestingFaceUpdate, setIsRequestingFaceUpdate] = useState(false);
 
+    // Trạng thái cho Drawer chi tiết chấm công
+    const [selectedAttendance, setSelectedAttendance] = useState<AttendanceRecord | null>(null);
+    const [isAttendanceDrawerOpen, setIsAttendanceDrawerOpen] = useState(false);
+
+    const handleViewAttendanceDetail = (record: AttendanceRecord) => {
+        setSelectedAttendance(record);
+        setIsAttendanceDrawerOpen(true);
+    };
+
     // Lưu trữ dữ liệu thông tin nhân viên
     const [formData, setFormData] = useState(initialFormData);
 
@@ -119,6 +133,73 @@ export default function DetailEmployeesPage() {
     const [activeEditField, setActiveEditField] = useState<FieldKey | null>(null);
 
     const [isRequestingInfoUpdate, setIsRequestingInfoUpdate] = useState(false);
+
+    // Filter states for history
+    const monthOptions = useMemo(() => {
+        const months = [];
+        const currentDate = new Date();
+        for (let i = 0; i < 6; i++) {
+            const d = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+            months.push({
+                label: `Tháng ${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`,
+                value: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+            });
+        }
+        return months;
+    }, []);
+
+    const [selectedMonth, setSelectedMonth] = useState<string>(
+        `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
+    );
+    const [selectedHistoryStatus, setSelectedHistoryStatus] = useState<string>('all');
+
+    // States for department settings
+    const [departments, setDepartments] = useState<Department[]>([]);
+    const [settingDepartmentId, setSettingDepartmentId] = useState<string>('');
+    const [isUpdatingDepartment, setIsUpdatingDepartment] = useState(false);
+
+    useEffect(() => {
+        const fetchDepartments = async () => {
+            try {
+                const res = await departmentApi.getAll();
+                if (res.success) {
+                    setDepartments(res.data);
+                }
+            } catch (err) {
+                console.error("Lỗi lấy danh sách phòng ban:", err);
+            }
+        };
+        fetchDepartments();
+    }, []);
+
+    const handleUpdateDepartment = async () => {
+        if (!id) return;
+        setIsUpdatingDepartment(true);
+        try {
+            const res = await employeeApi.update(id, {
+                department_id: settingDepartmentId || null
+            });
+            if (res.success) {
+                toast.success('Cập nhật phòng ban cho nhân viên thành công');
+                setFormData(prev => {
+                    const dept = departments.find(d => d.id_phong_ban === settingDepartmentId);
+                    const deptName = dept ? (dept.ten_phong_ban || dept.mo_ta || 'Phòng ban không tên') : 'Chưa phân phòng';
+                    return {
+                        ...prev,
+                        department_id: settingDepartmentId,
+                        department: deptName
+                    };
+                });
+            } else {
+                toast.error(res.message || 'Không thể cập nhật phòng ban');
+            }
+        } catch (err) {
+            console.error('Lỗi cập nhật phòng ban:', err);
+            toast.error('Đã xảy ra lỗi hệ thống');
+        } finally {
+            setIsUpdatingDepartment(false);
+        }
+    };
 
     // ================== FETCH ATTENDANCE HISTORY ==================
     const fetchHistory = async () => {
@@ -191,13 +272,15 @@ export default function DetailEmployeesPage() {
                         dob: json.data.dob || 'Chưa cập nhật',
                         gender: json.data.gender || 'Chưa cập nhật',
                         address: json.data.address || 'Chưa cập nhật',
-                        department: json.data.department || 'Chưa cập nhật',
-                        title: json.data.role || 'Chưa cập nhật', // Gán role làm chức vụ
+                        department: json.data.department_name || json.data.department || 'Chưa cập nhật',
+                        department_id: json.data.department_id || '',
+                        title: json.data.role_name || json.data.role || 'Chưa cập nhật', // Gán role làm chức vụ
                         joinDate: json.data.created_at ? new Date(json.data.created_at).toLocaleDateString('vi-VN') : 'Chưa cập nhật',
                         manager: json.data.manager || 'Chưa cập nhật',
                         du_lieu_khuon_mat: json.data.du_lieu_khuon_mat,
                         hinh_anh: json.data.hinh_anh || ''
                     });
+                    setSettingDepartmentId(json.data.department_id || '');
                     console.log("Dữ liệu nhân viên:", json.data);
                 } else {
                     toast.error('Lỗi', json.message || 'Không tìm thấy thông tin nhân viên');
@@ -324,12 +407,26 @@ export default function DetailEmployeesPage() {
                 );
 
             case 'history':
-                // Tính toán sơ bộ từ dữ liệu thật
+                // Lọc theo tháng
+                const monthLogs = historyLogs.filter(log => {
+                    if (!log.log_date) return false;
+                    return log.log_date.substring(0, 7) === selectedMonth;
+                });
+
+                // Lọc tiếp theo trạng thái
+                const filteredHistoryLogs = monthLogs.filter(log => {
+                    if (selectedHistoryStatus === 'all') return true;
+                    if (selectedHistoryStatus === 'present' && log.status === 'present') return true;
+                    if (selectedHistoryStatus === 'late_early' && (log.status === 'late' || log.status === 'half_day')) return true;
+                    return false;
+                });
+
+                // Tính toán sơ bộ từ dữ liệu đã lọc theo tháng
                 const stats = {
-                    total: historyLogs.length,
-                    late: historyLogs.filter(l => l.status === 'late').length,
-                    half: historyLogs.filter(l => l.status === 'half_day').length,
-                    present: historyLogs.filter(l => l.status === 'present').length,
+                    total: monthLogs.length,
+                    late: monthLogs.filter(l => l.status === 'late').length,
+                    half: monthLogs.filter(l => l.status === 'half_day').length,
+                    present: monthLogs.filter(l => l.status === 'present').length,
                 };
 
                 return (
@@ -360,14 +457,23 @@ export default function DetailEmployeesPage() {
                             </div>
 
                             <div className="history-filters">
-                                <select className="emp-select h-select">
-                                    <option>Tháng 03/2026</option>
-                                    <option>Tháng 02/2026</option>
+                                <select 
+                                    className="emp-select h-select"
+                                    value={selectedMonth}
+                                    onChange={e => setSelectedMonth(e.target.value)}
+                                >
+                                    {monthOptions.map(m => (
+                                        <option key={m.value} value={m.value}>{m.label}</option>
+                                    ))}
                                 </select>
-                                <select className="emp-select h-select">
-                                    <option>Mọi trạng thái</option>
-                                    <option>Đúng giờ</option>
-                                    <option>Đi muộn / Về sớm</option>
+                                <select 
+                                    className="emp-select h-select"
+                                    value={selectedHistoryStatus}
+                                    onChange={e => setSelectedHistoryStatus(e.target.value)}
+                                >
+                                    <option value="all">Mọi trạng thái</option>
+                                    <option value="present">Đúng giờ</option>
+                                    <option value="late_early">Đi muộn / Về sớm</option>
                                 </select>
                                 <button className="btn-icon h-filter-btn">
                                     <FilterOutlined />
@@ -405,15 +511,15 @@ export default function DetailEmployeesPage() {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {historyLogs.length === 0 ? (
+                                            {filteredHistoryLogs.length === 0 ? (
                                                 <tr>
                                                     <td colSpan={7} style={{ textAlign: 'center', padding: '20px', color: '#94a3b8' }}>
                                                         Không tìm thấy lịch sử chấm công
                                                     </td>
                                                 </tr>
                                             ) : (
-                                                historyLogs.map((record, idx) => (
-                                                    <tr key={idx}>
+                                                filteredHistoryLogs.map((record, idx) => (
+                                                    <tr key={idx} onClick={() => handleViewAttendanceDetail(record)} style={{ cursor: 'pointer' }} title="Nhấn để xem chi tiết">
                                                         <td className="fw-600">{formatHistoryDate(record.log_date)}</td>
                                                         <td className="text-gray">{getVietnameseDay(record.log_date)}</td>
                                                         <td className={`fw-600 ${record.status === 'late' ? 'text-orange' : ''}`}>
@@ -446,7 +552,7 @@ export default function DetailEmployeesPage() {
 
                             {/* Pagination */}
                             <div className="h-pagination-wrap">
-                                <span className="h-pag-text">Hiển thị {historyLogs.length} ngày công</span>
+                                <span className="h-pag-text">Hiển thị {filteredHistoryLogs.length} ngày công</span>
                                 <div className="h-pag-controls">
                                     <button className="h-pag-btn disabled">Trước</button>
                                     <button className="h-pag-btn active">1</button>
@@ -555,6 +661,40 @@ export default function DetailEmployeesPage() {
                             </div>
 
                             <hr className="setting-divider" />
+
+                            {/* Section: Phân bổ phòng ban */}
+                            <div className="setting-section">
+                                <h3 className="setting-section-title">
+                                    <TeamOutlined /> Phân bổ phòng ban
+                                </h3>
+
+                                <div className="grid-2-cols">
+                                    <div className="setting-form-group">
+                                        <label>Phòng ban trực thuộc</label>
+                                        <select 
+                                            className="setting-input" 
+                                            value={settingDepartmentId} 
+                                            onChange={(e) => setSettingDepartmentId(e.target.value)}
+                                        >
+                                            <option value="">-- Chưa phân phòng --</option>
+                                            {departments.map(d => (
+                                                <option key={d.id_phong_ban} value={d.id_phong_ban}>{d.ten_phong_ban || d.mo_ta || 'Phòng ban không tên'}</option>
+                                            ))}
+                                        </select>
+                                        <span className="setting-hint">Lưu ý: Chuyển đổi phòng ban sẽ thay đổi quyền lợi tương ứng.</span>
+                                    </div>
+                                </div>
+
+                                <div className="setting-actions">
+                                    <button 
+                                        className="btn-primary" 
+                                        onClick={handleUpdateDepartment}
+                                        disabled={isUpdatingDepartment}
+                                    >
+                                        {isUpdatingDepartment ? <><LoadingOutlined spin /> Đang cập nhật...</> : 'Cập nhật phòng ban'}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 );
@@ -683,6 +823,12 @@ export default function DetailEmployeesPage() {
                     </div>
                 </div>
             )}
+
+            <AttendanceDetailDrawer
+                open={isAttendanceDrawerOpen}
+                onClose={() => setIsAttendanceDrawerOpen(false)}
+                record={selectedAttendance}
+            />
         </div>
     );
 }

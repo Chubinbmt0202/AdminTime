@@ -8,6 +8,7 @@ import {
 } from '@ant-design/icons';
 import './LogsPage.css';
 import { attendanceService, type AttendanceRecord } from '../../services/attendance.service';
+import AttendanceDetailDrawer from '../../features/employees/components/DetailEmployee/AttendanceDetailDrawer';
 
 const formatTime = (isoString: string | null) => {
     if (!isoString) return '--:--';
@@ -42,6 +43,15 @@ export default function LogsPage() {
     const [selectedStatus, setSelectedStatus] = useState('all');
     const [logs, setLogs] = useState<AttendanceRecord[]>([]);
     const [loading, setLoading] = useState(true);
+
+    // Trạng thái cho Drawer chi tiết chấm công
+    const [selectedAttendance, setSelectedAttendance] = useState<AttendanceRecord | null>(null);
+    const [isAttendanceDrawerOpen, setIsAttendanceDrawerOpen] = useState(false);
+
+    const handleViewAttendanceDetail = (record: AttendanceRecord) => {
+        setSelectedAttendance(record);
+        setIsAttendanceDrawerOpen(true);
+    };
 
 
     const fetchLogs = async () => {
@@ -82,7 +92,7 @@ export default function LogsPage() {
                     employee_id: log.employee_id,
                     full_name: log.full_name,
                     username: log.username,
-                    log_date: null,
+                    log_date: selectedDate,
                     check_in_time: null,
                     check_out_time: null,
                     status: null
@@ -253,7 +263,7 @@ export default function LogsPage() {
                                         </span>
                                     </td>
                                     <td>
-                                        <button className="btn-action-view" title="Xem chi tiết">
+                                        <button className="btn-action-view" title="Xem chi tiết" onClick={() => handleViewAttendanceDetail(log)}>
                                             <EyeOutlined /> Chi tiết
                                         </button>
                                     </td>
@@ -273,6 +283,12 @@ export default function LogsPage() {
                     <button className="pag-btn">Sau</button>
                 </div>
             </div>
+
+            <AttendanceDetailDrawer
+                open={isAttendanceDrawerOpen}
+                onClose={() => setIsAttendanceDrawerOpen(false)}
+                record={selectedAttendance}
+            />
         </div>
     );
 }

@@ -1,6 +1,6 @@
 export interface Department {
     ten_phong_ban: string;
-    id_phong_ban: number;
+    id_phong_ban: string;
     mo_ta: string | null;
     ngay_tao: string;
     id_nguoi_dung: number | null;
