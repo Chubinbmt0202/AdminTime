@@ -82,18 +82,7 @@ export default function AddDepartmentDrawer({ open, onClose, onSuccess }: AddDep
           </Col>
         </Row>
 
-        <Form.Item
-          name="truong_bo_phan"
-          label={<span style={{ fontWeight: 700, fontSize: '11px', letterSpacing: '0.5px', color: '#374151', marginTop: '8px', display: 'block' }}>CHỈ ĐỊNH TRƯỞNG BỘ PHẬN</span>}
-        >
-          <Input
-            prefix={<SearchOutlined style={{ color: '#9ca3af', marginRight: '4px' }} />}
-            suffix={<span style={{ backgroundColor: '#e5e7eb', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', color: '#6b7280', fontWeight: 600 }}>⌘ K</span>}
-            placeholder="Tìm kiếm nhân viên theo tên hoặc mã..."
-            size="large"
-            style={{ backgroundColor: '#f3f4f6', border: 'none', borderRadius: '6px', fontSize: '14px' }}
-          />
-        </Form.Item>
+
 
         <Form.Item
           name="mo_ta_chuc_nang"

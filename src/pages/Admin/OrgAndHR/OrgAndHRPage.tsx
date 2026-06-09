@@ -33,8 +33,9 @@ export default function OrgAndHRPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDeptId, setSelectedDeptId] = useState<number | null>(null);
+  const [selectedDeptId, setSelectedDeptId] = useState<number | string | null>(null);
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
   const [loadingEmployees, setLoadingEmployees] = useState(false);
   const [isAddDeptDrawerOpen, setIsAddDeptDrawerOpen] = useState(false);
 
@@ -54,25 +55,31 @@ export default function OrgAndHRPage() {
     return <ApartmentOutlined className="tree-icon" />;
   };
 
-  const fetchDepartments = async () => {
+  const fetchInitialData = async () => {
     try {
-      const response = await departmentApi.getAll();
-      console.log("Dữ liệu phòng ban", response.data);
-      if (response.success) {
-        setDepartments(response.data);
-        if (response.data.length > 0 && selectedDeptId === null) {
-          setSelectedDeptId(response.data[0].id_phong_ban);
+      const [deptRes, empRes] = await Promise.all([
+        departmentApi.getAll(),
+        employeeApi.getAll()
+      ]);
+      console.log("Dữ liệu phòng ban", deptRes.data);
+      if (deptRes.success) {
+        setDepartments(deptRes.data);
+        if (deptRes.data.length > 0 && selectedDeptId === null) {
+          setSelectedDeptId(deptRes.data[0].id_phong_ban);
         }
       }
+      if (empRes.success) {
+        setAllEmployees(empRes.data);
+      }
     } catch (error) {
-      console.error('Error fetching departments:', error);
+      console.error('Error fetching initial data:', error);
     } finally {
       if (loading) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchDepartments();
+    fetchInitialData();
   }, []);
 
   useEffect(() => {
@@ -80,7 +87,7 @@ export default function OrgAndHRPage() {
       if (selectedDeptId === null) return;
       setLoadingEmployees(true);
       try {
-        const response = await employeeApi.getByDepartment(selectedDeptId);
+        const response = await employeeApi.getByDepartment(selectedDeptId as number);
         console.log("Dữ liệu nhân viên", response.data);
         if (response.success) {
           setEmployees(response.data);
@@ -94,6 +101,28 @@ export default function OrgAndHRPage() {
     fetchEmployeesByDept();
   }, [selectedDeptId]);
 
+  const totalEmp = allEmployees.length;
+  const workingEmp = allEmployees.filter(e => e.trang_thai).length;
+  const resignedEmp = totalEmp - workingEmp;
+
+  const deptCounts = allEmployees.reduce((acc, emp) => {
+    const deptName = emp.department_name || 'Khác';
+    acc[deptName] = (acc[deptName] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const topDepts = Object.entries(deptCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3);
+
+  const legendClasses = ['it', 'sales', 'marketing'];
+
+  const selectedDeptName = (() => {
+    if (selectedDeptId === null) return 'Tất cả';
+    const dept = departments.find(d => d.id_phong_ban === selectedDeptId);
+    return dept ? (dept.ten_phong_ban || dept.mo_ta) : 'Phòng ban';
+  })();
+
   return (
     <div className="org-hr-container">
       {/* Top Stats Cards */}
@@ -104,11 +133,11 @@ export default function OrgAndHRPage() {
           </div>
           <div className="stat-content">
             <span className="stat-label">TỔNG NHÂN VIÊN</span>
-            <div className="stat-value">120</div>
+            <div className="stat-value">{totalEmp}</div>
             <div className="stat-sub">
-              <span className="working"><span className="dot"></span> 115 Đang làm</span>
+              <span className="working"><span className="dot"></span> {workingEmp} Đang làm</span>
               <span className="divider"></span>
-              <span className="resigned"><span className="dot"></span> 5 Đã nghỉ</span>
+              <span className="resigned"><span className="dot"></span> {resignedEmp} Đã nghỉ</span>
             </div>
           </div>
           <button className="stat-more-btn">Tổng quát</button>
@@ -120,9 +149,9 @@ export default function OrgAndHRPage() {
           </div>
           <div className="stat-content">
             <span className="stat-label">CƠ CẤU TỔ CHỨC</span>
-            <div className="stat-value">8 <span className="unit">Phòng ban</span></div>
+            <div className="stat-value">{departments.length} <span className="unit">Phòng ban</span></div>
             <div className="stat-info">
-              <ApartmentOutlined /> Quy mô: 2 chi nhánh chính
+              <ApartmentOutlined /> Quy mô: {departments.length > 0 ? departments.length : 0} phòng ban chính
             </div>
           </div>
         </div>
@@ -147,9 +176,14 @@ export default function OrgAndHRPage() {
                 </svg>
               </div>
               <ul className="chart-legend">
-                <li><span className="legend-dot it"></span> IT <strong>40%</strong></li>
-                <li><span className="legend-dot sales"></span> Sales <strong>25%</strong></li>
-                <li><span className="legend-dot marketing"></span> Marketing <strong>20%</strong></li>
+                {topDepts.map(([name, count], index) => {
+                  const percentage = totalEmp > 0 ? Math.round((count / totalEmp) * 100) : 0;
+                  return (
+                    <li key={name}>
+                      <span className={`legend-dot ${legendClasses[index % legendClasses.length]}`}></span> {name} <strong>{percentage}%</strong>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           </div>
@@ -198,7 +232,7 @@ export default function OrgAndHRPage() {
         <div className="employee-section">
           <div className="employee-toolbar">
             <div>
-              <span>Phòng ban: Marketing</span>
+              <span>Phòng ban: {selectedDeptName}</span>
             </div>
             <div className="search-box">
               <SearchOutlined />
@@ -212,7 +246,7 @@ export default function OrgAndHRPage() {
             <select className="filter-select">
               <option>Trạng thái</option>
             </select>
-            <button className="add-employee-btn">
+            <button className="add-employee-btn" onClick={() => navigate('/employees')}>
               <UserAddOutlined /> Thêm nhân viên
             </button>
           </div>
@@ -297,7 +331,7 @@ export default function OrgAndHRPage() {
       <AddDepartmentDrawer
         open={isAddDeptDrawerOpen}
         onClose={() => setIsAddDeptDrawerOpen(false)}
-        onSuccess={fetchDepartments}
+        onSuccess={fetchInitialData}
       />
     </div>
   );
