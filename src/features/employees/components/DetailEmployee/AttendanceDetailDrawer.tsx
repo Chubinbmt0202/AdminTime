@@ -92,7 +92,7 @@ export default function AttendanceDetailDrawer({ open, onClose, record }: Props)
           </div>
 
           <div className="att-section">
-            <h3 className="att-section-title"><ClockCircleOutlined /> Thời gian</h3>
+            <h3 className="att-section-title"><ClockCircleOutlined /> Thời gian làm việc</h3>
             <div className="att-time-grid">
               <div className="att-time-box">
                 <span className="att-time-label">Giờ vào (Check-in)</span>
@@ -108,6 +108,40 @@ export default function AttendanceDetailDrawer({ open, onClose, record }: Props)
               </div>
             </div>
           </div>
+
+          {record.has_ot && (
+            <div className="att-section ot-section">
+              <h3 className="att-section-title"><ClockCircleOutlined /> Thông tin tăng ca</h3>
+              <div className="ot-detail-grid">
+                <div className="ot-detail-info">
+                  <p><strong>Giờ đăng ký:</strong> {record.ot_start_time?.substring(0, 5)} - {record.ot_expected_end_time?.substring(0, 5)}</p>
+                  <p><strong>Lý do:</strong> {record.ot_reason || 'Không có'}</p>
+                  <p>
+                    <strong>Trạng thái duyệt: </strong> 
+                    <span className={`ot-status-txt text-${record.ot_status === 'DA_DUYET' ? 'green' : record.ot_status === 'CHO_DUYET' ? 'orange' : 'red'}`}>
+                      {record.ot_status === 'DA_DUYET' ? 'Đã duyệt' : record.ot_status === 'CHO_DUYET' ? 'Chờ duyệt' : 'Từ chối'}
+                    </span>
+                  </p>
+                </div>
+                {record.ot_status === 'DA_DUYET' && (
+                  <div className="att-time-grid ot-time-grid" style={{ marginTop: '12px' }}>
+                    <div className="att-time-box">
+                      <span className="att-time-label">Vào tăng ca (Check-in OT)</span>
+                      <span className="att-time-value">{formatTime(record.ot_check_in_time)}</span>
+                    </div>
+                    <div className="att-time-box">
+                      <span className="att-time-label">Ra tăng ca (Check-out OT)</span>
+                      <span className="att-time-value">{formatTime(record.ot_check_out_time)}</span>
+                    </div>
+                    <div className="att-time-box att-time-total">
+                      <span className="att-time-label">Tổng giờ tăng ca</span>
+                      <span className="att-time-value">{calculateTotalTime(record.ot_check_in_time, record.ot_check_out_time)}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="att-section">
             <h3 className="att-section-title"><EnvironmentOutlined /> Địa điểm</h3>

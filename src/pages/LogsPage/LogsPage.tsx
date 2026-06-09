@@ -36,6 +36,41 @@ const getStatusType = (status: string | null) => {
     }
 };
 
+const getOtBadge = (log: AttendanceRecord) => {
+    if (!log.has_ot) return <span className="text-muted">--</span>;
+    
+    const start = log.ot_start_time ? log.ot_start_time.substring(0, 5) : '';
+    const end = log.ot_expected_end_time ? log.ot_expected_end_time.substring(0, 5) : '';
+    const rangeStr = `${start} - ${end}`;
+    
+    switch (log.ot_status) {
+        case 'DA_DUYET':
+            return (
+                <div className="ot-info-badge approved">
+                    <span className="ot-range">{rangeStr}</span>
+                    <span className="ot-status-label text-green">Đã duyệt</span>
+                </div>
+            );
+        case 'CHO_DUYET':
+            return (
+                <div className="ot-info-badge pending">
+                    <span className="ot-range">{rangeStr}</span>
+                    <span className="ot-status-label text-orange">Chờ duyệt</span>
+                </div>
+            );
+        case 'TU_CHOI':
+            return (
+                <div className="ot-info-badge rejected">
+                    <span className="ot-range">{rangeStr}</span>
+                    <span className="ot-status-label text-red">Từ chối</span>
+                </div>
+            );
+        default:
+            return <span className="text-muted">--</span>;
+    }
+};
+
+
 export default function LogsPage() {
     const [search, setSearch] = useState('');
     // Use local date (YYYY-MM-DD) as default to avoid UTC off-by-one errors
@@ -238,6 +273,7 @@ export default function LogsPage() {
                                 <th>USERNAME</th>
                                 <th>GIỜ VÀO</th>
                                 <th>GIỜ RA</th>
+                                <th>TĂNG CA</th>
                                 <th>TRẠNG THÁI</th>
                                 <th>CHI TIẾT</th>
                             </tr>
@@ -257,6 +293,9 @@ export default function LogsPage() {
                                     <td>{log.username}</td>
                                     <td className="fw-600">{formatTime(log.check_in_time)}</td>
                                     <td className="fw-600">{formatTime(log.check_out_time)}</td>
+                                    <td>
+                                        {getOtBadge(log)}
+                                    </td>
                                     <td>
                                         <span className={`log-badge badge-${getStatusType(log.status)}`}>
                                             {getStatusLabel(log.status)}

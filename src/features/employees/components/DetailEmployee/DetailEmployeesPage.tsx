@@ -99,6 +99,37 @@ const calculateDuration = (checkIn: string | null, checkOut: string | null) => {
     return `${diffHours.toFixed(1)}h`;
 };
 
+const getOtBadge = (log: AttendanceRecord) => {
+    if (!log.has_ot) return <span className="text-muted">--</span>;
+    
+    const start = log.ot_start_time ? log.ot_start_time.substring(0, 5) : '';
+    const end = log.ot_expected_end_time ? log.ot_expected_end_time.substring(0, 5) : '';
+    const rangeStr = `${start} - ${end}`;
+    
+    switch (log.ot_status) {
+        case 'DA_DUYET':
+            return (
+                <span className="text-green" style={{ fontWeight: 600 }}>
+                    {rangeStr} (Đã duyệt)
+                </span>
+            );
+        case 'CHO_DUYET':
+            return (
+                <span className="text-orange" style={{ fontWeight: 600 }}>
+                    {rangeStr} (Chờ duyệt)
+                </span>
+            );
+        case 'TU_CHOI':
+            return (
+                <span className="text-red" style={{ fontWeight: 600 }}>
+                    {rangeStr} (Từ chối)
+                </span>
+            );
+        default:
+            return <span className="text-muted">--</span>;
+    }
+};
+
 export default function DetailEmployeesPage() {
     const { id } = useParams(); // Lấy ID từ URL (VD: http://localhost:5173/employees/10 -> id = 10)
     const toast = useToast();
@@ -506,6 +537,7 @@ export default function DetailEmployeesPage() {
                                                 <th>GIỜ VÀO</th>
                                                 <th>GIỜ RA</th>
                                                 <th>TỔNG GIỜ</th>
+                                                <th>TĂNG CA</th>
                                                 <th>TRẠNG THÁI</th>
                                                 <th>MINH CHỨNG SỐ</th>
                                             </tr>
@@ -513,7 +545,7 @@ export default function DetailEmployeesPage() {
                                         <tbody>
                                             {filteredHistoryLogs.length === 0 ? (
                                                 <tr>
-                                                    <td colSpan={7} style={{ textAlign: 'center', padding: '20px', color: '#94a3b8' }}>
+                                                    <td colSpan={8} style={{ textAlign: 'center', padding: '20px', color: '#94a3b8' }}>
                                                         Không tìm thấy lịch sử chấm công
                                                     </td>
                                                 </tr>
@@ -530,6 +562,9 @@ export default function DetailEmployeesPage() {
                                                         </td>
                                                         <td className="fw-600">
                                                             {calculateDuration(record.check_in_time, record.check_out_time)}
+                                                        </td>
+                                                        <td>
+                                                            {getOtBadge(record)}
                                                         </td>
                                                         <td>
                                                             <span className={`h-badge badge-${getHistoryStatusType(record.status)}`}>

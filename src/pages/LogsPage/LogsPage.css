@@ -346,3 +346,46 @@
     cursor: not-allowed;
     background: #f8fafc;
 }
+
+/* ---- Overtime Badge Styles ---- */
+.ot-info-badge {
+    display: inline-flex;
+    flex-direction: column;
+    padding: 6px 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.3;
+}
+
+.ot-info-badge.approved {
+    background: #dcfce7;
+    border: 1px solid #bbf7d0;
+}
+
+.ot-info-badge.pending {
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+}
+
+.ot-info-badge.rejected {
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+}
+
+.ot-range {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.ot-status-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-top: 2px;
+}
+
+.text-muted {
+    color: #94a3b8;
+}

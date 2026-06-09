@@ -8,6 +8,13 @@ export interface AttendanceRecord {
     check_in_time: string | null;
     check_out_time: string | null;
     status: 'present' | 'late' | 'half_day' | null;
+    has_ot?: boolean;
+    ot_start_time?: string | null;
+    ot_expected_end_time?: string | null;
+    ot_reason?: string | null;
+    ot_status?: 'CHO_DUYET' | 'DA_DUYET' | 'TU_CHOI' | null;
+    ot_check_in_time?: string | null;
+    ot_check_out_time?: string | null;
 }
 
 export interface AttendanceListResponse {
