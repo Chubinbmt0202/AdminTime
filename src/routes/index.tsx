@@ -7,6 +7,7 @@ import LogsPage from '../pages/LogsPage/LogsPage';
 import WorkShiftConfigPage from '../features/settings/components/WorkShiftConfig/WorkShiftConfigPage';
 import ApplicationPage from '../pages/Application/ApplicationPage';
 import OvertimePage from '../pages/Overtime/OvertimePage';
+import LateExplanationPage from '../pages/LateExplanation/LateExplanationPage';
 import LeaveTypeConfigPage from '../features/settings/components/LeaveTypeConfig/LeaveTypeConfigPage';
 import LoginPage from '../pages/Login/LoginPage';
 import RequireAuth from '../auth/RequireAuth';
@@ -53,6 +54,7 @@ export default function AppRoutes() {
                     <Route path="logs" element={<LogsPage />} />
                     <Route path="leave-requests" element={<ApplicationPage />} />
                     <Route path="overtime-requests" element={<OvertimePage />} />
+                    <Route path="late-explanations" element={<LateExplanationPage />} />
                     <Route path="reports" element={<PlaceholderPage title="Reports" />} />
                     <Route path="admin/shifts" element={<WorkShiftConfigPage />} />
 

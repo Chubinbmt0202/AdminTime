@@ -15,6 +15,8 @@ export interface AttendanceRecord {
     ot_status?: 'CHO_DUYET' | 'DA_DUYET' | 'TU_CHOI' | null;
     ot_check_in_time?: string | null;
     ot_check_out_time?: string | null;
+    url_anh_vao?: string | null;
+    url_anh_ra?: string | null;
 }
 
 export interface AttendanceListResponse {

@@ -67,7 +67,7 @@ export default function Sidebar() {
     }
   }, [role])
 
-  const markNotificationsAsRead = async (type: 'LEAVE_REQUEST' | 'OVERTIME_REQUEST') => {
+  const markNotificationsAsRead = async (type: 'LEAVE_REQUEST' | 'OVERTIME_REQUEST' | 'LATE_EXPLANATION') => {
     try {
       const notifRef = ref(database, 'admin_notifications')
       const snapshot = await get(notifRef)
@@ -94,6 +94,8 @@ export default function Sidebar() {
       markNotificationsAsRead('LEAVE_REQUEST')
     } else if (location.pathname.startsWith('/overtime-requests')) {
       markNotificationsAsRead('OVERTIME_REQUEST')
+    } else if (location.pathname.startsWith('/late-explanations')) {
+      markNotificationsAsRead('LATE_EXPLANATION')
     }
   }, [location.pathname])
 
@@ -103,6 +105,10 @@ export default function Sidebar() {
 
   const overtimeNotificationCount = useMemo(() => {
     return notifications.filter(n => n.loai_thong_bao === 'OVERTIME_REQUEST' && !n.da_doc).length
+  }, [notifications])
+
+  const lateExplanationNotificationCount = useMemo(() => {
+    return notifications.filter(n => n.loai_thong_bao === 'LATE_EXPLANATION' && !n.da_doc).length
   }, [notifications])
 
   const navItems = useMemo<NavItem[]>(() => {
@@ -122,6 +128,7 @@ export default function Sidebar() {
         { key: 'logs', label: 'Chấm công', icon: <HistoryOutlined />, path: '/logs' },
         { key: 'leave-requests', label: 'Đơn xin nghỉ', icon: <CalendarOutlined />, path: '/leave-requests' },
         { key: 'overtime-requests', label: 'Đơn xin tăng ca', icon: <ClockCircleOutlined />, path: '/overtime-requests' },
+        { key: 'late-explanations', label: 'Giải trình đi trễ', icon: <HistoryOutlined />, path: '/late-explanations' },
         { key: 'leave-types', label: 'Thiết lập đơn từ', icon: <SettingOutlined />, path: '/leave-types' },
       ]
     }
@@ -173,11 +180,13 @@ export default function Sidebar() {
       {/* Navigation */}
       <nav className="sidebar-nav">
         {navItems.map(item => {
-          let count = 0
+           let count = 0
           if (item.key === 'leave-requests') {
             count = leaveNotificationCount
           } else if (item.key === 'overtime-requests') {
             count = overtimeNotificationCount
+          } else if (item.key === 'late-explanations') {
+            count = lateExplanationNotificationCount
           }
 
           return (

@@ -27,6 +27,7 @@ import { employeeApi } from '../../api/employee.api';
 import { departmentApi } from '../../../departments/api/department.api';
 import type { Department } from '../../../../types/department.types';
 import AttendanceDetailDrawer from './AttendanceDetailDrawer';
+import { exportToExcel } from '../../../../utils/exportUtils';
 
 const initialFormData = {
     full_name: 'Đang tải...',
@@ -252,12 +253,31 @@ export default function DetailEmployeesPage() {
         }
     };
 
-    // Trigger fetch when tab changes to history
     useEffect(() => {
         if (activeTab === 'history') {
             fetchHistory();
         }
     }, [activeTab, id]);
+
+    const handleExportHistory = () => {
+        if (!historyLogs || historyLogs.length === 0) {
+            toast.error('Lỗi', 'Không có dữ liệu lịch sử để xuất');
+            return;
+        }
+
+        const data = historyLogs.map(log => ({
+            'Ngày': formatHistoryDate(log.log_date),
+            'Thứ': getVietnameseDay(log.log_date),
+            'Giờ vào': formatHistoryTime(log.check_in_time),
+            'Giờ ra': formatHistoryTime(log.check_out_time),
+            'Tổng giờ': calculateDuration(log.check_in_time, log.check_out_time),
+            'Tăng ca': log.has_ot ? 'Có' : 'Không',
+            'Trạng thái': getHistoryStatusLabel(log.status)
+        }));
+        
+        const employeeName = formData.full_name ? formData.full_name.replace(/\s+/g, '_') : 'Nhan_Vien';
+        exportToExcel(data, `Lich_Su_Cham_Cong_${employeeName}`);
+    };
 
     const handleRequestInfoUpdate = async (e: React.MouseEvent) => {
         e.preventDefault();
@@ -517,7 +537,7 @@ export default function DetailEmployeesPage() {
                             <div className="card-header flex-between">
                                 <h2>Lịch sử chi tiết</h2>
                                 <div className="history-legend">
-                                    <button className="btn-secondary">
+                                    <button className="btn-secondary" onClick={handleExportHistory}>
                                         <DownloadOutlined /> Xuất file excel
                                     </button>
                                 </div>
@@ -784,7 +804,7 @@ export default function DetailEmployeesPage() {
                         )}
                     </button>
 
-                    <button className="btn-primary">
+                    <button className="btn-primary" onClick={handleExportHistory}>
                         <DownloadOutlined /> Xuất báo cáo
                     </button>
                 </div>

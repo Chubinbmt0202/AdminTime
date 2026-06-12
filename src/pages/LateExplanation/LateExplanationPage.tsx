@@ -10,43 +10,37 @@ import {
     WarningOutlined,
     LoadingOutlined
 } from '@ant-design/icons';
-import '../Application/ApplicationPage.css';
-import { overtimeApi } from '../../features/overtime/api/overtime.api';
+import './LateExplanationPage.css';
+import { lateExplanationApi } from '../../features/lateExplanations/api/lateExplanation.api';
+import { useAuth } from '../../auth/AuthContext';
 import { formatDate } from '../../utils/date';
-import type { OvertimeRequest } from '../../features/overtime/types';
+import type { LateExplanation } from '../../features/lateExplanations/types';
 import { useToast } from '../../components/common/Toast/Toast';
 import { exportToExcel } from '../../utils/exportUtils';
 
-const getStatusLabel = (status: string) => {
-    if (status === 'DA_DUYET') return 'Đã duyệt';
-    if (status === 'TU_CHOI') return 'Từ chối';
+const getStatusLabel = (status: boolean | null) => {
+    if (status === true) return 'Đã duyệt';
+    if (status === false) return 'Từ chối';
     return 'Chờ duyệt';
 };
 
-const getStatusType = (status: string) => {
-    if (status === 'DA_DUYET') return 'success';
-    if (status === 'TU_CHOI') return 'danger';
+const getStatusType = (status: boolean | null) => {
+    if (status === true) return 'success';
+    if (status === false) return 'danger';
     return 'warning';
 };
 
-// ---- CONFIRM MODAL COMPONENT ----
 type ConfirmAction = 'approve' | 'reject' | null;
 
 interface ConfirmModalProps {
     isOpen: boolean;
     action: ConfirmAction;
     employeeName?: string;
-    onConfirm: (ghiChu: string) => void;
+    onConfirm: () => void;
     onCancel: () => void;
 }
 
 function ConfirmModal({ isOpen, action, employeeName, onConfirm, onCancel }: ConfirmModalProps) {
-    const [ghiChu, setGhiChu] = useState('');
-
-    useEffect(() => {
-        if (!isOpen) setGhiChu('');
-    }, [isOpen]);
-
     if (!isOpen) return null;
 
     const isApprove = action === 'approve';
@@ -61,32 +55,27 @@ function ConfirmModal({ isOpen, action, employeeName, onConfirm, onCancel }: Con
                         : <WarningOutlined className="confirm-icon" />
                     }
                 </div>
+
                 <h3 className="confirm-title">
                     {isApprove ? 'Xác nhận phê duyệt' : 'Xác nhận từ chối'}
                 </h3>
+
                 <p className="confirm-desc">
                     {isApprove
-                        ? <>Bạn có chắc chắn muốn <strong>phê duyệt</strong> đơn xin tăng ca của <strong>{employeeName}</strong>?</>
-                        : <>Bạn có chắc chắn muốn <strong>từ chối</strong> đơn xin tăng ca của <strong>{employeeName}</strong>? Hành động này không thể hoàn tác.</>
+                        ? <>Bạn có chắc chắn muốn <strong>phê duyệt</strong> giải trình đi trễ của <strong>{employeeName}</strong>?</>
+                        : <>Bạn có chắc chắn muốn <strong>từ chối</strong> giải trình đi trễ của <strong>{employeeName}</strong>? Hành động này không thể hoàn tác.</>
                     }
                 </p>
-                <div style={{ marginTop: '16px' }}>
-                    <textarea 
-                        placeholder="Ghi chú (tuỳ chọn)" 
-                        value={ghiChu}
-                        onChange={(e) => setGhiChu(e.target.value)}
-                        style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-                        rows={3}
-                    />
-                </div>
+
                 <div className="confirm-divider" />
+
                 <div className="confirm-actions">
                     <button className="confirm-btn-cancel" onClick={onCancel}>
                         Huỷ bỏ
                     </button>
                     <button
                         className={`confirm-btn-main ${isApprove ? 'btn-confirm-approve' : 'btn-confirm-reject'}`}
-                        onClick={() => onConfirm(ghiChu)}
+                        onClick={onConfirm}
                     >
                         {isApprove
                             ? <><CheckCircleOutlined /> Phê duyệt</>
@@ -99,30 +88,30 @@ function ConfirmModal({ isOpen, action, employeeName, onConfirm, onCancel }: Con
     );
 }
 
-// ---- MAIN PAGE ----
-export default function OvertimePage() {
+export default function LateExplanationPage() {
+    const { user } = useAuth();
     const toast = useToast();
     const [search, setSearch] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('all');
-    const [selectedLog, setSelectedLog] = useState<OvertimeRequest | null>(null);
+    const [selectedLog, setSelectedLog] = useState<LateExplanation | null>(null);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-    const [overtimeRequests, setOvertimeRequests] = useState<OvertimeRequest[]>([]);
+    const [explanations, setExplanations] = useState<LateExplanation[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [ghiChuDuyet, setGhiChuDuyet] = useState('');
 
-    // Confirm modal state
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
 
-    const fetchRequests = useCallback(async () => {
+    const fetchExplanations = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
-            const res = await overtimeApi.getAll();
+            const res = await lateExplanationApi.getAll();
             if (res.success) {
-                setOvertimeRequests(res.data || []);
+                setExplanations(res.data);
             } else {
-                throw new Error(res.message || 'Lỗi khi tải danh sách đơn xin tăng ca');
+                throw new Error(res.message || 'Lỗi khi tải danh sách giải trình');
             }
         } catch (err: any) {
             setError(err.message);
@@ -133,17 +122,19 @@ export default function OvertimePage() {
     }, [toast]);
 
     useEffect(() => {
-        fetchRequests();
-    }, [fetchRequests]);
+        fetchExplanations();
+    }, [fetchExplanations]);
 
-    const handleViewDetails = (log: OvertimeRequest) => {
+    const handleViewDetails = (log: LateExplanation) => {
         setSelectedLog(log);
+        setGhiChuDuyet(log.ghi_chu || '');
         setIsDrawerOpen(true);
     };
 
     const closeDrawer = () => {
         setIsDrawerOpen(false);
         setSelectedLog(null);
+        setGhiChuDuyet('');
     };
 
     const openConfirm = (action: ConfirmAction) => {
@@ -156,21 +147,22 @@ export default function OvertimePage() {
         setConfirmAction(null);
     };
 
-    const handleConfirmOk = async (ghiChu: string) => {
-        if (!selectedLog) return;
+    const handleConfirmOk = async () => {
+        if (!selectedLog || !user?.id_nhan_vien) return;
 
         setLoading(true);
         try {
-            const status = confirmAction === 'approve' ? 'DA_DUYET' : 'TU_CHOI';
-            const res = await overtimeApi.updateStatus({
-                id_don_ot: selectedLog.id_don_ot,
+            const status = confirmAction === 'approve' ? 'approved' : 'rejected';
+            const res = await lateExplanationApi.updateStatus({
+                id_giai_trinh: selectedLog.id_giai_trinh,
                 status: status,
-                ghi_chu: ghiChu
+                id_nguoi_duyet: user.id_nhan_vien,
+                ghi_chu: ghiChuDuyet || (status === 'approved' ? 'Đã duyệt' : 'Từ chối')
             });
 
             if (res.success) {
-                toast.success('Thành công', res.message || 'Đã cập nhật trạng thái đơn');
-                await fetchRequests();
+                toast.success('Thành công', res.message || 'Đã cập nhật trạng thái giải trình');
+                await fetchExplanations();
             } else {
                 throw new Error(res.message || 'Lỗi khi cập nhật trạng thái');
             }
@@ -184,53 +176,57 @@ export default function OvertimePage() {
         }
     };
 
-    const filteredRequests = useMemo(() => {
-        return overtimeRequests.filter(req => {
-            const matchSearch = (req.ho_va_ten || '').toLowerCase().includes(search.toLowerCase()) ||
-                req.id_don_ot.toLowerCase().includes(search.toLowerCase());
-            const matchStatus = selectedStatus === 'all' || req.trang_thai === selectedStatus;
+    const filteredExplanations = useMemo(() => {
+        return explanations.filter(req => {
+            const empName = req.ho_ten_nhan_vien || '';
+            const matchSearch = empName.toLowerCase().includes(search.toLowerCase()) ||
+                req.id_giai_trinh.toLowerCase().includes(search.toLowerCase());
+            const matchStatus = selectedStatus === 'all' ||
+                (selectedStatus === 'approved' && req.trang_thai === true) ||
+                (selectedStatus === 'pending' && req.trang_thai === null) ||
+                (selectedStatus === 'rejected' && req.trang_thai === false);
             return matchSearch && matchStatus;
         });
-    }, [overtimeRequests, search, selectedStatus]);
+    }, [explanations, search, selectedStatus]);
 
     const stats = useMemo(() => {
         return {
-            total: overtimeRequests.length,
-            pending: overtimeRequests.filter(r => r.trang_thai === 'CHO_DUYET').length,
-            approved: overtimeRequests.filter(r => r.trang_thai === 'DA_DUYET').length,
-            rejected: overtimeRequests.filter(r => r.trang_thai === 'TU_CHOI').length,
+            total: explanations.length,
+            pending: explanations.filter(r => r.trang_thai === null).length,
+            approved: explanations.filter(r => r.trang_thai === true).length,
+            rejected: explanations.filter(r => r.trang_thai === false).length,
         };
-    }, [overtimeRequests]);
+    }, [explanations]);
 
     const handleExport = () => {
-        if (!filteredRequests || filteredRequests.length === 0) {
+        if (!filteredExplanations || filteredExplanations.length === 0) {
             toast.error('Lỗi', 'Không có dữ liệu để xuất');
             return;
         }
 
-        const data = filteredRequests.map(log => ({
-            'Mã đơn': log.id_don_ot,
+        const data = filteredExplanations.map(log => ({
+            'Mã giải trình': log.id_giai_trinh,
             'Mã NV': log.id_nhan_vien,
-            'Họ và tên': log.ho_va_ten || 'Unknown',
-            'Ngày tăng ca': formatDate(log.ngay_dang_ky_ot),
-            'Khung giờ': `${log.gio_bat_dau} - ${log.gio_ket_thuc_du_kien}`,
+            'Họ và tên': log.ho_ten_nhan_vien || 'Unknown',
+            'Ngày giải trình': formatDate(log.ngay_giai_trinh),
+            'Giờ vào trễ': new Date(log.gio_vao_tre).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
             'Lý do': log.ly_do,
-            'Ngày nộp đơn': formatDate(log.ngay_tao),
+            'Ngày tạo': formatDate(log.ngay_tao),
             'Trạng thái': getStatusLabel(log.trang_thai)
         }));
 
-        exportToExcel(data, 'Danh_Sach_Don_Tang_Ca');
+        exportToExcel(data, 'Danh_Sach_Giai_Trinh_Di_Tre');
     };
 
     return (
         <div className="logs-page">
             <div className="logs-header">
                 <div className="logs-header-left">
-                    <h1 className="logs-title">Quản lý đơn xin tăng ca</h1>
-                    <p className="logs-subtitle">Theo dõi và quản lý dữ liệu đơn xin tăng ca của toàn bộ nhân viên.</p>
+                    <h1 className="logs-title">Quản lý giải trình đi trễ</h1>
+                    <p className="logs-subtitle">Theo dõi và phê duyệt các giải trình đi trễ quá giờ của nhân viên.</p>
                 </div>
                 <div className="logs-header-actions">
-                    <button className="btn-secondary" onClick={fetchRequests} disabled={loading}>
+                    <button className="btn-secondary" onClick={fetchExplanations} disabled={loading}>
                         <SyncOutlined spin={loading} /> Làm mới
                     </button>
                     <button className="btn-primary" onClick={handleExport}>
@@ -241,9 +237,9 @@ export default function OvertimePage() {
 
             <div className="logs-summary-cards">
                 <div className="log-card">
-                    <span className="log-card-title">TỔNG NHẬN ĐƠN TỪ</span>
+                    <span className="log-card-title">TỔNG SỐ GIẢI TRÌNH</span>
                     <span className="log-card-value text-blue">{stats.total}</span>
-                    <span className="log-card-desc">Đơn từ trong hệ thống</span>
+                    <span className="log-card-desc">Giải trình đi trễ</span>
                 </div>
                 <div className="log-card">
                     <span className="log-card-title">CHỜ DUYỆT</span>
@@ -251,12 +247,12 @@ export default function OvertimePage() {
                     <span className="log-card-desc">Tỷ lệ: {stats.total ? Math.round((stats.pending / stats.total) * 100) : 0}%</span>
                 </div>
                 <div className="log-card">
-                    <span className="log-card-title">ĐÃ DUYỆT</span>
+                    <span className="log-card-title">ĐÃ CHẤP NHẬN</span>
                     <span className="log-card-value text-green">{stats.approved}</span>
                     <span className="log-card-desc">Tỷ lệ: {stats.total ? Math.round((stats.approved / stats.total) * 100) : 0}%</span>
                 </div>
                 <div className="log-card">
-                    <span className="log-card-title">TỪ CHỐI</span>
+                    <span className="log-card-title">BỊ TỪ CHỐI</span>
                     <span className="log-card-value text-red">{stats.rejected}</span>
                     <span className="log-card-desc">Tỷ lệ: {stats.total ? Math.round((stats.rejected / stats.total) * 100) : 0}%</span>
                 </div>
@@ -270,7 +266,7 @@ export default function OvertimePage() {
                             type="text"
                             style={{ padding: "0 16px 0 38px" }}
                             className="log-input search-input"
-                            placeholder="Tìm theo tên, mã đơn..."
+                            placeholder="Tìm tên nhân viên, mã đơn..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
@@ -283,13 +279,10 @@ export default function OvertimePage() {
                         onChange={(e) => setSelectedStatus(e.target.value)}
                     >
                         <option value="all">Mọi trạng thái</option>
-                        <option value="DA_DUYET">Đã duyệt</option>
-                        <option value="CHO_DUYET">Chờ duyệt</option>
-                        <option value="TU_CHOI">Từ chối</option>
+                        <option value="approved">Đã duyệt</option>
+                        <option value="pending">Chờ duyệt</option>
+                        <option value="rejected">Từ chối</option>
                     </select>
-                    <button className="btn-icon-filter" onClick={fetchRequests} disabled={loading}>
-                        <SyncOutlined spin={loading} />
-                    </button>
                 </div>
             </div>
 
@@ -297,10 +290,10 @@ export default function OvertimePage() {
                 <table className="logs-table">
                     <thead>
                         <tr>
-                            <th>MÃ ĐƠN TỪ</th>
-                            <th>HỌ VÀ TÊN</th>
-                            <th>NGÀY TĂNG CA</th>
-                            <th>THỜI GIAN</th>
+                            <th>MÃ GIẢI TRÌNH</th>
+                            <th>NHÂN VIÊN</th>
+                            <th>NGÀY GIAI TRÌNH</th>
+                            <th>GIỜ VÀO TRỄ</th>
                             <th>LÝ DO</th>
                             <th>TRẠNG THÁI</th>
                             <th>CHI TIẾT</th>
@@ -314,29 +307,29 @@ export default function OvertimePage() {
                                     <p>Đang tải dữ liệu...</p>
                                 </td>
                             </tr>
-                        ) : filteredRequests.length === 0 ? (
+                        ) : filteredExplanations.length === 0 ? (
                             <tr>
-                                <td colSpan={7} className="text-center py-20">Không có đơn xin tăng ca nào.</td>
+                                <td colSpan={7} className="text-center py-20">Không tìm thấy giải trình nào.</td>
                             </tr>
-                        ) : filteredRequests.map((log) => (
-                            <tr key={log.id_don_ot}>
-                                <td className="fw-600">{log.id_don_ot}</td>
+                        ) : filteredExplanations.map((log) => (
+                            <tr key={log.id_giai_trinh}>
+                                <td className="fw-600">{log.id_giai_trinh}</td>
                                 <td>
                                     <div className="log-emp-info">
                                         <img
-                                            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(log.ho_va_ten || 'Unknown')}&background=random`}
-                                            alt={log.ho_va_ten}
+                                            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(log.ho_ten_nhan_vien || '')}&background=random`}
+                                            alt={log.ho_ten_nhan_vien}
                                             className="log-avatar"
                                         />
                                         <div>
-                                            <div className="log-emp-name">{log.ho_va_ten}</div>
+                                            <div className="log-emp-name">{log.ho_ten_nhan_vien}</div>
                                             <div className="log-emp-id">{log.id_nhan_vien}</div>
                                         </div>
                                     </div>
                                 </td>
-                                <td className="fw-600">{formatDate(log.ngay_dang_ky_ot)}</td>
+                                <td className="fw-600">{formatDate(log.ngay_giai_trinh)}</td>
                                 <td className="fw-600">
-                                    {log.gio_bat_dau} - {log.gio_ket_thuc_du_kien}
+                                    {new Date(log.gio_vao_tre).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                                 </td>
                                 <td>{log.ly_do}</td>
                                 <td>
@@ -361,7 +354,7 @@ export default function OvertimePage() {
 
             <div className={`drawer-container ${isDrawerOpen ? 'open' : ''}`}>
                 <div className="drawer-header">
-                    <h2>Chi tiết đơn tăng ca</h2>
+                    <h2>Chi tiết giải trình đi trễ</h2>
                     <button className="btn-close-drawer" onClick={closeDrawer}>
                         <CloseOutlined />
                     </button>
@@ -372,40 +365,34 @@ export default function OvertimePage() {
                         <>
                             <div className="drawer-profile-card">
                                 <img
-                                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(selectedLog.ho_va_ten || 'Unknown')}&background=random`}
+                                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(selectedLog.ho_ten_nhan_vien || '')}&background=random`}
                                     alt="avatar"
                                     className="profile-avatar"
                                 />
                                 <div className="profile-info">
-                                    <h3 className="profile-name">{selectedLog.ho_va_ten}</h3>
+                                    <h3 className="profile-name">{selectedLog.ho_ten_nhan_vien}</h3>
                                     <p className="profile-meta">Mã NV: {selectedLog.id_nhan_vien}</p>
                                     <p className="profile-meta">{selectedLog.ten_phong_ban || 'Phòng ban chưa cập nhật'}</p>
                                 </div>
                             </div>
 
                             <div className="drawer-section">
-                                <h4 className="section-title">THÔNG TIN TĂNG CA</h4>
+                                <h4 className="section-title">THÔNG TIN GIẢI TRÌNH</h4>
                                 <div className="info-grid">
                                     <div className="info-block">
-                                        <span className="info-label">Ngày tăng ca</span>
+                                        <span className="info-label">Ngày ghi nhận</span>
+                                        <span className="info-value fw-600">{formatDate(selectedLog.ngay_giai_trinh)}</span>
+                                    </div>
+                                    <div className="info-block">
+                                        <span className="info-label">Giờ thực tế vào trễ</span>
                                         <span className="info-value fw-600">
-                                            {formatDate(selectedLog.ngay_dang_ky_ot)}
+                                            {new Date(selectedLog.gio_vao_tre).toLocaleTimeString('vi-VN')}
                                         </span>
                                     </div>
-                                    <div className="info-block">
-                                        <span className="info-label">Khung giờ</span>
-                                        <span className="info-value fw-600">
-                                            {selectedLog.gio_bat_dau} - {selectedLog.gio_ket_thuc_du_kien}
-                                        </span>
-                                    </div>
-                                    <div className="info-block">
-                                        <span className="info-label">Lý do</span>
-                                        <span className="info-value text-gray">{selectedLog.ly_do}</span>
-                                    </div>
-                                    <div className="info-block">
-                                        <span className="info-label">Ngày nộp đơn</span>
-                                        <span className="info-value text-gray">{formatDate(selectedLog.ngay_tao)}</span>
-                                    </div>
+                                </div>
+                                <div className="info-block mt-16">
+                                    <span className="info-label">Lý do giải trình</span>
+                                    <span className="info-value text-gray">{selectedLog.ly_do}</span>
                                 </div>
                             </div>
 
@@ -420,22 +407,22 @@ export default function OvertimePage() {
                                     <div className="timeline-item completed">
                                         <div className="timeline-dot"></div>
                                         <div className="timeline-content">
-                                            <div className="tl-title">Khởi tạo đơn</div>
-                                            <div className="tl-meta">Bởi {selectedLog.ho_va_ten} • {formatDate(selectedLog.ngay_tao)}</div>
+                                            <div className="tl-title">Khởi tạo giải trình</div>
+                                            <div className="tl-meta">Bởi {selectedLog.ho_ten_nhan_vien} • {formatDate(selectedLog.ngay_tao)}</div>
                                             <div className="tl-comment">"{selectedLog.ly_do}"</div>
                                         </div>
                                     </div>
-                                    {selectedLog.trang_thai !== 'CHO_DUYET' && (
+                                    {selectedLog.trang_thai !== null && (
                                         <div className="timeline-item completed">
                                             <div className="timeline-dot"></div>
                                             <div className="timeline-content">
-                                                <div className="tl-title">Đã được xử lý</div>
-                                                <div className="tl-meta">Hệ thống</div>
-                                                <div className="tl-comment">Đơn đã {getStatusLabel(selectedLog.trang_thai).toLowerCase()}</div>
+                                                <div className="tl-title">Đã xử lý giải trình</div>
+                                                <div className="tl-meta">Người duyệt: {selectedLog.ten_nguoi_duyet || 'Admin'} • {selectedLog.ngay_duyet ? formatDate(selectedLog.ngay_duyet) : ''}</div>
+                                                <div className="tl-comment">"{selectedLog.ghi_chu}"</div>
                                             </div>
                                         </div>
                                     )}
-                                    {selectedLog.trang_thai === 'CHO_DUYET' && (
+                                    {selectedLog.trang_thai === null && (
                                         <div className="timeline-item pending">
                                             <div className="timeline-dot"></div>
                                             <div className="timeline-content">
@@ -446,6 +433,19 @@ export default function OvertimePage() {
                                     )}
                                 </div>
                             </div>
+
+                            {selectedLog.trang_thai === null && (
+                                <div className="drawer-section">
+                                    <h4 className="section-title">PHẢN HỒI CỦA HR (Ghi chú)</h4>
+                                    <textarea
+                                        className="log-input"
+                                        style={{ height: '80px', width: '100%', resize: 'none', padding: '8px' }}
+                                        placeholder="Nhập ghi chú hoặc phản hồi khi duyệt đơn giải trình này..."
+                                        value={ghiChuDuyet}
+                                        onChange={(e) => setGhiChuDuyet(e.target.value)}
+                                    />
+                                </div>
+                            )}
                         </>
                     ) : (
                         <p>Đang tải dữ liệu...</p>
@@ -453,7 +453,7 @@ export default function OvertimePage() {
                 </div>
 
                 <div className="drawer-footer drawer-actions-split">
-                    {selectedLog?.trang_thai === 'CHO_DUYET' ? (
+                    {selectedLog?.trang_thai === null ? (
                         <>
                             <button className="btn-action-reject" onClick={() => openConfirm('reject')} disabled={loading}>
                                 <CloseCircleOutlined /> Từ chối
@@ -473,7 +473,7 @@ export default function OvertimePage() {
             <ConfirmModal
                 isOpen={confirmOpen}
                 action={confirmAction}
-                employeeName={selectedLog?.ho_va_ten}
+                employeeName={selectedLog?.ho_ten_nhan_vien}
                 onConfirm={handleConfirmOk}
                 onCancel={handleConfirmCancel}
             />

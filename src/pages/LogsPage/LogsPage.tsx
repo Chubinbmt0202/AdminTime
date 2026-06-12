@@ -9,6 +9,7 @@ import {
 import './LogsPage.css';
 import { attendanceService, type AttendanceRecord } from '../../services/attendance.service';
 import AttendanceDetailDrawer from '../../features/employees/components/DetailEmployee/AttendanceDetailDrawer';
+import { exportToExcel } from '../../utils/exportUtils';
 
 const formatTime = (isoString: string | null) => {
     if (!isoString) return '--:--';
@@ -160,12 +161,32 @@ export default function LogsPage() {
 
     // console.log(`Displayed logs for ${selectedDate}:`, filteredLogs);
 
-    // Calculate dynamic stats based on the normalized daily data
     const stats = {
         total: dailyLogs.length,
         present: dailyLogs.filter(l => l.status === 'present').length,
         late: dailyLogs.filter(l => l.status === 'late').length,
         absent: dailyLogs.filter(l => l.status === null).length
+    };
+
+    const handleExport = () => {
+        if (!filteredLogs || filteredLogs.length === 0) {
+            console.warn('Không có dữ liệu để xuất');
+            return;
+        }
+
+        const data = filteredLogs.map(log => ({
+            'Mã NV': log.employee_id,
+            'Họ và tên': log.full_name,
+            'Tên đăng nhập': log.username,
+            'Ngày': log.log_date,
+            'Giờ vào': formatTime(log.check_in_time),
+            'Giờ ra': formatTime(log.check_out_time),
+            'Trạng thái': getStatusLabel(log.status),
+            'Tăng ca': log.has_ot ? 'Có' : 'Không',
+            'Trạng thái tăng ca': log.has_ot ? (log.ot_status === 'DA_DUYET' ? 'Đã duyệt' : log.ot_status === 'CHO_DUYET' ? 'Chờ duyệt' : log.ot_status === 'TU_CHOI' ? 'Từ chối' : 'Không rõ') : 'Không'
+        }));
+
+        exportToExcel(data, `Cham_Cong_${selectedDate}`);
     };
 
     return (
@@ -180,7 +201,7 @@ export default function LogsPage() {
                     <button className="btn-secondary" onClick={fetchLogs}>
                         <SyncOutlined spin={loading} /> Làm mới
                     </button>
-                    <button className="btn-primary">
+                    <button className="btn-primary" onClick={handleExport}>
                         <DownloadOutlined /> Xuất báo cáo
                     </button>
                 </div>

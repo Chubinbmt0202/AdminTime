@@ -16,46 +16,46 @@ interface Props {
 }
 
 const formatTime = (isoString: string | null) => {
-    if (!isoString) return '--:--';
-    const date = new Date(isoString);
-    return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  if (!isoString) return '--:--';
+  const date = new Date(isoString);
+  return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 };
 
 const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN');
+  if (!dateString) return 'N/A';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('vi-VN');
 };
 
 const getStatusLabel = (status: string | null) => {
-    switch (status) {
-        case 'present': return 'Đúng giờ';
-        case 'late': return 'Đi muộn';
-        case 'half_day': return 'Nửa ngày';
-        case null: return 'Chưa chấm công';
-        default: return status;
-    }
+  switch (status) {
+    case 'present': return 'Đúng giờ';
+    case 'late': return 'Đi muộn';
+    case 'half_day': return 'Nửa ngày';
+    case null: return 'Chưa chấm công';
+    default: return status;
+  }
 };
 
 const getStatusClass = (status: string | null) => {
-    switch (status) {
-        case 'present': return 'status-present';
-        case 'late': return 'status-late';
-        case 'half_day': return 'status-half';
-        case null: return 'status-none';
-        default: return 'status-default';
-    }
+  switch (status) {
+    case 'present': return 'status-present';
+    case 'late': return 'status-late';
+    case 'half_day': return 'status-half';
+    case null: return 'status-none';
+    default: return 'status-default';
+  }
 };
 
 const calculateTotalTime = (checkIn: string | null, checkOut: string | null) => {
-    if (!checkIn || !checkOut) return '--h';
-    const start = new Date(checkIn);
-    const end = new Date(checkOut);
-    const diffMs = end.getTime() - start.getTime();
-    if (diffMs < 0) return '--h';
-    const hours = Math.floor(diffMs / (1000 * 60 * 60));
-    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    return `${hours}h ${minutes}m`;
+  if (!checkIn || !checkOut) return '--h';
+  const start = new Date(checkIn);
+  const end = new Date(checkOut);
+  const diffMs = end.getTime() - start.getTime();
+  if (diffMs < 0) return '--h';
+  const hours = Math.floor(diffMs / (1000 * 60 * 60));
+  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+  return `${hours}h ${minutes}m`;
 };
 
 export default function AttendanceDetailDrawer({ open, onClose, record }: Props) {
@@ -92,7 +92,7 @@ export default function AttendanceDetailDrawer({ open, onClose, record }: Props)
           </div>
 
           <div className="att-section">
-            <h3 className="att-section-title"><ClockCircleOutlined /> Thời gian làm việc</h3>
+            <h3 className="att-section-title"><ClockCircleOutlined /> Thời gian làm việc ca chính </h3>
             <div className="att-time-grid">
               <div className="att-time-box">
                 <span className="att-time-label">Giờ vào (Check-in)</span>
@@ -117,7 +117,7 @@ export default function AttendanceDetailDrawer({ open, onClose, record }: Props)
                   <p><strong>Giờ đăng ký:</strong> {record.ot_start_time?.substring(0, 5)} - {record.ot_expected_end_time?.substring(0, 5)}</p>
                   <p><strong>Lý do:</strong> {record.ot_reason || 'Không có'}</p>
                   <p>
-                    <strong>Trạng thái duyệt: </strong> 
+                    <strong>Trạng thái duyệt: </strong>
                     <span className={`ot-status-txt text-${record.ot_status === 'DA_DUYET' ? 'green' : record.ot_status === 'CHO_DUYET' ? 'orange' : 'red'}`}>
                       {record.ot_status === 'DA_DUYET' ? 'Đã duyệt' : record.ot_status === 'CHO_DUYET' ? 'Chờ duyệt' : 'Từ chối'}
                     </span>
@@ -156,17 +156,17 @@ export default function AttendanceDetailDrawer({ open, onClose, record }: Props)
             <div className="att-proof-grid">
               <div className="att-proof-item">
                 <span className="att-proof-label">Lúc vào (Check-in)</span>
-                <img src="https://ui-avatars.com/api/?name=IN&background=e2e8f0&color=64748b&size=150" alt="Check-in proof" />
+                <img src={record.url_anh_vao || "https://ui-avatars.com/api/?name=IN&background=e2e8f0&color=64748b&size=150"} alt="Check-in proof" />
               </div>
               <div className="att-proof-item">
                 <span className="att-proof-label">Lúc ra (Check-out)</span>
-                <img src="https://ui-avatars.com/api/?name=OUT&background=e2e8f0&color=64748b&size=150" alt="Check-out proof" />
+                <img src={record.url_anh_ra || "https://ui-avatars.com/api/?name=OUT&background=e2e8f0&color=64748b&size=150"} alt="Check-out proof" />
               </div>
             </div>
           </div>
 
         </div>
-        
+
         <div className="att-drawer-footer">
           <button type="button" className="att-btn-cancel" onClick={onClose}>Đóng</button>
         </div>

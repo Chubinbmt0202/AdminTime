@@ -25,6 +25,7 @@ import type { Employee } from '../../features/employees/types';
 import { STATUSES, AVATAR_COLORS, PAGE_SIZE_OPTIONS } from '../../constants';
 import { formatDate } from '../../utils/date';
 import { getInitials } from '../../utils/string';
+import { exportToExcel } from '../../utils/exportUtils';
 import './EmployeesPage.css';
 import { useNavigate } from 'react-router-dom';
 
@@ -163,6 +164,25 @@ export default function EmployeesPage() {
     return [...new Set(pages)];
   };
 
+  const mapEmployeeToExport = (emp: Employee) => ({
+    'Mã NV': emp.id_nhan_vien,
+    'Tên đăng nhập': emp.username,
+    'Họ và tên': emp.full_name,
+    'Vai trò': emp.role_name === 'Admin' ? 'Quản trị viên' : emp.role_name === 'Manager' ? 'Quản lý nhân sự' : 'Nhân viên',
+    'Dữ liệu khuôn mặt': (emp.du_lieu_khuon_mat && Object.keys(emp.du_lieu_khuon_mat).length > 0) ? 'Đã đăng ký' : 'Chưa đăng ký',
+    'Ngày tạo': formatDate(emp.created_at)
+  });
+
+  const handleExportAll = () => {
+    const data = filtered.map(mapEmployeeToExport);
+    exportToExcel(data, 'Danh_Sach_Nhan_Vien');
+  };
+
+  const handleExportSelected = () => {
+    const data = employees.filter(e => selected.has(e.id_nhan_vien)).map(mapEmployeeToExport);
+    exportToExcel(data, 'Danh_Sach_Nhan_Vien_Da_Chon');
+  };
+
   function handleDetailEmployee(id: number): void {
     // chuyển sang trang chi tiết nhân viên
     navigator(`/employees/${id}`);
@@ -188,7 +208,7 @@ export default function EmployeesPage() {
             <button className="btn-secondary" onClick={fetchEmployees} disabled={loading}>
               <ReloadOutlined spin={loading} />
             </button>
-            <button className="btn-secondary">
+            <button className="btn-secondary" onClick={handleExportAll}>
               <DownloadOutlined /> Xuất dữ liệu nhân viên
             </button>
             <button className="btn-primary" onClick={() => setDrawerOpen(true)}>
@@ -221,8 +241,10 @@ export default function EmployeesPage() {
           <div className="emp-bulk-bar">
             <span className="emp-bulk-count">{selected.size} ĐÃ CHỌN</span>
             <div className="emp-bulk-actions">
-              <button className="bulk-btn"><DownloadOutlined /> Xuất file</button>
-              <button className="bulk-btn bulk-btn-danger"><DeleteOutlined /> Xóa</button>
+              <button className="bulk-btn" onClick={handleExportSelected}><DownloadOutlined /> Xuất file</button>
+              <button className="bulk-btn bulk-btn-danger" onClick={() => {
+                // Bulk delete logic could be implemented here
+              }}><DeleteOutlined /> Xóa</button>
             </div>
             <button className="bulk-close" onClick={clearSelection}>✕</button>
           </div>

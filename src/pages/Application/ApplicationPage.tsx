@@ -19,6 +19,7 @@ import { useAuth } from '../../auth/AuthContext';
 import { formatDate } from '../../utils/date';
 import type { LeaveRequest } from '../../features/leaves/types';
 import { useToast } from '../../components/common/Toast/Toast';
+import { exportToExcel } from '../../utils/exportUtils';
 
 const getStatusLabel = (status: boolean | null) => {
     if (status === true) return 'Đã duyệt';
@@ -211,6 +212,27 @@ export default function ApplicationPage() {
         };
     }, [leaveRequests]);
 
+    const handleExport = () => {
+        if (!filteredRequests || filteredRequests.length === 0) {
+            toast.error('Lỗi', 'Không có dữ liệu để xuất');
+            return;
+        }
+
+        const data = filteredRequests.map(log => ({
+            'Mã đơn': log.id_don_xin_nghi,
+            'Mã NV': log.id_nguoi_dung,
+            'Họ và tên': log.ho_ten_nhan_vien || 'Unknown',
+            'Loại phép': log.ten_phep,
+            'Ngày bắt đầu': formatDate(log.ngay_bat_dau),
+            'Ngày kết thúc': formatDate(log.ngay_ket_thuc),
+            'Lý do': log.ly_do,
+            'Ngày nộp đơn': formatDate(log.ngay_tao),
+            'Trạng thái': getStatusLabel(log.trang_thai)
+        }));
+
+        exportToExcel(data, 'Danh_Sach_Don_Xin_Nghi');
+    };
+
     return (
         <div className="logs-page">
             {/* 1. HEADER */}
@@ -223,7 +245,7 @@ export default function ApplicationPage() {
                     <button className="btn-secondary" onClick={fetchLeaveRequests} disabled={loading}>
                         <SyncOutlined spin={loading} /> Làm mới
                     </button>
-                    <button className="btn-primary">
+                    <button className="btn-primary" onClick={handleExport}>
                         <DownloadOutlined /> Xuất báo cáo
                     </button>
                 </div>
