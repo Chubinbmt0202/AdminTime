@@ -15,7 +15,7 @@ interface Props {
   record: AttendanceRecord | null;
 }
 
-const formatTime = (isoString: string | null) => {
+const formatTime = (isoString: string | null | undefined) => {
   if (!isoString) return '--:--';
   const date = new Date(isoString);
   return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -47,7 +47,7 @@ const getStatusClass = (status: string | null) => {
   }
 };
 
-const calculateTotalTime = (checkIn: string | null, checkOut: string | null) => {
+const calculateTotalTime = (checkIn: string | null | undefined, checkOut: string | null | undefined) => {
   if (!checkIn || !checkOut) return '--h';
   const start = new Date(checkIn);
   const end = new Date(checkOut);

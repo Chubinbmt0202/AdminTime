@@ -41,5 +41,9 @@ export const attendanceService = {
 
     getEmployeeHistory: async (employeeId: string): Promise<EmployeeHistoryResponse> => {
         return apiClient.get(`/attendance/history/${employeeId}`);
+    },
+
+    getAttendanceTrend: async (days: number = 7): Promise<any> => {
+        return apiClient.get(`/attendance/summary/trend?days=${days}`);
     }
 };

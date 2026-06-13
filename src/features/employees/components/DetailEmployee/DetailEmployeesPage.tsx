@@ -44,7 +44,8 @@ const initialFormData = {
     joinDate: '',
     manager: '',
     du_lieu_khuon_mat: null as any,
-    hinh_anh: ''
+    hinh_anh: '',
+    status: true
 };
 
 type FieldKey = keyof typeof initialFormData;
@@ -102,11 +103,11 @@ const calculateDuration = (checkIn: string | null, checkOut: string | null) => {
 
 const getOtBadge = (log: AttendanceRecord) => {
     if (!log.has_ot) return <span className="text-muted">--</span>;
-    
+
     const start = log.ot_start_time ? log.ot_start_time.substring(0, 5) : '';
     const end = log.ot_expected_end_time ? log.ot_expected_end_time.substring(0, 5) : '';
     const rangeStr = `${start} - ${end}`;
-    
+
     switch (log.ot_status) {
         case 'DA_DUYET':
             return (
@@ -165,6 +166,11 @@ export default function DetailEmployeesPage() {
     const [activeEditField, setActiveEditField] = useState<FieldKey | null>(null);
 
     const [isRequestingInfoUpdate, setIsRequestingInfoUpdate] = useState(false);
+
+    // States for update processes
+    const [isUpdatingInfo, setIsUpdatingInfo] = useState(false);
+    const [newPassword, setNewPassword] = useState('');
+    const [isUpdatingSecurity, setIsUpdatingSecurity] = useState(false);
 
     // Filter states for history
     const monthOptions = useMemo(() => {
@@ -254,10 +260,10 @@ export default function DetailEmployeesPage() {
     };
 
     useEffect(() => {
-        if (activeTab === 'history') {
+        if (id) {
             fetchHistory();
         }
-    }, [activeTab, id]);
+    }, [id]);
 
     const handleExportHistory = () => {
         if (!historyLogs || historyLogs.length === 0) {
@@ -274,7 +280,7 @@ export default function DetailEmployeesPage() {
             'Tăng ca': log.has_ot ? 'Có' : 'Không',
             'Trạng thái': getHistoryStatusLabel(log.status)
         }));
-        
+
         const employeeName = formData.full_name ? formData.full_name.replace(/\s+/g, '_') : 'Nhan_Vien';
         exportToExcel(data, `Lich_Su_Cham_Cong_${employeeName}`);
     };
@@ -315,12 +321,12 @@ export default function DetailEmployeesPage() {
                 if (json.success) {
                     setFormData({
                         ...initialFormData,
-                        id: json.data.id || 'Chưa cập nhật',
+                        id: json.data.id_nhan_vien || json.data.id || 'Chưa cập nhật',
                         username: json.data.username || 'Chưa cập nhật',
                         full_name: json.data.full_name || 'Chưa cập nhật',
                         email: json.data.email || 'Chưa cập nhật',
-                        phone: json.data.phone || 'Chưa cập nhật',
-                        dob: json.data.dob || 'Chưa cập nhật',
+                        phone: json.data.phone_number || json.data.phone || 'Chưa cập nhật',
+                        dob: json.data.date_of_birth ? json.data.date_of_birth.substring(0, 10) : (json.data.dob || 'Chưa cập nhật'),
                         gender: json.data.gender || 'Chưa cập nhật',
                         address: json.data.address || 'Chưa cập nhật',
                         department: json.data.department_name || json.data.department || 'Chưa cập nhật',
@@ -329,7 +335,8 @@ export default function DetailEmployeesPage() {
                         joinDate: json.data.created_at ? new Date(json.data.created_at).toLocaleDateString('vi-VN') : 'Chưa cập nhật',
                         manager: json.data.manager || 'Chưa cập nhật',
                         du_lieu_khuon_mat: json.data.du_lieu_khuon_mat,
-                        hinh_anh: json.data.hinh_anh || ''
+                        hinh_anh: json.data.hinh_anh || '',
+                        status: json.data.trang_thai !== undefined ? json.data.trang_thai : true
                     });
                     setSettingDepartmentId(json.data.department_id || '');
                     console.log("Dữ liệu nhân viên:", json.data);
@@ -347,9 +354,77 @@ export default function DetailEmployeesPage() {
     }, [id]); // Chạy lại nếu id trên URL thay đổi
 
     // ================== HANDLERS ==================
-    const handleToggleEdit = () => {
+    const handleToggleEdit = async () => {
+        if (isEditing) {
+            // Đang ở chế độ Edit -> Nhấn hoàn tất -> Lưu dữ liệu
+            if (!id) return;
+            setIsUpdatingInfo(true);
+            try {
+                const res = await employeeApi.update(id, {
+                    full_name: formData.full_name,
+                    email: formData.email,
+                    phone_number: formData.phone,
+                    date_of_birth: formData.dob,
+                    gender: formData.gender,
+                    address: formData.address,
+                });
+                if (res.success) {
+                    toast.success('Thành công', 'Cập nhật thông tin cá nhân thành công');
+                } else {
+                    toast.error('Lỗi', res.message || 'Không thể cập nhật thông tin');
+                }
+            } catch (err) {
+                console.error("Lỗi cập nhật thông tin:", err);
+                toast.error('Lỗi', 'Đã xảy ra lỗi hệ thống');
+            } finally {
+                setIsUpdatingInfo(false);
+            }
+        }
         setIsEditing(!isEditing);
         setActiveEditField(null);
+    };
+
+    const handleUpdateSecurity = async () => {
+        if (!id) return;
+        if (!newPassword || newPassword.length < 8) {
+            toast.error('Lỗi', 'Mật khẩu phải có tối thiểu 8 ký tự');
+            return;
+        }
+        setIsUpdatingSecurity(true);
+        try {
+            const res = await employeeApi.update(id, { password: newPassword });
+            if (res.success) {
+                toast.success('Thành công', 'Cập nhật mật khẩu thành công');
+                setNewPassword('');
+            } else {
+                toast.error('Lỗi', res.message || 'Không thể cập nhật mật khẩu');
+            }
+        } catch(err) {
+            console.error("Lỗi cập nhật mật khẩu:", err);
+            toast.error('Lỗi', 'Đã xảy ra lỗi hệ thống');
+        } finally {
+            setIsUpdatingSecurity(false);
+        }
+    };
+
+    const handleToggleStatus = async () => {
+        if (!id) return;
+        const newStatus = !formData.status;
+        const confirmMsg = newStatus ? "Bạn có chắc chắn muốn kích hoạt lại tài khoản này?" : "Bạn có chắc chắn muốn vô hiệu hoá tài khoản này? Nhân viên sẽ không thể đăng nhập.";
+        if (!window.confirm(confirmMsg)) return;
+
+        try {
+            const res = await employeeApi.update(id, { status: newStatus });
+            if (res.success) {
+                toast.success('Thành công', newStatus ? 'Đã kích hoạt tài khoản' : 'Đã vô hiệu hoá tài khoản');
+                setFormData(prev => ({ ...prev, status: newStatus }));
+            } else {
+                toast.error('Lỗi', res.message || 'Thao tác thất bại');
+            }
+        } catch (err) {
+            console.error('Lỗi đổi trạng thái:', err);
+            toast.error('Lỗi', 'Đã xảy ra lỗi hệ thống');
+        }
     };
 
     const handleRequestFaceUpdate = (e: React.MouseEvent) => {
@@ -508,7 +583,7 @@ export default function DetailEmployeesPage() {
                             </div>
 
                             <div className="history-filters">
-                                <select 
+                                <select
                                     className="emp-select h-select"
                                     value={selectedMonth}
                                     onChange={e => setSelectedMonth(e.target.value)}
@@ -517,7 +592,7 @@ export default function DetailEmployeesPage() {
                                         <option key={m.value} value={m.value}>{m.label}</option>
                                     ))}
                                 </select>
-                                <select 
+                                <select
                                     className="emp-select h-select"
                                     value={selectedHistoryStatus}
                                     onChange={e => setSelectedHistoryStatus(e.target.value)}
@@ -675,13 +750,16 @@ export default function DetailEmployeesPage() {
                 return (
                     <div className="info-card">
                         <div className="card-header">
-                            <div className="card-title-wrap ">
+                            <div className="card-title-wrap flex-between" style={{ width: '100%' }}>
                                 <div className="card-title-wrap">
                                     <SettingOutlined className="card-icon" />
                                     <h2>Cài đặt tài khoản</h2>
                                 </div>
-                                <button className="btn-danger-outline">
-                                    <StopOutlined /> Vô hiệu hoá
+                                <button 
+                                    className={formData.status ? "btn-danger-outline" : "btn-primary"} 
+                                    onClick={handleToggleStatus}
+                                >
+                                    {formData.status ? <><StopOutlined /> Vô hiệu hoá tài khoản</> : <><CheckCircleFilled /> Kích hoạt tài khoản</>}
                                 </button>
                             </div>
                         </div>
@@ -691,27 +769,40 @@ export default function DetailEmployeesPage() {
                             {/* Section: Thông tin đăng nhập */}
                             <div className="setting-section">
                                 <h3 className="setting-section-title">
-                                    <LoginOutlined /> Thông tin đăng nhập
+                                    <LoginOutlined /> Thông tin đăng nhập & Bảo mật
                                 </h3>
 
                                 <div className="grid-2-cols">
                                     <div className="setting-form-group">
-                                        <label>UserName</label>
-                                        <input type="text" className="setting-input" defaultValue={formData.username} />
-                                        <span className="setting-hint">Dùng để đăng nhập và nhận thông báo hệ thống.</span>
+                                        <label>UserName (Tên đăng nhập)</label>
+                                        <input type="text" className="setting-input readonly" value={formData.username} readOnly />
+                                        <span className="setting-hint">Không thể thay đổi tên đăng nhập.</span>
                                     </div>
                                     <div className="setting-form-group">
-                                        <label>Tên người dùng (ID)</label>
-                                        <input type="text" className="setting-input readonly" defaultValue={`${formData.id}`} readOnly />
+                                        <label>Mã định danh (ID)</label>
+                                        <input type="text" className="setting-input readonly" value={`${formData.id}`} readOnly />
                                     </div>
                                     <div className="setting-form-group">
                                         <label>Cập nhật lại mật khẩu</label>
-                                        <input type="password" className="setting-input" placeholder="Tối thiểu 8 ký tự" />
+                                        <input 
+                                            type="password" 
+                                            className="setting-input" 
+                                            placeholder="Tối thiểu 8 ký tự" 
+                                            value={newPassword}
+                                            onChange={(e) => setNewPassword(e.target.value)}
+                                        />
+                                        <span className="setting-hint">Bỏ trống nếu không muốn đổi mật khẩu.</span>
                                     </div>
                                 </div>
 
                                 <div className="setting-actions">
-                                    <button className="btn-primary">Lưu thay đổi</button>
+                                    <button 
+                                        className="btn-primary"
+                                        onClick={handleUpdateSecurity}
+                                        disabled={isUpdatingSecurity || !newPassword}
+                                    >
+                                        {isUpdatingSecurity ? <><LoadingOutlined spin /> Đang cập nhật...</> : 'Lưu thay đổi mật khẩu'}
+                                    </button>
                                 </div>
                             </div>
 
@@ -726,9 +817,9 @@ export default function DetailEmployeesPage() {
                                 <div className="grid-2-cols">
                                     <div className="setting-form-group">
                                         <label>Phòng ban trực thuộc</label>
-                                        <select 
-                                            className="setting-input" 
-                                            value={settingDepartmentId} 
+                                        <select
+                                            className="setting-input"
+                                            value={settingDepartmentId}
                                             onChange={(e) => setSettingDepartmentId(e.target.value)}
                                         >
                                             <option value="">-- Chưa phân phòng --</option>
@@ -741,8 +832,8 @@ export default function DetailEmployeesPage() {
                                 </div>
 
                                 <div className="setting-actions">
-                                    <button 
-                                        className="btn-primary" 
+                                    <button
+                                        className="btn-primary"
                                         onClick={handleUpdateDepartment}
                                         disabled={isUpdatingDepartment}
                                     >
@@ -784,7 +875,10 @@ export default function DetailEmployeesPage() {
                         <h1 className="employee-name">{renderEditableValue('full_name')}</h1>
                         <div className="employee-tags">
                             <span className="tag-id">#{id}</span>
-                            <span className="tag-status"><span className="status-dot"></span> Đang hoạt động</span>
+                            <span className="tag-status">
+                                <span className="status-dot" style={{ backgroundColor: formData.status ? '#10b981' : '#ef4444' }}></span> 
+                                {formData.status ? 'Đang hoạt động' : 'Đã vô hiệu hoá'}
+                            </span>
                         </div>
                         <div className="employee-meta">
                             <span><ToolOutlined /> {formData.department}</span>
@@ -796,8 +890,11 @@ export default function DetailEmployeesPage() {
                     <button
                         className={`btn-secondary ${isEditing ? 'active-edit' : ''}`}
                         onClick={handleToggleEdit}
+                        disabled={isUpdatingInfo}
                     >
-                        {isEditing ? (
+                        {isUpdatingInfo ? (
+                            <><LoadingOutlined spin /> Đang lưu...</>
+                        ) : isEditing ? (
                             <><CheckCircleFilled /> Hoàn tất</>
                         ) : (
                             <><EditOutlined /> Chỉnh sửa</>
@@ -831,14 +928,45 @@ export default function DetailEmployeesPage() {
                     </nav>
 
                     <div className="performance-card">
-                        <h3 className="card-title-small">HIỆU SUẤT 6 THÁNG</h3>
+                        <h3 className="card-title-small">HIỆU SUẤT TRONG THÁNG</h3>
                         <div className="chart-container">
-                            <div className="bar-wrap"><div className="bar bar-lvl-1" style={{ height: '50%' }}></div><span className="bar-label">Th1</span></div>
-                            <div className="bar-wrap"><div className="bar bar-lvl-2" style={{ height: '65%' }}></div><span className="bar-label">Th2</span></div>
-                            <div className="bar-wrap"><div className="bar bar-lvl-3" style={{ height: '75%' }}></div><span className="bar-label">Th3</span></div>
-                            <div className="bar-wrap"><div className="bar bar-lvl-4" style={{ height: '60%' }}></div><span className="bar-label">Th4</span></div>
-                            <div className="bar-wrap"><div className="bar bar-lvl-5" style={{ height: '90%' }}></div><span className="bar-label">Th5</span></div>
-                            <div className="bar-wrap"><div className="bar bar-lvl-6" style={{ height: '85%' }}></div><span className="bar-label">Th6</span></div>
+                            {(() => {
+                                const now = new Date();
+                                const currentMonth = now.getMonth();
+                                const currentYear = now.getFullYear();
+
+                                const currentMonthLogs = historyLogs.filter(log => {
+                                    if (!log.log_date) return false;
+                                    const date = new Date(log.log_date);
+                                    return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+                                });
+
+                                const weeks = [0, 0, 0, 0, 0];
+                                currentMonthLogs.forEach(log => {
+                                    const date = new Date(log.log_date as string);
+                                    const day = date.getDate();
+                                    const weekIndex = Math.floor((day - 1) / 7);
+                                    if (weekIndex >= 0 && weekIndex < 5) {
+                                        if (log.status === 'present') weeks[weekIndex] += 1;
+                                        else if (log.status === 'late') weeks[weekIndex] += 0.8;
+                                        else if (log.status === 'half_day') weeks[weekIndex] += 0.5;
+                                    }
+                                });
+
+                                return weeks.map((w, index) => {
+                                    const percent = Math.min((w / 6) * 100, 100);
+                                    // Bỏ qua tuần 5 nếu tháng đó có <= 28 ngày và không có dữ liệu
+                                    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+                                    if (index === 4 && daysInMonth <= 28 && percent === 0) return null;
+                                    
+                                    return (
+                                        <div className="bar-wrap" key={index}>
+                                            <div className={`bar bar-lvl-${(index % 6) + 1}`} style={{ height: `${percent || 5}%` }}></div>
+                                            <span className="bar-label">T{index + 1}</span>
+                                        </div>
+                                    );
+                                });
+                            })()}
                         </div>
                     </div>
                 </div>

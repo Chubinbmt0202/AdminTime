@@ -288,6 +288,7 @@ export default function EmployeesPage() {
                   <th>ID</th>
                   <th>USERNAME</th>
                   <th>HỌ VÀ TÊN</th>
+                  <th>THÔNG TIN LIÊN HỆ</th>
                   <th>VAI TRÒ</th>
                   <th>DỮ LIỆU KHUÔN MẶT</th>
                   <th>NGÀY TẠO</th>
@@ -323,6 +324,12 @@ export default function EmployeesPage() {
                         </div>
                       )}
                       <span className="emp-name">{emp.full_name}</span>
+                    </td>
+                    <td className="col-contact">
+                      <div style={{ display: 'flex', flexDirection: 'column', fontSize: '13px', color: '#475569' }}>
+                        <span>{emp.email || 'Chưa có Email'}</span>
+                        <span>{emp.phone_number || 'Chưa có SĐT'}</span>
+                      </div>
                     </td>
                     {
                       emp.role_name === 'Admin' ? (
