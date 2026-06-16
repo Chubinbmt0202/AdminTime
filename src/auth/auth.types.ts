@@ -2,6 +2,7 @@
 export type Role = 'Admin' | 'HR' | 'Director' | 'Employee';
 
 export type AuthUser = {
+  username: string;
   id_tai_khoan: string;
   ten_dang_nhap: string;
   ho_va_ten: string;

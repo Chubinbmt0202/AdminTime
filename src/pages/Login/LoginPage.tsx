@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext';
 import type { Role } from '../../auth/auth.types';
+import { useToast } from '../../components/common/Toast/Toast';
 import './LoginPage.css';
 
 function getErrorMessage(err: unknown) {
@@ -13,6 +14,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isAuthenticated } = useAuth();
+  const toast = useToast();
 
   const from = useMemo(() => {
     const state = location.state as { from?: string } | null;
@@ -49,7 +51,7 @@ export default function LoginPage() {
     try {
       console.log(`[LOGIN CLICK] Username: ${username} | BSSID: (Browser limited)`);
       const user = await login({ username, password, remember });
-      alert('Đăng nhập thành công');
+      toast.success('Đăng nhập thành công', `Chào mừng ${user.ho_va_ten || user.username} quay trở lại!`);
       // ưu tiên quay lại trang đang định vào; nếu không có thì về home theo role
       const target = from && from !== '/login' ? from : roleHome(user.ten_vai_tro);
       navigate(target, { replace: true });

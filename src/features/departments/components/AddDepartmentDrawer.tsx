@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Drawer, Form, Input, Button, message, Row, Col } from 'antd';
 import { InfoCircleOutlined, SearchOutlined, AppstoreAddOutlined, CloseOutlined } from '@ant-design/icons';
 import { departmentApi } from '../api/department.api';
@@ -7,26 +7,52 @@ interface AddDepartmentDrawerProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  initialData?: any;
 }
 
-export default function AddDepartmentDrawer({ open, onClose, onSuccess }: AddDepartmentDrawerProps) {
+export default function AddDepartmentDrawer({ open, onClose, onSuccess, initialData }: AddDepartmentDrawerProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      if (initialData) {
+        form.setFieldsValue({
+          ten_phong_ban: initialData.ten_phong_ban,
+          mo_ta_chuc_nang: initialData.mo_ta,
+        });
+      } else {
+        form.resetFields();
+      }
+    }
+  }, [open, initialData, form]);
 
   const handleSubmit = async (values: any) => {
     setLoading(true);
     try {
-      const response = await departmentApi.create({ mo_ta: values.ten_phong_ban || values.mo_ta, ...values });
-      if (response.success) {
-        message.success('Thêm phòng ban thành công');
-        form.resetFields();
-        onSuccess();
-        onClose();
+      if (initialData) {
+        const response = await departmentApi.update(initialData.id_phong_ban, { mo_ta: values.mo_ta_chuc_nang, ...values });
+        if (response.success) {
+          message.success('Cập nhật phòng ban thành công');
+          form.resetFields();
+          onSuccess();
+          onClose();
+        } else {
+          message.error(response.message || 'Có lỗi xảy ra khi cập nhật phòng ban');
+        }
       } else {
-        message.error(response.message || 'Có lỗi xảy ra khi thêm phòng ban');
+        const response = await departmentApi.create({ mo_ta: values.mo_ta_chuc_nang, ...values });
+        if (response.success) {
+          message.success('Thêm phòng ban thành công');
+          form.resetFields();
+          onSuccess();
+          onClose();
+        } else {
+          message.error(response.message || 'Có lỗi xảy ra khi thêm phòng ban');
+        }
       }
     } catch (error: any) {
-      console.error('Error adding department:', error);
+      console.error('Error saving department:', error);
       message.error(error.message || 'Lỗi kết nối máy chủ');
     } finally {
       setLoading(false);
@@ -47,9 +73,9 @@ export default function AddDepartmentDrawer({ open, onClose, onSuccess }: AddDep
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
         <div>
-          <h2 style={{ margin: 0, fontSize: '22px', fontWeight: 700, color: '#111827' }}>Thêm phòng ban mới</h2>
+          <h2 style={{ margin: 0, fontSize: '22px', fontWeight: 700, color: '#111827' }}>{initialData ? 'Sửa phòng ban' : 'Thêm phòng ban mới'}</h2>
           <p style={{ margin: '8px 0 0 0', fontSize: '13px', color: '#6b7280', lineHeight: 1.5 }}>
-            Điền các thông tin cần thiết để khởi tạo một bộ phận mới trong hệ thống.
+            {initialData ? 'Cập nhật thông tin của bộ phận.' : 'Điền các thông tin cần thiết để khởi tạo một bộ phận mới trong hệ thống.'}
           </p>
         </div>
         <Button
@@ -121,7 +147,7 @@ export default function AddDepartmentDrawer({ open, onClose, onSuccess }: AddDep
             icon={<AppstoreAddOutlined />}
             style={{ backgroundColor: '#1d4ed8', borderRadius: '6px', fontWeight: 600, fontSize: '14px', padding: '0 24px', height: '44px' }}
           >
-            Tạo phòng ban
+            {initialData ? 'Cập nhật' : 'Tạo phòng ban'}
           </Button>
         </div>
       </Form>

@@ -45,6 +45,7 @@ const initialFormData = {
     manager: '',
     du_lieu_khuon_mat: null as any,
     hinh_anh: '',
+    ngay_cap_nhat_khuon_mat: null as string | null,
     status: true
 };
 
@@ -55,6 +56,22 @@ const formatHistoryDate = (dateString: string | null) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
     return date.toLocaleDateString('vi-VN');
+};
+
+const formatFaceRegistrationDate = (dateString: string | null) => {
+    if (!dateString) return 'Chưa cập nhật';
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return 'Chưa cập nhật';
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${day}/${month}/${year} ${hours}:${minutes}`;
+    } catch {
+        return 'Chưa cập nhật';
+    }
 };
 
 const getVietnameseDay = (dateString: string | null) => {
@@ -344,6 +361,7 @@ export default function DetailEmployeesPage() {
                         manager: json.data.manager || 'Chưa cập nhật',
                         du_lieu_khuon_mat: json.data.du_lieu_khuon_mat,
                         hinh_anh: json.data.hinh_anh || '',
+                        ngay_cap_nhat_khuon_mat: json.data.ngay_cap_nhat_khuon_mat || null,
                         status: json.data.trang_thai !== undefined ? json.data.trang_thai : true
                     });
                     setSettingDepartmentId(json.data.department_id || '');
@@ -748,7 +766,11 @@ export default function DetailEmployeesPage() {
                                 <div className="face-stats grid-2-cols">
                                     <div className="stat-box">
                                         <span className="info-label">NGÀY ĐĂNG KÝ</span>
-                                        <span className="info-value large">15/01/2020 09:30</span>
+                                        <span className="info-value large">
+                                            {formData.du_lieu_khuon_mat && Object.keys(formData.du_lieu_khuon_mat).length > 0 
+                                                ? formatFaceRegistrationDate(formData.ngay_cap_nhat_khuon_mat)
+                                                : 'Chưa đăng ký'}
+                                        </span>
                                     </div>
                                 </div>
 

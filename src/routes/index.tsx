@@ -16,6 +16,7 @@ import OrgAndHRPage from '../pages/Admin/OrgAndHR/OrgAndHRPage';
 import AttendanceSetupPage from '../pages/Admin/AttendanceSetup/AttendanceSetupPage';
 import AddGPSLocationPage from '../pages/Admin/AttendanceSetup/AddGPSLocationPage';
 import AddWifiPage from '../pages/Admin/AttendanceSetup/AddWifiPage';
+import DepartmentsPage from '../pages/Admin/DepartmentsPage';
 
 
 function PlaceholderPage({ title }: { title: string }) {

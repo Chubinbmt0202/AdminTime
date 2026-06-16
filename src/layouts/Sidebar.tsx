@@ -206,13 +206,6 @@ export default function Sidebar() {
       {/* Bottom section */}
       <div className="sidebar-bottom">
         <button
-          className={`sidebar-nav-item ${activeKey === 'settings' ? 'active' : ''}`}
-          onClick={() => navigate('/settings')}
-        >
-          <span className="sidebar-nav-icon"><SettingOutlined /></span>
-          <span className="sidebar-nav-label">Cài đặt</span>
-        </button>
-        <button
           className="sidebar-nav-item logout"
           onClick={logout}
         >

@@ -18,14 +18,16 @@ import {
   DesktopOutlined,
   RobotOutlined,
   ShareAltOutlined,
-  FundProjectionScreenOutlined
+  FundProjectionScreenOutlined,
+  EditOutlined,
+  DeleteOutlined
 } from '@ant-design/icons';
 import './OrgAndHRPage.css';
 import { departmentApi } from '../../../features/departments/api/department.api';
 import { employeeApi } from '../../../features/employees/api/employee.api';
 import type { Department } from '../../../types/department.types';
 import type { Employee } from '../../../features/employees/types';
-import { Spin } from 'antd'; // Assuming antd is used since icons are from antd
+import { Spin, Popconfirm, message } from 'antd';
 import AddDepartmentDrawer from '../../../features/departments/components/AddDepartmentDrawer';
 
 export default function OrgAndHRPage() {
@@ -38,6 +40,35 @@ export default function OrgAndHRPage() {
   const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
   const [loadingEmployees, setLoadingEmployees] = useState(false);
   const [isAddDeptDrawerOpen, setIsAddDeptDrawerOpen] = useState(false);
+  const [editingDeptData, setEditingDeptData] = useState<Department | null>(null);
+
+  const openAddDrawer = () => {
+    setEditingDeptData(null);
+    setIsAddDeptDrawerOpen(true);
+  };
+
+  const openEditDrawer = (dept: Department) => {
+    setEditingDeptData(dept);
+    setIsAddDeptDrawerOpen(true);
+  };
+
+  const handleDeleteDept = async (id: string) => {
+    try {
+      const res = await departmentApi.delete(id);
+      if (res.success) {
+        message.success('Xóa phòng ban thành công');
+        fetchInitialData();
+        if (selectedDeptId === id) {
+          setSelectedDeptId(null);
+        }
+      } else {
+        message.error(res.message || 'Không thể xóa phòng ban');
+      }
+    } catch (error: any) {
+      const errorMsg = error.response?.data?.message || 'Lỗi xóa phòng ban';
+      message.error(errorMsg);
+    }
+  };
 
   const getDeptIcon = (nameInput: string | null) => {
     const name = nameInput?.toLowerCase() || '';
@@ -206,7 +237,7 @@ export default function OrgAndHRPage() {
         <aside className="org-sidebar">
           <div className="org-header">
             <h3>Cơ cấu tổ chức</h3>
-            <PlusCircleOutlined className="add-icon" onClick={() => setIsAddDeptDrawerOpen(true)} style={{ cursor: 'pointer' }} />
+            <PlusCircleOutlined className="add-icon" onClick={openAddDrawer} style={{ cursor: 'pointer' }} />
           </div>
 
           <div className="org-tree">
@@ -219,8 +250,26 @@ export default function OrgAndHRPage() {
                     key={dept.id_phong_ban}
                     className={`tree-item ${selectedDeptId === dept.id_phong_ban ? 'active' : ''}`}
                     onClick={() => setSelectedDeptId(dept.id_phong_ban)}
+                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                   >
-                    {getDeptIcon(dept.ten_phong_ban || dept.mo_ta)} {dept.ten_phong_ban || dept.mo_ta}
+                    <div style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {getDeptIcon(dept.ten_phong_ban || dept.mo_ta)} {dept.ten_phong_ban || dept.mo_ta}
+                    </div>
+                    {selectedDeptId === dept.id_phong_ban && (
+                      <div className="dept-actions" style={{ display: 'flex', gap: '8px', paddingLeft: '8px' }}>
+                        <EditOutlined 
+                          onClick={(e) => { e.stopPropagation(); openEditDrawer(dept); }} 
+                          style={{ color: '#1890ff' }} 
+                        />
+                        <Popconfirm 
+                          title="Xóa phòng ban này?" 
+                          onConfirm={(e) => { e?.stopPropagation(); handleDeleteDept(dept.id_phong_ban); }} 
+                          onCancel={(e) => e?.stopPropagation()}
+                        >
+                          <DeleteOutlined onClick={(e) => e.stopPropagation()} style={{ color: '#ff4d4f' }} />
+                        </Popconfirm>
+                      </div>
+                    )}
                   </div>
                 ))}
               </>
@@ -332,6 +381,7 @@ export default function OrgAndHRPage() {
         open={isAddDeptDrawerOpen}
         onClose={() => setIsAddDeptDrawerOpen(false)}
         onSuccess={fetchInitialData}
+        initialData={editingDeptData}
       />
     </div>
   );
