@@ -20,9 +20,15 @@ function readInitialUser(): AuthUser | null {
   const raw = authStorage.getUserRaw();
   if (!raw) return null;
   try {
-    return JSON.parse(raw) as AuthUser;
+    const user = JSON.parse(raw) as AuthUser;
+    const allowedRoles = ['admin', 'hr'];
+    if (!user.ten_vai_tro || !allowedRoles.includes(user.ten_vai_tro.toLowerCase())) {
+      authStorage.clearAll();
+      return null;
+    }
+    return user;
   } catch {
-    authStorage.clearUserRaw();
+    authStorage.clearAll();
     return null;
   }
 }
@@ -47,6 +53,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (!res.success) {
           throw new Error(res.message || 'Đăng nhập thất bại');
+        }
+
+        const allowedRoles = ['admin', 'hr'];
+        if (!res.data.ten_vai_tro || !allowedRoles.includes(res.data.ten_vai_tro.toLowerCase())) {
+          throw new Error('Tài khoản của bạn không có quyền truy cập vào trang web này.');
         }
 
         authStorage.setUserRaw(JSON.stringify(res.data), remember);

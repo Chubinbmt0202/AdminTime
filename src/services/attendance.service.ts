@@ -17,6 +17,7 @@ export interface AttendanceRecord {
     ot_check_out_time?: string | null;
     url_anh_vao?: string | null;
     url_anh_ra?: string | null;
+    explanation?: any | null;
 }
 
 export interface AttendanceListResponse {

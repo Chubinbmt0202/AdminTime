@@ -64,7 +64,7 @@ export default function LoginPage() {
     <div className="login-page">
       <div className="login-left">
         <div className="login-left-inner">
-          <div className="login-brand">MindCheck</div>
+          <div className="login-brand">Mindcheck</div>
           <h1 className="login-hero-title">
             Kiến tạo tương lai
             <br />
@@ -87,7 +87,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="login-footer">© 2026 MindCheck. All rights reserved.</div>
+          <div className="login-footer">© 2026 Mindcheck. Mọi bản quyền được bảo lưu.</div>
         </div>
       </div>
 

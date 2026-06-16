@@ -4,7 +4,8 @@ import {
   CalendarOutlined,
   ClockCircleOutlined,
   EnvironmentOutlined,
-  PictureOutlined
+  PictureOutlined,
+  InfoCircleOutlined
 } from '@ant-design/icons';
 import type { AttendanceRecord } from '../../../../services/attendance.service';
 import './AttendanceDetailDrawer.css';
@@ -138,6 +139,27 @@ export default function AttendanceDetailDrawer({ open, onClose, record }: Props)
                       <span className="att-time-value">{calculateTotalTime(record.ot_check_in_time, record.ot_check_out_time)}</span>
                     </div>
                   </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {record.status === 'late' && (
+            <div className="att-section late-section" style={{ backgroundColor: '#fff7ed', borderLeft: '4px solid #f97316', padding: '16px', borderRadius: '0 8px 8px 0', marginTop: '16px', marginBottom: '16px' }}>
+              <h3 className="att-section-title" style={{ color: '#c2410c', marginTop: 0 }}><InfoCircleOutlined /> Giải trình đi muộn</h3>
+              <div className="late-detail-info">
+                {record.explanation ? (
+                  <>
+                    <p style={{ margin: '8px 0' }}><strong>Nội dung:</strong> {record.explanation.ly_do || 'Không có nội dung'}</p>
+                    <p style={{ margin: '8px 0' }}>
+                      <strong>Trạng thái duyệt: </strong>
+                      <span className={`ot-status-txt text-${record.explanation.trang_thai === true ? 'green' : record.explanation.trang_thai === false ? 'red' : 'orange'}`}>
+                        {record.explanation.trang_thai === true ? 'Đã duyệt' : record.explanation.trang_thai === false ? 'Từ chối' : 'Chờ duyệt'}
+                      </span>
+                    </p>
+                  </>
+                ) : (
+                  <p style={{ fontStyle: 'italic', color: '#64748b', margin: 0 }}>Nhân viên chưa nộp giải trình đi muộn.</p>
                 )}
               </div>
             </div>

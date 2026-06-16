@@ -101,6 +101,14 @@ const calculateDuration = (checkIn: string | null, checkOut: string | null) => {
     return `${diffHours.toFixed(1)}h`;
 };
 
+const calculateLateMinutes = (checkIn: string | null) => {
+    if (!checkIn) return 0;
+    const date = new Date(checkIn);
+    const diffMs = date.getTime() - new Date(date.getFullYear(), date.getMonth(), date.getDate(), 8, 0, 0).getTime();
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    return diffMinutes > 0 ? diffMinutes : 0;
+};
+
 const getOtBadge = (log: AttendanceRecord) => {
     if (!log.has_ot) return <span className="text-muted">--</span>;
 
@@ -651,6 +659,11 @@ export default function DetailEmployeesPage() {
                                                         <td className="text-gray">{getVietnameseDay(record.log_date)}</td>
                                                         <td className={`fw-600 ${record.status === 'late' ? 'text-orange' : ''}`}>
                                                             {formatHistoryTime(record.check_in_time)}
+                                                            {record.status === 'late' && (
+                                                                <span style={{ display: 'block', fontSize: '12px', color: '#f97316', fontWeight: 'normal' }}>
+                                                                    (Đi muộn {calculateLateMinutes(record.check_in_time)} phút)
+                                                                </span>
+                                                            )}
                                                         </td>
                                                         <td className="fw-600">
                                                             {formatHistoryTime(record.check_out_time)}
