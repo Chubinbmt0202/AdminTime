@@ -488,6 +488,18 @@
   object-fit: cover;
 }
 
+.emp-avatar-initials {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #ffffff;
+  font-size: 14px;
+}
+
 .emp-name {
   font-weight: 700;
   color: #1e293b;

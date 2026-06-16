@@ -70,6 +70,23 @@ export default function OrgAndHRPage() {
     }
   };
 
+  const getAvatarInitials = (name: string) => {
+    if (!name) return 'UN';
+    const words = name.trim().split(' ').filter(w => w.length > 0);
+    if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
+    return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+  };
+
+  const getAvatarColor = (name: string) => {
+    if (!name) return '#ccc';
+    const colors = ['#5145cd', '#0a93a6', '#099268', '#d97706', '#dc2626', '#4f46e5', '#db2777', '#7c3aed'];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colors[Math.abs(hash) % colors.length];
+  };
+
   const getDeptIcon = (nameInput: string | null) => {
     const name = nameInput?.toLowerCase() || '';
     if (name.includes('giám đốc')) return <CrownOutlined className="tree-icon" />;
@@ -332,7 +349,13 @@ export default function OrgAndHRPage() {
                       <td><span className="emp-id">#{emp.id_nhan_vien}</span></td>
                       <td>
                         <div className="name-cell">
-                          <img src={emp.hinh_anh || `https://i.pravatar.cc/150?u=${emp.id_nhan_vien}`} alt={emp.full_name} className="emp-avatar" style={{ objectFit: 'cover' }} />
+                          {emp.hinh_anh ? (
+                            <img src={emp.hinh_anh} alt={emp.full_name} className="emp-avatar" style={{ objectFit: 'cover' }} />
+                          ) : (
+                            <div className="emp-avatar-initials" style={{ backgroundColor: getAvatarColor(emp.full_name) }}>
+                              {getAvatarInitials(emp.full_name)}
+                            </div>
+                          )}
                           <div>
                             <div className="emp-name">{emp.full_name}</div>
                             <div className="emp-email">{emp.username}@timemaster.vn</div>
