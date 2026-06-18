@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Button, Space, Modal, Form, Input, message, Popconfirm } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
-import { departmentApi } from '../../../features/departments/api/department.api';
-import type { Department } from '../../../types/department.types';
+import { departmentApi } from '../../features/departments/api/department.api';
+import type { Department } from '../../types/department.types';
 
 export default function DepartmentsPage() {
     const [departments, setDepartments] = useState<Department[]>([]);

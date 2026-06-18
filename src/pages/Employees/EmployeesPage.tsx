@@ -29,6 +29,13 @@ import { exportToExcel } from '../../utils/exportUtils';
 import './EmployeesPage.css';
 import { useNavigate } from 'react-router-dom';
 
+const ROLE_MAP: Record<string, string> = {
+  'Admin': 'Quản trị viên',
+  'Manager': 'Quản lý nhân sự',
+  'Employee': 'Nhân viên'
+};
+const getRoleNameVN = (roleName?: string | null) => roleName ? (ROLE_MAP[roleName] || roleName) : '';
+
 export default function EmployeesPage() {
   const toast = useToast();
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -49,7 +56,7 @@ export default function EmployeesPage() {
 
   // Lấy danh sách vai trò động từ dữ liệu API
   const roleOptions = useMemo(() => {
-    const roles = [...new Set(employees.map(e => e.role).filter(Boolean))];
+    const roles = [...new Set(employees.map(e => getRoleNameVN(e.role_name)).filter(Boolean))];
     return ['Tất cả vai trò', ...roles.sort()];
   }, [employees]);
 
@@ -84,8 +91,8 @@ export default function EmployeesPage() {
         (emp.full_name ?? '').toLowerCase().includes(q) ||
         (emp.username ?? '').toLowerCase().includes(q) ||
         String(emp.id_nhan_vien).includes(q) ||
-        (emp.role ?? '').toLowerCase().includes(q);
-      const matchRole = role === 'Tất cả vai trò' || emp.role === role;
+        getRoleNameVN(emp.role_name).toLowerCase().includes(q);
+      const matchRole = role === 'Tất cả vai trò' || getRoleNameVN(emp.role_name) === role;
       const hasFaceData = emp.du_lieu_khuon_mat && Object.keys(emp.du_lieu_khuon_mat).length > 0;
       const matchStatus =
         status === 'Tất cả trạng thái' ||
@@ -168,7 +175,7 @@ export default function EmployeesPage() {
     'Mã NV': emp.id_nhan_vien,
     'Tên đăng nhập': emp.username,
     'Họ và tên': emp.full_name,
-    'Vai trò': emp.role_name === 'Admin' ? 'Quản trị viên' : emp.role_name === 'Manager' ? 'Quản lý nhân sự' : 'Nhân viên',
+    'Vai trò': getRoleNameVN(emp.role_name),
     'Dữ liệu khuôn mặt': (emp.du_lieu_khuon_mat && Object.keys(emp.du_lieu_khuon_mat).length > 0) ? 'Đã đăng ký' : 'Chưa đăng ký',
     'Ngày tạo': formatDate(emp.created_at)
   });

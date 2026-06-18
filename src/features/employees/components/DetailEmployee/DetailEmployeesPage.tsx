@@ -18,8 +18,10 @@ import {
     LoginOutlined,
     StopOutlined,
     CloseOutlined,
-    TeamOutlined
+    TeamOutlined,
+    BarChartOutlined
 } from '@ant-design/icons';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import './DetailEmployeesPage.css';
 import { useToast } from '../../../../components/common/Toast/Toast';
 import { attendanceService, type AttendanceRecord } from '../../../../services/attendance.service';
@@ -425,7 +427,7 @@ export default function DetailEmployeesPage() {
             } else {
                 toast.error('Lỗi', res.message || 'Không thể cập nhật mật khẩu');
             }
-        } catch(err) {
+        } catch (err) {
             console.error("Lỗi cập nhật mật khẩu:", err);
             toast.error('Lỗi', 'Đã xảy ra lỗi hệ thống');
         } finally {
@@ -555,6 +557,8 @@ export default function DetailEmployeesPage() {
                                 </div>
                             </div>
                         </div>
+
+
                     </>
                 );
 
@@ -767,7 +771,7 @@ export default function DetailEmployeesPage() {
                                     <div className="stat-box">
                                         <span className="info-label">NGÀY ĐĂNG KÝ</span>
                                         <span className="info-value large">
-                                            {formData.du_lieu_khuon_mat && Object.keys(formData.du_lieu_khuon_mat).length > 0 
+                                            {formData.du_lieu_khuon_mat && Object.keys(formData.du_lieu_khuon_mat).length > 0
                                                 ? formatFaceRegistrationDate(formData.ngay_cap_nhat_khuon_mat)
                                                 : 'Chưa đăng ký'}
                                         </span>
@@ -790,8 +794,8 @@ export default function DetailEmployeesPage() {
                                     <SettingOutlined className="card-icon" />
                                     <h2>Cài đặt tài khoản</h2>
                                 </div>
-                                <button 
-                                    className={formData.status ? "btn-danger-outline" : "btn-primary"} 
+                                <button
+                                    className={formData.status ? "btn-danger-outline" : "btn-primary"}
                                     onClick={handleToggleStatus}
                                 >
                                     {formData.status ? <><StopOutlined /> Vô hiệu hoá tài khoản</> : <><CheckCircleFilled /> Kích hoạt tài khoản</>}
@@ -819,10 +823,10 @@ export default function DetailEmployeesPage() {
                                     </div>
                                     <div className="setting-form-group">
                                         <label>Cập nhật lại mật khẩu</label>
-                                        <input 
-                                            type="password" 
-                                            className="setting-input" 
-                                            placeholder="Tối thiểu 8 ký tự" 
+                                        <input
+                                            type="password"
+                                            className="setting-input"
+                                            placeholder="Tối thiểu 8 ký tự"
                                             value={newPassword}
                                             onChange={(e) => setNewPassword(e.target.value)}
                                         />
@@ -831,7 +835,7 @@ export default function DetailEmployeesPage() {
                                 </div>
 
                                 <div className="setting-actions">
-                                    <button 
+                                    <button
                                         className="btn-primary"
                                         onClick={handleUpdateSecurity}
                                         disabled={isUpdatingSecurity || !newPassword}
@@ -911,7 +915,7 @@ export default function DetailEmployeesPage() {
                         <div className="employee-tags">
                             <span className="tag-id">#{id}</span>
                             <span className="tag-status">
-                                <span className="status-dot" style={{ backgroundColor: formData.status ? '#10b981' : '#ef4444' }}></span> 
+                                <span className="status-dot" style={{ backgroundColor: formData.status ? '#10b981' : '#ef4444' }}></span>
                                 {formData.status ? 'Đang hoạt động' : 'Đã vô hiệu hoá'}
                             </span>
                         </div>
@@ -988,19 +992,32 @@ export default function DetailEmployeesPage() {
                                     }
                                 });
 
-                                return weeks.map((w, index) => {
+                                const chartData = weeks.map((w, index) => {
                                     const percent = Math.min((w / 6) * 100, 100);
-                                    // Bỏ qua tuần 5 nếu tháng đó có <= 28 ngày và không có dữ liệu
+                                    return {
+                                        name: `T${index + 1}`,
+                                        percent: percent
+                                    };
+                                }).filter((item, index) => {
                                     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-                                    if (index === 4 && daysInMonth <= 28 && percent === 0) return null;
-                                    
-                                    return (
-                                        <div className="bar-wrap" key={index}>
-                                            <div className={`bar bar-lvl-${(index % 6) + 1}`} style={{ height: `${percent || 5}%` }}></div>
-                                            <span className="bar-label">T{index + 1}</span>
-                                        </div>
-                                    );
+                                    return !(index === 4 && daysInMonth <= 28 && item.percent === 0);
                                 });
+
+                                return (
+                                    <div style={{ width: '100%', height: '100%' }}>
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart data={chartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+                                                <Tooltip
+                                                    cursor={{ fill: '#f1f5f9' }}
+                                                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: '12px' }}
+                                                    formatter={(value: any) => [`${Math.round(Number(value) || 0)}%`, 'Hiệu suất']}
+                                                />
+                                                <Bar dataKey="percent" fill="#2563eb" radius={[4, 4, 0, 0]} barSize={16} />
+                                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10 }} dy={5} />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                );
                             })()}
                         </div>
                     </div>

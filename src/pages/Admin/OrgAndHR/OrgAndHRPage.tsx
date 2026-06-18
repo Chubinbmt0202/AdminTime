@@ -30,9 +30,18 @@ import type { Employee } from '../../../features/employees/types';
 import { Spin, Popconfirm, message } from 'antd';
 import AddDepartmentDrawer from '../../../features/departments/components/AddDepartmentDrawer';
 
+const ROLE_MAP: Record<string, string> = {
+  'Admin': 'Quản trị viên',
+  'Manager': 'Quản lý nhân sự',
+  'Employee': 'Nhân viên'
+};
+const getRoleNameVN = (roleName?: string | null) => roleName ? (ROLE_MAP[roleName] || roleName) : '';
+
 export default function OrgAndHRPage() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedRole, setSelectedRole] = useState('all');
+  const [selectedStatus, setSelectedStatus] = useState('all');
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDeptId, setSelectedDeptId] = useState<number | string | null>(null);
@@ -170,6 +179,28 @@ export default function OrgAndHRPage() {
     const dept = departments.find(d => d.id_phong_ban === selectedDeptId);
     return dept ? (dept.ten_phong_ban || dept.mo_ta) : 'Phòng ban';
   })();
+
+  const availableRoles = Array.from(new Set(allEmployees.map(e => getRoleNameVN(e.role_name)).filter(Boolean)));
+
+  const filteredEmployees = employees.filter(emp => {
+    if (searchTerm) {
+      const lowerSearch = searchTerm.toLowerCase();
+      const matchName = emp.full_name?.toLowerCase().includes(lowerSearch);
+      const matchId = String(emp.id_nhan_vien).includes(lowerSearch);
+      if (!matchName && !matchId) return false;
+    }
+    
+    if (selectedStatus !== 'all') {
+      const isWorking = selectedStatus === 'active';
+      if (emp.trang_thai !== isWorking) return false;
+    }
+    
+    if (selectedRole !== 'all') {
+      if (getRoleNameVN(emp.role_name) !== selectedRole) return false;
+    }
+    
+    return true;
+  });
 
   return (
     <div className="org-hr-container">
@@ -309,8 +340,16 @@ export default function OrgAndHRPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <select className="filter-select">
-              <option>Trạng thái</option>
+            <select className="filter-select" value={selectedStatus} onChange={e => setSelectedStatus(e.target.value)}>
+              <option value="all">Trạng thái</option>
+              <option value="active">Hoạt động</option>
+              <option value="inactive">Đã nghỉ việc</option>
+            </select>
+            <select className="filter-select" value={selectedRole} onChange={e => setSelectedRole(e.target.value)}>
+              <option value="all">Tất cả vai trò</option>
+              {availableRoles.map(role => (
+                <option key={role as string} value={role as string}>{role as string}</option>
+              ))}
             </select>
             <button className="add-employee-btn" onClick={() => navigate('/employees')}>
               <UserAddOutlined /> Thêm nhân viên
@@ -337,14 +376,14 @@ export default function OrgAndHRPage() {
                       <Spin /> Đang tải nhân viên...
                     </td>
                   </tr>
-                ) : employees.length === 0 ? (
+                ) : filteredEmployees.length === 0 ? (
                   <tr>
-                    <td colSpan={6} style={{ textAlign: 'center', padding: '40px' }}>
-                      Không có nhân viên nào trong phòng ban này.
+                    <td colSpan={7} style={{ textAlign: 'center', padding: '40px' }}>
+                      Không tìm thấy nhân viên nào phù hợp.
                     </td>
                   </tr>
                 ) : (
-                  employees.map((emp) => (
+                  filteredEmployees.map((emp) => (
                     <tr key={emp.id_nhan_vien}>
                       <td><span className="emp-id">#{emp.id_nhan_vien}</span></td>
                       <td>
@@ -362,7 +401,7 @@ export default function OrgAndHRPage() {
                           </div>
                         </div>
                       </td>
-                      <td><span className="emp-role">{emp.role_name}</span></td>
+                      <td><span className="emp-role">{getRoleNameVN(emp.role_name)}</span></td>
                       <td><span className={`dept-badge ${emp.phone_number?.toLowerCase().replace(' ', '-')}`}>{emp.phone_number}</span></td>
                       <td><span className="emp-email">{emp.email}</span></td>
                       <td>
@@ -388,7 +427,7 @@ export default function OrgAndHRPage() {
           </div>
 
           <div className="pagination">
-            <span className="pagination-info">Hiển thị 1-10 của 120 nhân sự</span>
+            <span className="pagination-info">Hiển thị {filteredEmployees.length} nhân sự</span>
             <div className="page-controls">
               <button className="page-btn disabled">&lt;</button>
               <button className="page-btn active">1</button>
