@@ -25,6 +25,7 @@ import {
 import './OrgAndHRPage.css';
 import { departmentApi } from '../../../features/departments/api/department.api';
 import { employeeApi } from '../../../features/employees/api/employee.api';
+import { shiftApi } from '../../../features/settings/api/shift.api';
 import type { Department } from '../../../types/department.types';
 import type { Employee } from '../../../features/employees/types';
 import { Spin, Popconfirm, message } from 'antd';
@@ -50,6 +51,7 @@ export default function OrgAndHRPage() {
   const [loadingEmployees, setLoadingEmployees] = useState(false);
   const [isAddDeptDrawerOpen, setIsAddDeptDrawerOpen] = useState(false);
   const [editingDeptData, setEditingDeptData] = useState<Department | null>(null);
+  const [shifts, setShifts] = useState<any[]>([]);
 
   const openAddDrawer = () => {
     setEditingDeptData(null);
@@ -114,9 +116,10 @@ export default function OrgAndHRPage() {
 
   const fetchInitialData = async () => {
     try {
-      const [deptRes, empRes] = await Promise.all([
+      const [deptRes, empRes, shiftRes] = await Promise.all([
         departmentApi.getAll(),
-        employeeApi.getAll()
+        employeeApi.getAll(),
+        shiftApi.getAllShifts()
       ]);
       console.log("Dữ liệu phòng ban", deptRes.data);
       if (deptRes.success) {
@@ -127,6 +130,9 @@ export default function OrgAndHRPage() {
       }
       if (empRes.success) {
         setAllEmployees(empRes.data);
+      }
+      if (shiftRes.success) {
+        setShifts(shiftRes.data);
       }
     } catch (error) {
       console.error('Error fetching initial data:', error);
@@ -301,7 +307,19 @@ export default function OrgAndHRPage() {
                     style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                   >
                     <div style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {getDeptIcon(dept.ten_phong_ban || dept.mo_ta)} {dept.ten_phong_ban || dept.mo_ta}
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        {getDeptIcon(dept.ten_phong_ban || dept.mo_ta)} <span style={{ marginLeft: '8px' }}>{dept.ten_phong_ban || dept.mo_ta}</span>
+                      </div>
+                      {dept.id_ca_lam_viec && (
+                        <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px', marginLeft: '24px' }}>
+                          Ca làm: {
+                            (() => {
+                              const s = shifts.find(shift => (shift.id_ca_lam_viec || shift.id) === dept.id_ca_lam_viec);
+                              return s ? (s.shift_name || s.ten_ca) : 'N/A';
+                            })()
+                          }
+                        </div>
+                      )}
                     </div>
                     {selectedDeptId === dept.id_phong_ban && (
                       <div className="dept-actions" style={{ display: 'flex', gap: '8px', paddingLeft: '8px' }}>
@@ -363,6 +381,7 @@ export default function OrgAndHRPage() {
                   <th>MÃ NV</th>
                   <th>HỌ VÀ TÊN</th>
                   <th>CHỨC VỤ</th>
+                  <th>PHÒNG BAN</th>
                   <th>SỐ ĐIỆN THOẠI</th>
                   <th>EMAIL</th>
                   <th>TRẠNG THÁI</th>
@@ -402,7 +421,8 @@ export default function OrgAndHRPage() {
                         </div>
                       </td>
                       <td><span className="emp-role">{getRoleNameVN(emp.role_name)}</span></td>
-                      <td><span className={`dept-badge ${emp.phone_number?.toLowerCase().replace(' ', '-')}`}>{emp.phone_number}</span></td>
+                      <td><span className={`dept-badge ${emp.department_name ? emp.department_name.toLowerCase().replace(/\s+/g, '-') : 'other'}`}>{emp.department_name || 'Chưa phân bổ'}</span></td>
+                      <td><span className="emp-phone">{emp.phone_number || 'N/A'}</span></td>
                       <td><span className="emp-email">{emp.email}</span></td>
                       <td>
                         <span className={`status-badge ${emp.trang_thai ? 'active' : 'resigned'}`}>

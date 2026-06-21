@@ -46,8 +46,8 @@ const AddShiftDrawer: React.FC<Props> = ({ open, onClose, onSuccess, initialData
         workingDays: initialData.coefficient?.toString() || initialData.so_cong?.toString() || '1.0',
         lateGrace: initialData.late_tolerance_mins?.toString() || '15',
         earlyGrace: '5',
-        checkInBefore: '60',
-        checkOutAfter: '120',
+        checkInBefore: initialData.mo_vao_truoc?.toString() || initialData.check_in_before_mins?.toString() || '60',
+        checkOutAfter: initialData.dong_ra_sau?.toString() || initialData.check_out_after_mins?.toString() || '120',
       });
     } else {
       setForm({
@@ -97,7 +97,9 @@ const AddShiftDrawer: React.FC<Props> = ({ open, onClose, onSuccess, initialData
         coefficient: parseFloat(form.workingDays),
         has_lunch_break: form.hasBreak,
         lunch_start_time: form.hasBreak ? form.breakStart : null,
-        lunch_end_time: form.hasBreak ? form.breakEnd : null
+        lunch_end_time: form.hasBreak ? form.breakEnd : null,
+        check_in_before_mins: parseInt(form.checkInBefore),
+        check_out_after_mins: parseInt(form.checkOutAfter)
       };
 
       let response;

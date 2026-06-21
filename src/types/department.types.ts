@@ -4,6 +4,7 @@ export interface Department {
     mo_ta: string | null;
     ngay_tao: string;
     id_nguoi_dung: number | null;
+    id_ca_lam_viec?: string | null;
 }
 
 export interface DepartmentApiResponse {

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Drawer, Form, Input, Button, message, Row, Col } from 'antd';
+import { Drawer, Form, Input, Button, message, Row, Col, Select } from 'antd';
 import { InfoCircleOutlined, SearchOutlined, AppstoreAddOutlined, CloseOutlined } from '@ant-design/icons';
 import { departmentApi } from '../api/department.api';
+import { shiftApi } from '../../settings/api/shift.api';
 
 interface AddDepartmentDrawerProps {
   open: boolean;
@@ -13,13 +14,31 @@ interface AddDepartmentDrawerProps {
 export default function AddDepartmentDrawer({ open, onClose, onSuccess, initialData }: AddDepartmentDrawerProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [shifts, setShifts] = useState<any[]>([]);
+  const [loadingShifts, setLoadingShifts] = useState(false);
 
   useEffect(() => {
+    const fetchShifts = async () => {
+      setLoadingShifts(true);
+      try {
+        const response = await shiftApi.getAllShifts();
+        if (response.success) {
+          setShifts(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching shifts:', error);
+      } finally {
+        setLoadingShifts(false);
+      }
+    };
+
     if (open) {
+      fetchShifts();
       if (initialData) {
         form.setFieldsValue({
           ten_phong_ban: initialData.ten_phong_ban,
           mo_ta_chuc_nang: initialData.mo_ta,
+          id_ca_lam_viec: initialData.id_ca_lam_viec,
         });
       } else {
         form.resetFields();
@@ -103,6 +122,27 @@ export default function AddDepartmentDrawer({ open, onClose, onSuccess, initialD
                 placeholder="Vd: Marketing"
                 size="large"
                 style={{ backgroundColor: '#f3f4f6', border: 'none', borderRadius: '6px', fontSize: '14px', color: '#374151' }}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={24}>
+            <Form.Item
+              name="id_ca_lam_viec"
+              label={<span style={{ fontWeight: 700, fontSize: '11px', letterSpacing: '0.5px', color: '#374151' }}>CA LÀM VIỆC MẶC ĐỊNH</span>}
+            >
+              <Select
+                placeholder="Chọn ca làm việc cho phòng ban này"
+                size="large"
+                loading={loadingShifts}
+                allowClear
+                style={{ width: '100%' }}
+                options={shifts.map(shift => ({
+                  value: shift.id_ca_lam_viec || shift.id,
+                  label: `${shift.shift_name || shift.ten_ca || 'Ca làm việc'} (${(shift.start_time || shift.gio_bat_dau || '').toString().substring(0, 5)} - ${(shift.end_time || shift.gio_ket_thuc || '').toString().substring(0, 5)})`
+                }))}
               />
             </Form.Item>
           </Col>

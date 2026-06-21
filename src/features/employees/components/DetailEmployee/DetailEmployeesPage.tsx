@@ -390,11 +390,11 @@ export default function DetailEmployeesPage() {
             try {
                 const res = await employeeApi.update(id, {
                     full_name: formData.full_name,
-                    email: formData.email,
-                    phone_number: formData.phone,
-                    date_of_birth: formData.dob,
-                    gender: formData.gender,
-                    address: formData.address,
+                    email: formData.email === 'Chưa cập nhật' ? null : formData.email,
+                    phone_number: formData.phone === 'Chưa cập nhật' ? null : formData.phone,
+                    date_of_birth: formData.dob === 'Chưa cập nhật' ? null : formData.dob,
+                    gender: formData.gender === 'Chưa cập nhật' ? null : formData.gender,
+                    address: formData.address === 'Chưa cập nhật' ? null : formData.address,
                 });
                 if (res.success) {
                     toast.success('Thành công', 'Cập nhật thông tin cá nhân thành công');
