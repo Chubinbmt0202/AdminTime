@@ -1,12 +1,12 @@
 import { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react'
 import type { ReactNode } from 'react'
-import './Toast.css'
+import './ThongBaoToast.css'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info'
 
-export interface Toast {
+export interface ThongBaoToast {
   id: string
   type: ToastType
   title: string
@@ -23,11 +23,11 @@ interface ToastContextValue {
 
 // ─── Context ─────────────────────────────────────────────────────────────────
 
-const ToastContext = createContext<ToastContextValue | null>(null)
+const ContextToast = createContext<ToastContextValue | null>(null)
 
-export function useToast(): ToastContextValue {
-  const ctx = useContext(ToastContext)
-  if (!ctx) throw new Error('useToast must be used inside <ToastProvider>')
+export function useThongBao(): ToastContextValue {
+  const ctx = useContext(ContextToast)
+  if (!ctx) throw new Error('useThongBao must be used inside <NhaCungCapToast>')
   return ctx
 }
 
@@ -47,9 +47,9 @@ const TITLES: Record<ToastType, string> = {
   info:    'Thông báo',
 }
 
-// ─── Single Toast Item ────────────────────────────────────────────────────────
+// ─── Single ThongBaoToast Item ────────────────────────────────────────────────────────
 
-function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => void }) {
+function PhanTuToast({ toast, onRemove }: { toast: ThongBaoToast; onRemove: (id: string) => void }) {
   const [visible, setVisible] = useState(false)
   const [leaving, setLeaving] = useState(false)
 
@@ -102,12 +102,12 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
 
 // ─── Container ────────────────────────────────────────────────────────────────
 
-function ToastContainer({ toasts, onRemove }: { toasts: Toast[]; onRemove: (id: string) => void }) {
+function KhungChuaToast({ toasts, onRemove }: { toasts: ThongBaoToast[]; onRemove: (id: string) => void }) {
   if (toasts.length === 0) return null
   return (
     <div className="toast-container" aria-live="polite">
       {toasts.map(t => (
-        <ToastItem key={t.id} toast={t} onRemove={onRemove} />
+        <PhanTuToast key={t.id} toast={t} onRemove={onRemove} />
       ))}
     </div>
   )
@@ -115,8 +115,8 @@ function ToastContainer({ toasts, onRemove }: { toasts: Toast[]; onRemove: (id: 
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
-export function ToastProvider({ children }: { children: ReactNode }) {
-  const [toasts, setToasts] = useState<Toast[]>([])
+export function NhaCungCapToast({ children }: { children: ReactNode }) {
+  const [toasts, setToasts] = useState<ThongBaoToast[]>([])
   const counter = useRef(0)
 
   const add = useCallback((type: ToastType, title: string, message?: string, duration?: number) => {
@@ -136,9 +136,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <ToastContext.Provider value={value}>
+    <ContextToast.Provider value={value}>
       {children}
-      <ToastContainer toasts={toasts} onRemove={remove} />
-    </ToastContext.Provider>
+      <KhungChuaToast toasts={toasts} onRemove={remove} />
+    </ContextToast.Provider>
   )
 }

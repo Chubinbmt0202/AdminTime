@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Button, Space, Modal, Form, Input, message, Popconfirm } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
-import { departmentApi } from '../../features/departments/api/department.api';
-import type { Department } from '../../types/department.types';
+import { departmentApi } from '../../features/departments/api/phongBan.api';
+import type { Department } from '../../types/kieuPhongBan';
 
-export default function DepartmentsPage() {
+export default function QuanLyPhongBanPage() {
     const [departments, setDepartments] = useState<Department[]>([]);
     const [loading, setLoading] = useState(false);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [editingDept, setEditingDept] = useState<Department | null>(null);
     const [form] = Form.useForm();
 
-    const fetchDepartments = async () => {
+    const taiDanhSachPhongBan = async () => {
         setLoading(true);
         try {
-            const res = await departmentApi.getAll();
+            const res = await departmentApi.layTatCa();
             if (res.success) {
                 setDepartments(res.data);
             }
@@ -26,10 +26,10 @@ export default function DepartmentsPage() {
     };
 
     useEffect(() => {
-        fetchDepartments();
+        taiDanhSachPhongBan();
     }, []);
 
-    const showModal = (dept?: Department) => {
+    const hienThiModal = (dept?: Department) => {
         setEditingDept(dept || null);
         if (dept) {
             form.setFieldsValue({
@@ -42,24 +42,24 @@ export default function DepartmentsPage() {
         setIsModalVisible(true);
     };
 
-    const handleCancel = () => {
+    const xuLyHuy = () => {
         setIsModalVisible(false);
         form.resetFields();
         setEditingDept(null);
     };
 
-    const handleSubmit = async () => {
+    const xuLyGui = async () => {
         try {
             const values = await form.validateFields();
             if (editingDept) {
-                const res = await departmentApi.update(editingDept.id_phong_ban, values);
+                const res = await departmentApi.capNhat(editingDept.id_phong_ban, values);
                 if (res.success) {
                     message.success('Cập nhật phòng ban thành công');
                 } else {
                     message.error(res.message || 'Lỗi cập nhật phòng ban');
                 }
             } else {
-                const res = await departmentApi.create(values);
+                const res = await departmentApi.taoMoi(values);
                 if (res.success) {
                     message.success('Thêm phòng ban thành công');
                 } else {
@@ -67,18 +67,18 @@ export default function DepartmentsPage() {
                 }
             }
             setIsModalVisible(false);
-            fetchDepartments();
+            taiDanhSachPhongBan();
         } catch (error) {
             console.error('Lỗi validate hoặc lưu dữ liệu:', error);
         }
     };
 
-    const handleDelete = async (id: string) => {
+    const xuLyXoa = async (id: string) => {
         try {
-            const res = await departmentApi.delete(id);
+            const res = await departmentApi.xoa(id);
             if (res.success) {
                 message.success('Xóa phòng ban thành công');
-                fetchDepartments();
+                taiDanhSachPhongBan();
             } else {
                 message.error(res.message || 'Không thể xóa phòng ban');
             }
@@ -116,12 +116,12 @@ export default function DepartmentsPage() {
             key: 'action',
             render: (_: any, record: Department) => (
                 <Space size="middle">
-                    <Button type="primary" icon={<EditOutlined />} onClick={() => showModal(record)}>
+                    <Button type="primary" icon={<EditOutlined />} onClick={() => hienThiModal(record)}>
                         Sửa
                     </Button>
                     <Popconfirm
                         title="Bạn có chắc chắn muốn xóa phòng ban này?"
-                        onConfirm={() => handleDelete(record.id_phong_ban)}
+                        onConfirm={() => xuLyXoa(record.id_phong_ban)}
                         okText="Có"
                         cancelText="Không"
                     >
@@ -138,7 +138,7 @@ export default function DepartmentsPage() {
         <div style={{ padding: 24, background: '#fff', borderRadius: 8 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
                 <h2 style={{ margin: 0, fontSize: 24, fontWeight: 600 }}>Quản lý Phòng Ban</h2>
-                <Button type="primary" icon={<PlusOutlined />} onClick={() => showModal()}>
+                <Button type="primary" icon={<PlusOutlined />} onClick={() => hienThiModal()}>
                     Thêm Phòng Ban
                 </Button>
             </div>
@@ -153,8 +153,8 @@ export default function DepartmentsPage() {
             <Modal
                 title={editingDept ? 'Sửa Phòng Ban' : 'Thêm Phòng Ban'}
                 open={isModalVisible}
-                onOk={handleSubmit}
-                onCancel={handleCancel}
+                onOk={xuLyGui}
+                onCancel={xuLyHuy}
                 okText="Lưu"
                 cancelText="Hủy"
             >

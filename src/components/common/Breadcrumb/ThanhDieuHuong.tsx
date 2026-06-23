@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import './Breadcrumb.css';
+import './ThanhDieuHuong.css';
 
 const routeLabels: Record<string, string> = {
   '': 'Trang chủ',
@@ -19,7 +19,7 @@ const routeLabels: Record<string, string> = {
   'settings': 'Cài đặt',
 };
 
-const Breadcrumb: React.FC = () => {
+const ThanhDieuHuong: React.FC = () => {
   const location = useLocation();
   const pathnames = location.pathname.split('/').filter((x) => x);
 
@@ -59,4 +59,4 @@ const Breadcrumb: React.FC = () => {
   );
 };
 
-export default Breadcrumb;
+export default ThanhDieuHuong;

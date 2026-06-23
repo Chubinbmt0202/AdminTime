@@ -1,11 +1,11 @@
-import { apiClient } from '../../../services/api.client';
+import { apiClient } from '../../../services/apiClient';
 import type { LeaveRequest } from '../types';
 
 export const leaveApi = {
-    getAll: (): Promise<{ success: boolean; data: LeaveRequest[]; message?: string }> => {
+    layTatCa: (): Promise<{ success: boolean; data: LeaveRequest[]; message?: string }> => {
         return apiClient.get('/leave/all');
     },
-    updateStatus: (params: {
+    capNhatTrangThai: (params: {
         id_don_xin_nghi: string;
         status: 'approved' | 'rejected';
         id_nguoi_duyet: string;

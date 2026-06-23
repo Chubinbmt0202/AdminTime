@@ -1,21 +1,21 @@
 import { useState, useEffect, useCallback } from 'react';
 import { SyncOutlined, EditOutlined, SaveOutlined, CloseOutlined } from '@ant-design/icons';
-import { leaveTypeApi, type LeaveType } from '../../api/leaveType.api';
-import { useToast } from '../../../../components/common/Toast/Toast';
-import './LeaveTypeConfigPage.css';
+import { leaveTypeApi, type LeaveType } from '../../api/loaiNghi.api';
+import { useThongBao } from '../../../../components/common/Toast/ThongBaoToast';
+import './CauHinhLoaiNghi.css';
 
-export default function LeaveTypeConfigPage() {
-    const toast = useToast();
+export default function CauHinhLoaiNghiPage() {
+    const toast = useThongBao();
     const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([]);
     const [loading, setLoading] = useState(false);
 
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editForm, setEditForm] = useState<Partial<LeaveType>>({});
 
-    const fetchLeaveTypes = useCallback(async () => {
+    const taiDanhSachLoaiNghi = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await leaveTypeApi.getAll();
+            const res = await leaveTypeApi.layTatCa();
             if (res.success) {
                 setLeaveTypes(res.data || []);
             } else {
@@ -29,20 +29,20 @@ export default function LeaveTypeConfigPage() {
     }, [toast]);
 
     useEffect(() => {
-        fetchLeaveTypes();
-    }, [fetchLeaveTypes]);
+        taiDanhSachLoaiNghi();
+    }, [taiDanhSachLoaiNghi]);
 
-    const handleEditClick = (record: LeaveType) => {
+    const xuLyClickSua = (record: LeaveType) => {
         setEditingId(record.id_loai_phep);
         setEditForm(record);
     };
 
-    const handleCancelEdit = () => {
+    const xuLyHuySua = () => {
         setEditingId(null);
         setEditForm({});
     };
 
-    const handleSave = async (id: string) => {
+    const xuLyLuu = async (id: string) => {
         if (!editForm.ten_phep || editForm.so_ngay_toi_da === undefined) {
             toast.error('Lỗi', 'Vui lòng nhập đủ tên phép và số ngày tối đa');
             return;
@@ -50,12 +50,12 @@ export default function LeaveTypeConfigPage() {
 
         setLoading(true);
         try {
-            const res = await leaveTypeApi.update(id, editForm as Omit<LeaveType, 'id_loai_phep'>);
+            const res = await leaveTypeApi.capNhat(id, editForm as Omit<LeaveType, 'id_loai_phep'>);
             if (res.success) {
                 toast.success('Thành công', 'Đã cập nhật loại đơn từ');
                 setEditingId(null);
                 setEditForm({});
-                await fetchLeaveTypes();
+                await taiDanhSachLoaiNghi();
             } else {
                 throw new Error(res.message || 'Lỗi khi cập nhật loại đơn từ');
             }
@@ -73,7 +73,7 @@ export default function LeaveTypeConfigPage() {
                     <h1>Thiết lập Đơn từ</h1>
                     <p>Quản lý các loại đơn từ, số ngày nghỉ phép tối đa trong năm và thiết lập tính lương.</p>
                 </div>
-                <button className="btn-secondary" onClick={fetchLeaveTypes} disabled={loading}>
+                <button className="btn-secondary" onClick={taiDanhSachLoaiNghi} disabled={loading}>
                     <SyncOutlined spin={loading} /> Làm mới
                 </button>
             </div>
@@ -166,15 +166,15 @@ export default function LeaveTypeConfigPage() {
                                         <td>
                                             {isEditing ? (
                                                 <div className="action-buttons">
-                                                    <button className="btn-icon btn-save" onClick={() => handleSave(type.id_loai_phep)} title="Lưu">
+                                                    <button className="btn-icon btn-save" onClick={() => xuLyLuu(type.id_loai_phep)} title="Lưu">
                                                         <SaveOutlined />
                                                     </button>
-                                                    <button className="btn-icon btn-cancel" onClick={handleCancelEdit} title="Hủy">
+                                                    <button className="btn-icon btn-cancel" onClick={xuLyHuySua} title="Hủy">
                                                         <CloseOutlined />
                                                     </button>
                                                 </div>
                                             ) : (
-                                                <button className="btn-icon btn-edit" onClick={() => handleEditClick(type)} title="Chỉnh sửa">
+                                                <button className="btn-icon btn-edit" onClick={() => xuLyClickSua(type)} title="Chỉnh sửa">
                                                     <EditOutlined /> Sửa
                                                 </button>
                                             )}

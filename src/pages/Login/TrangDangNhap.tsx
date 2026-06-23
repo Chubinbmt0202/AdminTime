@@ -1,20 +1,20 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../auth/AuthContext';
-import type { Role } from '../../auth/auth.types';
-import { useToast } from '../../components/common/Toast/Toast';
-import './LoginPage.css';
+import { useXacThuc } from '../../auth/ContextXacThuc';
+import type { Role } from '../../auth/kieuXacThuc';
+import { useThongBao } from '../../components/common/Toast/ThongBaoToast';
+import './TrangDangNhap.css';
 
 function getErrorMessage(err: unknown) {
   if (err instanceof Error) return err.message;
   return 'Đăng nhập thất bại. Vui lòng thử lại.';
 }
 
-export default function LoginPage() {
+export default function TrangDangNhapPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, isAuthenticated } = useAuth();
-  const toast = useToast();
+  const { login, isAuthenticated } = useXacThuc();
+  const toast = useThongBao();
 
   const from = useMemo(() => {
     const state = location.state as { from?: string } | null;

@@ -5,7 +5,7 @@ import * as XLSX from 'xlsx';
  * @param data Array of objects containing the row data
  * @param fileName Name of the exported file (without extension)
  */
-export const exportToExcel = (data: any[], fileName: string) => {
+export const xuatRaExcel = (data: any[], fileName: string) => {
   if (!data || data.length === 0) {
     console.warn('No data to export');
     return;

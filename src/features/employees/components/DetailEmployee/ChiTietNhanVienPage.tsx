@@ -22,14 +22,15 @@ import {
     BarChartOutlined
 } from '@ant-design/icons';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import './DetailEmployeesPage.css';
-import { useToast } from '../../../../components/common/Toast/Toast';
-import { attendanceService, type AttendanceRecord } from '../../../../services/attendance.service';
-import { employeeApi } from '../../api/employee.api';
-import { departmentApi } from '../../../departments/api/department.api';
-import type { Department } from '../../../../types/department.types';
-import AttendanceDetailDrawer from './AttendanceDetailDrawer';
-import { exportToExcel } from '../../../../utils/exportUtils';
+import './ChiTietNhanVienPage.css';
+import { useThongBao } from '../../../../components/common/Toast/ThongBaoToast';
+import { attendanceService, type AttendanceRecord } from '../../../../services/dichVuChamCong';
+import { employeeApi } from '../../api/nhanVien.api';
+import { departmentApi } from '../../../departments/api/phongBan.api';
+import type { Department } from '../../../../types/kieuPhongBan';
+import { vaiTroApi, type Role } from '../../../../features/roles/api/vaiTro.api';
+import DrawerChiTietChamCong from './DrawerChiTietChamCong';
+import { xuatRaExcel } from '../../../../utils/tienIchXuatFile';
 
 const initialFormData = {
     full_name: 'Đang tải...',
@@ -159,9 +160,9 @@ const getOtBadge = (log: AttendanceRecord) => {
     }
 };
 
-export default function DetailEmployeesPage() {
+export default function ChiTietNhanVienPage() {
     const { id } = useParams(); // Lấy ID từ URL (VD: http://localhost:5173/employees/10 -> id = 10)
-    const toast = useToast();
+    const toast = useThongBao();
 
     const [activeTab, setActiveTab] = useState('info');
     const [loading, setLoading] = useState(true); // Trạng thái tải dữ liệu API
@@ -220,46 +221,53 @@ export default function DetailEmployeesPage() {
 
     // States for department settings
     const [departments, setDepartments] = useState<Department[]>([]);
+    const [roles, setRoles] = useState<Role[]>([]);
     const [settingDepartmentId, setSettingDepartmentId] = useState<string>('');
+    const [settingRole, setSettingRole] = useState<string>('');
     const [isUpdatingDepartment, setIsUpdatingDepartment] = useState(false);
 
     useEffect(() => {
-        const fetchDepartments = async () => {
+        const taiDanhSachKhoiTao = async () => {
             try {
-                const res = await departmentApi.getAll();
-                if (res.success) {
-                    setDepartments(res.data);
-                }
+                const [resDept, resRole] = await Promise.all([
+                    departmentApi.layTatCa(),
+                    vaiTroApi.layTatCa()
+                ]);
+                if (resDept.success) setDepartments(resDept.data);
+                if (resRole.success) setRoles(resRole.data);
             } catch (err) {
-                console.error("Lỗi lấy danh sách phòng ban:", err);
+                console.error("Lỗi lấy dữ liệu khởi tạo:", err);
             }
         };
-        fetchDepartments();
+        taiDanhSachKhoiTao();
     }, []);
 
     const handleUpdateDepartment = async () => {
         if (!id) return;
         setIsUpdatingDepartment(true);
         try {
-            const res = await employeeApi.update(id, {
-                department_id: settingDepartmentId || null
+            const res = await employeeApi.capNhat(id, {
+                department_id: settingDepartmentId || null,
+                role: settingRole || null
             });
             if (res.success) {
-                toast.success('Cập nhật phòng ban cho nhân viên thành công');
+                toast.success('Cập nhật phòng ban và chức vụ thành công');
                 setFormData(prev => {
                     const dept = departments.find(d => d.id_phong_ban === settingDepartmentId);
                     const deptName = dept ? (dept.ten_phong_ban || dept.mo_ta || 'Phòng ban không tên') : 'Chưa phân phòng';
+                    const selectedRole = roles.find(r => r.id_vai_tro === settingRole);
                     return {
                         ...prev,
                         department_id: settingDepartmentId,
-                        department: deptName
+                        department: deptName,
+                        title: selectedRole ? selectedRole.ten_vai_tro : prev.title
                     };
                 });
             } else {
-                toast.error(res.message || 'Không thể cập nhật phòng ban');
+                toast.error(res.message || 'Không thể cập nhật phòng ban và chức vụ');
             }
         } catch (err) {
-            console.error('Lỗi cập nhật phòng ban:', err);
+            console.error('Lỗi cập nhật phòng ban và chức vụ:', err);
             toast.error('Đã xảy ra lỗi hệ thống');
         } finally {
             setIsUpdatingDepartment(false);
@@ -271,7 +279,7 @@ export default function DetailEmployeesPage() {
         if (!id) return;
         setHistoryLoading(true);
         try {
-            const res = await attendanceService.getEmployeeHistory(id);
+            const res = await attendanceService.layLichSuNhanVien(id);
             console.log("dữ liệu lịch sử chấm công:", res.data)
             if (res.success) {
                 setHistoryLogs(Array.isArray(res.data) ? res.data : []);
@@ -309,7 +317,7 @@ export default function DetailEmployeesPage() {
         }));
 
         const employeeName = formData.full_name ? formData.full_name.replace(/\s+/g, '_') : 'Nhan_Vien';
-        exportToExcel(data, `Lich_Su_Cham_Cong_${employeeName}`);
+        xuatRaExcel(data, `Lich_Su_Cham_Cong_${employeeName}`);
     };
 
     const handleRequestInfoUpdate = async (e: React.MouseEvent) => {
@@ -318,7 +326,7 @@ export default function DetailEmployeesPage() {
 
         setIsRequestingInfoUpdate(true);
         try {
-            const res = await employeeApi.requestProfileUpdate(id);
+            const res = await employeeApi.yeuCauCapNhatThongTin(id);
             if (res.success) {
                 toast.success(
                     'Đã gửi yêu cầu',
@@ -358,7 +366,7 @@ export default function DetailEmployeesPage() {
                         address: json.data.address || 'Chưa cập nhật',
                         department: json.data.department_name || json.data.department || 'Chưa cập nhật',
                         department_id: json.data.department_id || '',
-                        title: json.data.role_name || json.data.role || 'Chưa cập nhật', // Gán role làm chức vụ
+                        title: json.data.role_name || 'Chưa cập nhật', // Gán role làm chức vụ
                         joinDate: json.data.created_at ? new Date(json.data.created_at).toLocaleDateString('vi-VN') : 'Chưa cập nhật',
                         manager: json.data.manager || 'Chưa cập nhật',
                         du_lieu_khuon_mat: json.data.du_lieu_khuon_mat,
@@ -367,6 +375,7 @@ export default function DetailEmployeesPage() {
                         status: json.data.trang_thai !== undefined ? json.data.trang_thai : true
                     });
                     setSettingDepartmentId(json.data.department_id || '');
+                    setSettingRole(json.data.id_vai_tro || '');
                     console.log("Dữ liệu nhân viên:", json.data);
                 } else {
                     toast.error('Lỗi', json.message || 'Không tìm thấy thông tin nhân viên');
@@ -388,7 +397,7 @@ export default function DetailEmployeesPage() {
             if (!id) return;
             setIsUpdatingInfo(true);
             try {
-                const res = await employeeApi.update(id, {
+                const res = await employeeApi.capNhat(id, {
                     full_name: formData.full_name,
                     email: formData.email === 'Chưa cập nhật' ? null : formData.email,
                     phone_number: formData.phone === 'Chưa cập nhật' ? null : formData.phone,
@@ -420,7 +429,7 @@ export default function DetailEmployeesPage() {
         }
         setIsUpdatingSecurity(true);
         try {
-            const res = await employeeApi.update(id, { password: newPassword });
+            const res = await employeeApi.capNhat(id, { password: newPassword });
             if (res.success) {
                 toast.success('Thành công', 'Cập nhật mật khẩu thành công');
                 setNewPassword('');
@@ -442,7 +451,7 @@ export default function DetailEmployeesPage() {
         if (!window.confirm(confirmMsg)) return;
 
         try {
-            const res = await employeeApi.update(id, { status: newStatus });
+            const res = await employeeApi.capNhat(id, { status: newStatus });
             if (res.success) {
                 toast.success('Thành công', newStatus ? 'Đã kích hoạt tài khoản' : 'Đã vô hiệu hoá tài khoản');
                 setFormData(prev => ({ ...prev, status: newStatus }));
@@ -455,7 +464,7 @@ export default function DetailEmployeesPage() {
         }
     };
 
-    const handleRequestFaceUpdate = (e: React.MouseEvent) => {
+    const xuLyYeuCauCapNhatGuongMat = (e: React.MouseEvent) => {
         e.preventDefault();
         setShowFaceConfirm(true);
     };
@@ -465,7 +474,7 @@ export default function DetailEmployeesPage() {
         setShowFaceConfirm(false);
         setIsRequestingFaceUpdate(true);
         try {
-            const res = await employeeApi.requestFaceUpdate(id);
+            const res = await employeeApi.yeuCauCapNhatGuongMat(id);
             if (res.success) {
                 toast.success(
                     'Yêu cầu thành công',
@@ -748,7 +757,7 @@ export default function DetailEmployeesPage() {
                                 )}
                                 <button
                                     className="btn-secondary"
-                                    onClick={handleRequestFaceUpdate}
+                                    onClick={xuLyYeuCauCapNhatGuongMat}
                                     disabled={isRequestingFaceUpdate}
                                     style={{ fontSize: '13px', padding: '6px 12px', height: 'auto', opacity: isRequestingFaceUpdate ? 0.6 : 1 }}
                                 >
@@ -850,7 +859,7 @@ export default function DetailEmployeesPage() {
                             {/* Section: Phân bổ phòng ban */}
                             <div className="setting-section">
                                 <h3 className="setting-section-title">
-                                    <TeamOutlined /> Phân bổ phòng ban
+                                    <TeamOutlined /> Phân bổ phòng ban & Chức vụ
                                 </h3>
 
                                 <div className="grid-2-cols">
@@ -868,6 +877,20 @@ export default function DetailEmployeesPage() {
                                         </select>
                                         <span className="setting-hint">Lưu ý: Chuyển đổi phòng ban sẽ thay đổi quyền lợi tương ứng.</span>
                                     </div>
+                                    <div className="setting-form-group">
+                                        <label>Chức vụ (Vai trò)</label>
+                                        <select
+                                            className="setting-input"
+                                            value={settingRole}
+                                            onChange={(e) => setSettingRole(e.target.value)}
+                                        >
+                                            <option value="">-- Chọn chức vụ --</option>
+                                            {roles.map(r => (
+                                                <option key={r.id_vai_tro} value={r.id_vai_tro}>{r.ten_vai_tro}</option>
+                                            ))}
+                                        </select>
+                                        <span className="setting-hint">Vai trò trong hệ thống.</span>
+                                    </div>
                                 </div>
 
                                 <div className="setting-actions">
@@ -876,7 +899,7 @@ export default function DetailEmployeesPage() {
                                         onClick={handleUpdateDepartment}
                                         disabled={isUpdatingDepartment}
                                     >
-                                        {isUpdatingDepartment ? <><LoadingOutlined spin /> Đang cập nhật...</> : 'Cập nhật phòng ban'}
+                                        {isUpdatingDepartment ? <><LoadingOutlined spin /> Đang cập nhật...</> : 'Cập nhật phòng ban & chức vụ'}
                                     </button>
                                 </div>
                             </div>
@@ -1059,7 +1082,7 @@ export default function DetailEmployeesPage() {
                 </div>
             )}
 
-            <AttendanceDetailDrawer
+            <DrawerChiTietChamCong
                 open={isAttendanceDrawerOpen}
                 onClose={() => setIsAttendanceDrawerOpen(false)}
                 record={selectedAttendance}

@@ -5,7 +5,7 @@
     color: #1e293b;
 }
 
-/* ---- Header ---- */
+/* ---- ThanhTieuDe ---- */
 .logs-header {
     display: flex;
     justify-content: space-between;
@@ -688,7 +688,7 @@
 }
 
 /* ====================================
-   CONFIRM MODAL — thêm vào ApplicationPage.css
+   CONFIRM MODAL — thêm vào QuanLyDonTuPage.css
    ==================================== */
 
 /* Backdrop mờ phía sau modal */

@@ -5,7 +5,7 @@
     color: #1e293b;
 }
 
-/* ---- Header Card ---- */
+/* ---- ThanhTieuDe Card ---- */
 .detail-header-card {
     background: #fff;
     border-radius: 16px;
@@ -120,7 +120,7 @@
     align-items: flex-start;
 }
 
-/* ---- Sidebar ---- */
+/* ---- ThanhBen ---- */
 .detail-sidebar {
     width: 280px;
     flex-shrink: 0;

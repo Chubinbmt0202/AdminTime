@@ -14,17 +14,17 @@ import {
 } from '@ant-design/icons';
 import { Button, Badge, Avatar, List, Tag, Spin, message, Tabs } from 'antd';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import './DashboardPage.css';
+import './TrangTongQuan.css';
 
-import { employeeApi } from '../../features/employees/api/employee.api';
-import { attendanceService } from '../../services/attendance.service';
-import { leaveApi } from '../../features/leaves/api/leave.api';
-import { overtimeApi } from '../../features/overtime/api/overtime.api';
-import { lateExplanationApi } from '../../features/lateExplanations/api/lateExplanation.api';
+import { employeeApi } from '../../features/employees/api/nhanVien.api';
+import { attendanceService } from '../../services/dichVuChamCong';
+import { leaveApi } from '../../features/leaves/api/donXinNghi.api';
+import { overtimeApi } from '../../features/overtime/api/tangCa.api';
+import { lateExplanationApi } from '../../features/lateExplanations/api/giaiTrinhDiMuon.api';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#a855f7', '#ef4444', '#f43f5e', '#14b8a6'];
 
-const DashboardPage: React.FC = () => {
+const TrangTongQuanPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   // Flash Stats data
@@ -45,20 +45,20 @@ const DashboardPage: React.FC = () => {
       try {
         setLoading(true);
         // 1. Employee headcount
-        const empRes = await employeeApi.getAll();
+        const empRes = await employeeApi.layTatCa();
         if (empRes.success && empRes.data) {
           setTotalEmployees(empRes.data.length);
         }
 
         // 2. Today's attendance
         const dateStr = new Date().toISOString().split('T')[0];
-        const attRes = await attendanceService.getDailyAttendance(dateStr);
+        const attRes = await attendanceService.layChamCongHangNgay(dateStr);
         if (attRes.success && attRes.data) {
           setTodayAttendance(attRes.data);
         }
 
         // 3. Trend Data
-        const trendRes = await attendanceService.getAttendanceTrend(7);
+        const trendRes = await attendanceService.layXuHuongChamCong(7);
         if (trendRes.success && trendRes.data) {
           setTrendData(trendRes.data.trend.map((t: any) => ({
             date: t.log_date,
@@ -73,9 +73,9 @@ const DashboardPage: React.FC = () => {
 
         // 4. Quick Approvals
         const [leavesRes, otRes, lateRes] = await Promise.all([
-          leaveApi.getAll(),
-          overtimeApi.getAll(),
-          lateExplanationApi.getAll()
+          leaveApi.layTatCa(),
+          overtimeApi.layTatCa(),
+          lateExplanationApi.layTatCa()
         ]);
 
         if (leavesRes.success) {
@@ -97,7 +97,7 @@ const DashboardPage: React.FC = () => {
     fetchDashboardData();
   }, []);
 
-  const handleApprove = async (type: string, id: string) => {
+  const xuLyDuyet = async (type: string, id: string) => {
     // In real scenario, call update API here, then refetch
     message.success(`Đã phê duyệt ${type} ${id}`);
   };
@@ -165,7 +165,7 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="dashboard-container">
-      {/* Header */}
+      {/* ThanhTieuDe */}
       <div className="dashboard-header">
         <div className="header-titles">
           <h2>Tổng quan chấm công</h2>
@@ -316,4 +316,4 @@ const DashboardPage: React.FC = () => {
   );
 };
 
-export default DashboardPage;
+export default TrangTongQuanPage;

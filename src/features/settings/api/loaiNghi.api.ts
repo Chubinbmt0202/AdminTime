@@ -1,4 +1,4 @@
-import { apiClient } from '../../../services/api.client';
+import { apiClient } from '../../../services/apiClient';
 
 export interface LeaveType {
     id_loai_phep: string;
@@ -9,10 +9,10 @@ export interface LeaveType {
 }
 
 export const leaveTypeApi = {
-    getAll: (): Promise<{ success: boolean; data: LeaveType[]; message?: string }> => {
+    layTatCa: (): Promise<{ success: boolean; data: LeaveType[]; message?: string }> => {
         return apiClient.get('/leave/types');
     },
-    update: (id: string, params: Omit<LeaveType, 'id_loai_phep'>): Promise<{ success: boolean; data: LeaveType; message?: string }> => {
+    capNhat: (id: string, params: Omit<LeaveType, 'id_loai_phep'>): Promise<{ success: boolean; data: LeaveType; message?: string }> => {
         return apiClient.put(`/leave/types/${id}`, params);
     }
 };

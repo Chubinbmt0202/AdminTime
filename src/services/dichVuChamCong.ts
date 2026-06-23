@@ -1,4 +1,4 @@
-import { apiClient } from './api.client';
+import { apiClient } from './apiClient';
 
 export interface AttendanceRecord {
     employee_id: number;
@@ -35,16 +35,16 @@ export interface EmployeeHistoryResponse {
 }
 
 export const attendanceService = {
-    getDailyAttendance: async (date?: string): Promise<AttendanceListResponse> => {
+    layChamCongHangNgay: async (date?: string): Promise<AttendanceListResponse> => {
         const endpoint = date ? `/attendance/list/daily?date=${date}` : '/attendance/list/daily';
         return apiClient.get(endpoint);
     },
 
-    getEmployeeHistory: async (employeeId: string): Promise<EmployeeHistoryResponse> => {
+    layLichSuNhanVien: async (employeeId: string): Promise<EmployeeHistoryResponse> => {
         return apiClient.get(`/attendance/history/${employeeId}`);
     },
 
-    getAttendanceTrend: async (days: number = 7): Promise<any> => {
+    layXuHuongChamCong: async (days: number = 7): Promise<any> => {
         return apiClient.get(`/attendance/summary/trend?days=${days}`);
     }
 };

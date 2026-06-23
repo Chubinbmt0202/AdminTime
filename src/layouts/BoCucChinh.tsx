@@ -1,14 +1,14 @@
 import { Outlet } from 'react-router-dom';
-import Sidebar from './Sidebar';
-import Header from './Header';
-import './Sidebar.css';
+import ThanhBen from './ThanhBen';
+import ThanhTieuDe from './ThanhTieuDe';
+import './ThanhBen.css';
 
-export default function MainLayout() {
+export default function BoCucChinh() {
     return (
         <div className="app-layout">
-            <Sidebar />
+            <ThanhBen />
             <main className="app-main">
-                <Header />
+                <ThanhTieuDe />
                 <Outlet /> {/* Nơi các Page sẽ được render */}
             </main>
         </div>

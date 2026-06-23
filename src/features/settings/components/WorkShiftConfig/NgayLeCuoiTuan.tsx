@@ -1,7 +1,7 @@
 import React from 'react';
 import { CalendarOutlined, PlusOutlined } from '@ant-design/icons';
 
-const HolidaysWeekends: React.FC = () => {
+const NgayLeCuoiTuan: React.FC = () => {
   const weekendDays = [
     { label: 'Thứ 2', selected: false },
     { label: 'Thứ 3', selected: false },
@@ -60,4 +60,4 @@ const HolidaysWeekends: React.FC = () => {
   );
 };
 
-export default HolidaysWeekends;
+export default NgayLeCuoiTuan;

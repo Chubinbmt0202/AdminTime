@@ -11,16 +11,17 @@ import {
   ApartmentOutlined,
   RadarChartOutlined,
   LogoutOutlined,
+  SafetyCertificateOutlined,
 } from '@ant-design/icons'
 import { ref, onValue, query, limitToLast, get, update } from 'firebase/database'
-import { database } from '../config/firebase'
-import { useAuth } from '../auth/AuthContext'
-import type { Role } from '../auth/auth.types'
-import './Sidebar.css'
+import { database } from '../config/cauHinhFirebase'
+import { useXacThuc } from '../auth/ContextXacThuc'
+import type { Role } from '../auth/kieuXacThuc'
+import './ThanhBen.css'
 
 type NavItem = { key: string; label: string; icon: React.ReactNode; path: string }
 
-function roleLabel(role: Role | null) {
+function nhanVaiTro(role: Role | null) {
   switch (role) {
     case 'Director':
       return 'Giám đốc'
@@ -33,10 +34,10 @@ function roleLabel(role: Role | null) {
   }
 }
 
-export default function Sidebar() {
+export default function ThanhBen() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { role, logout } = useAuth()
+  const { role, logout } = useXacThuc()
   console.log("role", role)
 
   const [notifications, setNotifications] = useState<any[]>([])
@@ -67,7 +68,7 @@ export default function Sidebar() {
     }
   }, [role])
 
-  const markNotificationsAsRead = async (type: 'LEAVE_REQUEST' | 'OVERTIME_REQUEST' | 'LATE_EXPLANATION') => {
+  const danhDauDaDocThongBao = async (type: 'LEAVE_REQUEST' | 'OVERTIME_REQUEST' | 'LATE_EXPLANATION') => {
     try {
       const notifRef = ref(database, 'admin_notifications')
       const snapshot = await get(notifRef)
@@ -91,23 +92,23 @@ export default function Sidebar() {
 
   useEffect(() => {
     if (location.pathname.startsWith('/leave-requests')) {
-      markNotificationsAsRead('LEAVE_REQUEST')
+      danhDauDaDocThongBao('LEAVE_REQUEST')
     } else if (location.pathname.startsWith('/overtime-requests')) {
-      markNotificationsAsRead('OVERTIME_REQUEST')
+      danhDauDaDocThongBao('OVERTIME_REQUEST')
     } else if (location.pathname.startsWith('/late-explanations')) {
-      markNotificationsAsRead('LATE_EXPLANATION')
+      danhDauDaDocThongBao('LATE_EXPLANATION')
     }
   }, [location.pathname])
 
-  const leaveNotificationCount = useMemo(() => {
+  const soLuongThongBaoNghiPhep = useMemo(() => {
     return notifications.filter(n => n.loai_thong_bao === 'LEAVE_REQUEST' && !n.da_doc).length
   }, [notifications])
 
-  const overtimeNotificationCount = useMemo(() => {
+  const soLuongThongBaoTangCa = useMemo(() => {
     return notifications.filter(n => n.loai_thong_bao === 'OVERTIME_REQUEST' && !n.da_doc).length
   }, [notifications])
 
-  const lateExplanationNotificationCount = useMemo(() => {
+  const soLuongThongBaoGiaiTrinh = useMemo(() => {
     return notifications.filter(n => n.loai_thong_bao === 'LATE_EXPLANATION' && !n.da_doc).length
   }, [notifications])
 
@@ -142,7 +143,6 @@ export default function Sidebar() {
         { key: 'admin-attendance', label: 'Thiết lập chấm công', icon: <RadarChartOutlined />, path: '/admin/attendance-setup' },
         // { key: 'admin-security', label: 'Giám sát an ninh', icon: <SafetyCertificateOutlined />, path: '/admin/security' },
         { key: 'shifts', label: 'Ca làm việc', icon: <ClockCircleOutlined />, path: '/admin/shifts' },
-
       ]
     }
 
@@ -173,20 +173,20 @@ export default function Sidebar() {
         </div>
         <div className="sidebar-brand-text">
           <span className="sidebar-brand-name">MindCheck</span>
-          <span className="sidebar-brand-sub">{roleLabel(role)}</span>
+          <span className="sidebar-brand-sub">{nhanVaiTro(role)}</span>
         </div>
       </div>
 
       {/* Navigation */}
       <nav className="sidebar-nav">
         {navItems.map(item => {
-           let count = 0
+          let count = 0
           if (item.key === 'leave-requests') {
-            count = leaveNotificationCount
+            count = soLuongThongBaoNghiPhep
           } else if (item.key === 'overtime-requests') {
-            count = overtimeNotificationCount
+            count = soLuongThongBaoTangCa
           } else if (item.key === 'late-explanations') {
-            count = lateExplanationNotificationCount
+            count = soLuongThongBaoGiaiTrinh
           }
 
           return (

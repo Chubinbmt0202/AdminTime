@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Drawer, Form, Input, Button, message, Row, Col, Select } from 'antd';
 import { InfoCircleOutlined, SearchOutlined, AppstoreAddOutlined, CloseOutlined } from '@ant-design/icons';
-import { departmentApi } from '../api/department.api';
-import { shiftApi } from '../../settings/api/shift.api';
+import { departmentApi } from '../api/phongBan.api';
+import { shiftApi } from '../../settings/api/caLam.api';
 
 interface AddDepartmentDrawerProps {
   open: boolean;
@@ -11,17 +11,17 @@ interface AddDepartmentDrawerProps {
   initialData?: any;
 }
 
-export default function AddDepartmentDrawer({ open, onClose, onSuccess, initialData }: AddDepartmentDrawerProps) {
+export default function DrawerThemPhongBan({ open, onClose, onSuccess, initialData }: AddDepartmentDrawerProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [shifts, setShifts] = useState<any[]>([]);
   const [loadingShifts, setLoadingShifts] = useState(false);
 
   useEffect(() => {
-    const fetchShifts = async () => {
+    const taiDanhSachCaLam = async () => {
       setLoadingShifts(true);
       try {
-        const response = await shiftApi.getAllShifts();
+        const response = await shiftApi.layTatCaCaLam();
         if (response.success) {
           setShifts(response.data);
         }
@@ -33,7 +33,7 @@ export default function AddDepartmentDrawer({ open, onClose, onSuccess, initialD
     };
 
     if (open) {
-      fetchShifts();
+      taiDanhSachCaLam();
       if (initialData) {
         form.setFieldsValue({
           ten_phong_ban: initialData.ten_phong_ban,
@@ -46,11 +46,11 @@ export default function AddDepartmentDrawer({ open, onClose, onSuccess, initialD
     }
   }, [open, initialData, form]);
 
-  const handleSubmit = async (values: any) => {
+  const xuLyGui = async (values: any) => {
     setLoading(true);
     try {
       if (initialData) {
-        const response = await departmentApi.update(initialData.id_phong_ban, { mo_ta: values.mo_ta_chuc_nang, ...values });
+        const response = await departmentApi.capNhat(initialData.id_phong_ban, { mo_ta: values.mo_ta_chuc_nang, ...values });
         if (response.success) {
           message.success('Cập nhật phòng ban thành công');
           form.resetFields();
@@ -60,7 +60,7 @@ export default function AddDepartmentDrawer({ open, onClose, onSuccess, initialD
           message.error(response.message || 'Có lỗi xảy ra khi cập nhật phòng ban');
         }
       } else {
-        const response = await departmentApi.create({ mo_ta: values.mo_ta_chuc_nang, ...values });
+        const response = await departmentApi.taoMoi({ mo_ta: values.mo_ta_chuc_nang, ...values });
         if (response.success) {
           message.success('Thêm phòng ban thành công');
           form.resetFields();
@@ -108,7 +108,7 @@ export default function AddDepartmentDrawer({ open, onClose, onSuccess, initialD
       <Form
         form={form}
         layout="vertical"
-        onFinish={handleSubmit}
+        onFinish={xuLyGui}
         requiredMark={false}
       >
         <Row gutter={16}>

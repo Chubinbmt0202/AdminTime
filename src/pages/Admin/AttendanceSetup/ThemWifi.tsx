@@ -6,11 +6,11 @@ import {
   WifiOutlined,
   CheckCircleOutlined
 } from '@ant-design/icons';
-import { officeApi } from '../../../features/offices/api/office.api';
+import { officeApi } from '../../../features/offices/api/vanPhong.api';
 import type { Office } from '../../../features/offices/types';
-import './AddWifiPage.css';
+import './ThemWifi.css';
 
-const AddWifiPage: React.FC = () => {
+const ThemWifiPage: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
@@ -21,7 +21,7 @@ const AddWifiPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchOffices();
+    taiDanhSachVanPhong();
     if (id && wifiToEdit) {
       form.setFieldsValue({
         ssid: wifiToEdit.wifiName,
@@ -32,10 +32,10 @@ const AddWifiPage: React.FC = () => {
     }
   }, [id, wifiToEdit]);
 
-  const fetchOffices = async () => {
+  const taiDanhSachVanPhong = async () => {
     setLoading(true);
     try {
-      const response = await officeApi.getAll();
+      const response = await officeApi.layTatCa();
       if (response.success) {
         setOffices(response.data);
       } else {
@@ -48,7 +48,7 @@ const AddWifiPage: React.FC = () => {
     }
   };
 
-  const handleSave = async () => {
+  const xuLyLuu = async () => {
     try {
       const values = await form.validateFields();
       setLoading(true);
@@ -61,9 +61,9 @@ const AddWifiPage: React.FC = () => {
 
       let response;
       if (id) {
-        response = await officeApi.updateWifi(id, payload);
+        response = await officeApi.capNhatWifi(id, payload);
       } else {
-        response = await officeApi.addWifi(payload);
+        response = await officeApi.themWifi(payload);
       }
 
       if (response.success) {
@@ -83,7 +83,7 @@ const AddWifiPage: React.FC = () => {
     }
   };
 
-  const handleCancel = () => {
+  const xuLyHuy = () => {
     navigate('/admin/attendance-setup');
   };
 
@@ -142,10 +142,10 @@ const AddWifiPage: React.FC = () => {
               </div>
 
               <div className="wifi-form-footer">
-                <Button className="btn-wifi-cancel" onClick={handleCancel}>
+                <Button className="btn-wifi-cancel" onClick={xuLyHuy}>
                   Hủy bỏ
                 </Button>
-                <Button type="primary" className="btn-wifi-save" onClick={handleSave} loading={loading}>
+                <Button type="primary" className="btn-wifi-save" onClick={xuLyLuu} loading={loading}>
                   {id ? 'Cập nhật mạng' : 'Lưu mạng'}
                 </Button>
               </div>
@@ -206,4 +206,4 @@ const AddWifiPage: React.FC = () => {
   );
 };
 
-export default AddWifiPage;
+export default ThemWifiPage;

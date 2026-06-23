@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useMemo, useState } from 'react';
-import { apiClient } from '../services/api.client';
-import type { AuthUser, LoginResponse, Role } from './auth.types';
-import { authStorage } from './auth.storage';
+import { apiClient } from '../services/apiClient';
+import type { AuthUser, LoginResponse, Role } from './kieuXacThuc';
+import { boNhoXacThuc } from './luuTruXacThuc';
 
 type AuthState = {
   isAuthenticated: boolean;
@@ -14,27 +14,27 @@ type AuthContextValue = AuthState & {
   logout: () => void;
 };
 
-const AuthContext = createContext<AuthContextValue | null>(null);
+const ContextXacThuc = createContext<AuthContextValue | null>(null);
 
-function readInitialUser(): AuthUser | null {
-  const raw = authStorage.getUserRaw();
+function docNguoiDungBanDau(): AuthUser | null {
+  const raw = boNhoXacThuc.layDuLieuNguoiDungTho();
   if (!raw) return null;
   try {
     const user = JSON.parse(raw) as AuthUser;
     const allowedRoles = ['admin', 'hr'];
     if (!user.ten_vai_tro || !allowedRoles.includes(user.ten_vai_tro.toLowerCase())) {
-      authStorage.clearAll();
+      boNhoXacThuc.xoaTatCa();
       return null;
     }
     return user;
   } catch {
-    authStorage.clearAll();
+    boNhoXacThuc.xoaTatCa();
     return null;
   }
 }
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(() => readInitialUser());
+export function NhaCungCapXacThuc({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<AuthUser | null>(() => docNguoiDungBanDau());
 
   const value = useMemo<AuthContextValue>(() => {
     const role = user?.ten_vai_tro ?? null;
@@ -60,23 +60,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           throw new Error('Tài khoản của bạn không có quyền truy cập vào trang web này.');
         }
 
-        authStorage.setUserRaw(JSON.stringify(res.data), remember);
+        boNhoXacThuc.datDuLieuNguoiDungTho(JSON.stringify(res.data), remember);
         setUser(res.data);
         return res.data;
       },
       logout() {
-        authStorage.clearAll();
+        boNhoXacThuc.xoaTatCa();
         setUser(null);
       },
     };
   }, [user]);
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return <ContextXacThuc.Provider value={value}>{children}</ContextXacThuc.Provider>;
 }
 
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+export function useXacThuc() {
+  const ctx = useContext(ContextXacThuc);
+  if (!ctx) throw new Error('useXacThuc must be used within NhaCungCapXacThuc');
   return ctx;
 }
 

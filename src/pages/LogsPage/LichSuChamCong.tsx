@@ -6,10 +6,10 @@ import {
     FilterOutlined,
     EyeOutlined
 } from '@ant-design/icons';
-import './LogsPage.css';
-import { attendanceService, type AttendanceRecord } from '../../services/attendance.service';
-import AttendanceDetailDrawer from '../../features/employees/components/DetailEmployee/AttendanceDetailDrawer';
-import { exportToExcel } from '../../utils/exportUtils';
+import './LichSuChamCong.css';
+import { attendanceService, type AttendanceRecord } from '../../services/dichVuChamCong';
+import DrawerChiTietChamCong from '../../features/employees/components/DetailEmployee/DrawerChiTietChamCong';
+import { xuatRaExcel } from '../../utils/tienIchXuatFile';
 
 const formatTime = (isoString: string | null) => {
     if (!isoString) return '--:--';
@@ -72,7 +72,7 @@ const getOtBadge = (log: AttendanceRecord) => {
 };
 
 
-export default function LogsPage() {
+export default function LichSuChamCongPage() {
     const [search, setSearch] = useState('');
     // Use local date (YYYY-MM-DD) as default to avoid UTC off-by-one errors
     const [selectedDate, setSelectedDate] = useState(new Date().toLocaleDateString('en-CA'));
@@ -93,7 +93,7 @@ export default function LogsPage() {
     const fetchLogs = async () => {
         setLoading(true);
         try {
-            const response = await attendanceService.getDailyAttendance(selectedDate);
+            const response = await attendanceService.layChamCongHangNgay(selectedDate);
             if (response.success) {
                 setLogs(response.data);
                 // console.log('API Original Data:', response.data);
@@ -186,7 +186,7 @@ export default function LogsPage() {
             'Trạng thái tăng ca': log.has_ot ? (log.ot_status === 'DA_DUYET' ? 'Đã duyệt' : log.ot_status === 'CHO_DUYET' ? 'Chờ duyệt' : log.ot_status === 'TU_CHOI' ? 'Từ chối' : 'Không rõ') : 'Không'
         }));
 
-        exportToExcel(data, `Cham_Cong_${selectedDate}`);
+        xuatRaExcel(data, `Cham_Cong_${selectedDate}`);
     };
 
     return (
@@ -344,7 +344,7 @@ export default function LogsPage() {
                 </div>
             </div>
 
-            <AttendanceDetailDrawer
+            <DrawerChiTietChamCong
                 open={isAttendanceDrawerOpen}
                 onClose={() => setIsAttendanceDrawerOpen(false)}
                 record={selectedAttendance}

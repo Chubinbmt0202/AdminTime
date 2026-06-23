@@ -1,4 +1,4 @@
-export function formatDate(iso: string) {
+export function dinhDangNgay(iso: string) {
     try {
         return new Date(iso).toLocaleDateString('vi-VN', {
             day: '2-digit', month: '2-digit', year: 'numeric',

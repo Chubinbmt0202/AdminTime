@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { officeApi } from '../../../features/offices/api/office.api';
+import { officeApi } from '../../../features/offices/api/vanPhong.api';
 import { Form, Input, Slider, Button, Row, Col, AutoComplete, message } from 'antd';
 import {
   CheckCircleOutlined,
@@ -10,7 +10,7 @@ import {
 import { MapContainer, TileLayer, Marker, Circle, useMap, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import './AddGPSLocationPage.css';
+import './ThemViTriGPS.css';
 
 // Fix for default marker icons in React Leaflet with Vite
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -31,7 +31,7 @@ let DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 // Component to dynamically update map center
-const MapUpdater = ({ center }: { center: { lat: number, lng: number } }) => {
+const CapNhatBanDo = ({ center }: { center: { lat: number, lng: number } }) => {
   const map = useMap();
   useEffect(() => {
     map.setView([center.lat, center.lng], map.getZoom(), { animate: true });
@@ -40,7 +40,7 @@ const MapUpdater = ({ center }: { center: { lat: number, lng: number } }) => {
 };
 
 // Component to handle map clicks for dropping a marker
-const LocationMarker = ({ 
+const DanhDauViTri = ({ 
   position, 
   setPosition, 
   form, 
@@ -83,7 +83,7 @@ const LocationMarker = ({
   return <Marker position={[position.lat, position.lng]} />;
 };
 
-const AddGPSLocationPage: React.FC = () => {
+const ThemViTriGPSPage: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
@@ -146,7 +146,7 @@ const AddGPSLocationPage: React.FC = () => {
     }
   }, [form, id, officeToEdit]);
 
-  const handleSearchChange = (val: string) => {
+  const xuLyThayDoiTimKiem = (val: string) => {
     setSearchValue(val);
     form.setFieldsValue({ address: val });
 
@@ -173,7 +173,7 @@ const AddGPSLocationPage: React.FC = () => {
     }
   };
 
-  const handleSelectAddress = (val: string, option: any) => {
+  const xuLyChonDiaChi = (val: string, option: any) => {
     setSearchValue(val);
     form.setFieldsValue({ address: val });
     
@@ -190,11 +190,11 @@ const AddGPSLocationPage: React.FC = () => {
     }
   };
 
-  const handleClose = () => {
+  const xuLyDong = () => {
     navigate('/admin/attendance-setup');
   };
 
-  const handleSave = () => {
+  const xuLyLuu = () => {
     form.validateFields().then(async (values) => {
       setSaving(true);
       try {
@@ -207,7 +207,7 @@ const AddGPSLocationPage: React.FC = () => {
         };
         let response;
         if (id) {
-          response = await officeApi.updateGPS(id, payload);
+          response = await officeApi.capNhatGPS(id, payload);
           if (response.success) {
             message.success(response.message || 'Cập nhật vị trí GPS thành công');
             navigate('/admin/attendance-setup');
@@ -215,7 +215,7 @@ const AddGPSLocationPage: React.FC = () => {
             message.error(response.message || 'Lỗi khi cập nhật vị trí');
           }
         } else {
-          response = await officeApi.addGPS(payload);
+          response = await officeApi.themGPS(payload);
           if (response.success) {
             message.success(response.message || 'Thêm vị trí GPS thành công');
             navigate('/admin/attendance-setup');
@@ -278,8 +278,8 @@ const AddGPSLocationPage: React.FC = () => {
                 <AutoComplete
                   value={searchValue}
                   options={suggestions}
-                  onChange={handleSearchChange}
-                  onSelect={handleSelectAddress}
+                  onChange={xuLyThayDoiTimKiem}
+                  onSelect={xuLyChonDiaChi}
                   style={{ width: '100%' }}
                 >
                   <Input
@@ -360,8 +360,8 @@ const AddGPSLocationPage: React.FC = () => {
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
-              <MapUpdater center={mapCenter} />
-              <LocationMarker 
+              <CapNhatBanDo center={mapCenter} />
+              <DanhDauViTri 
                 position={markerPosition} 
                 setPosition={setMarkerPosition} 
                 form={form} 
@@ -396,10 +396,10 @@ const AddGPSLocationPage: React.FC = () => {
       </div>
 
       <div className="add-gps-page-footer">
-        <Button onClick={handleClose} className="gps-btn-cancel-new">
+        <Button onClick={xuLyDong} className="gps-btn-cancel-new">
           Hủy bỏ
         </Button>
-        <Button type="primary" onClick={handleSave} className="gps-btn-save-new" loading={saving}>
+        <Button type="primary" onClick={xuLyLuu} className="gps-btn-save-new" loading={saving}>
           {id ? 'Lưu cập nhật' : 'Lưu địa điểm'}
         </Button>
       </div>
@@ -407,4 +407,4 @@ const AddGPSLocationPage: React.FC = () => {
   );
 };
 
-export default AddGPSLocationPage;
+export default ThemViTriGPSPage;

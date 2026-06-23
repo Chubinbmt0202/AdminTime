@@ -3,12 +3,12 @@ import {
   DownloadOutlined,
   PlusOutlined
 } from '@ant-design/icons';
-import './WorkShiftConfigPage.css';
-import ShiftList from './ShiftList';
-import HolidaysWeekends from './HolidaysWeekends';
-import AddShiftDrawer from './AddShiftDrawer';
+import './CauHinhCaLam.css';
+import DanhSachCaLam from './DanhSachCaLam';
+import NgayLeCuoiTuan from './NgayLeCuoiTuan';
+import DrawerThemCaLam from './DrawerThemCaLam';
 
-const WorkShiftConfigPage: React.FC = () => {
+const CauHinhCaLamPage: React.FC = () => {
   const [activeTab] = useState<'shifts' | 'rules' | 'holidays'>('shifts');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedShift, setSelectedShift] = useState<any>(null);
@@ -48,7 +48,7 @@ const WorkShiftConfigPage: React.FC = () => {
       <div className="main-content-wrapper">
         <div className="tab-content">
           {activeTab === 'shifts' && (
-            <ShiftList 
+            <DanhSachCaLam 
               refreshKey={refreshKey} 
               onEdit={handleEdit} 
             />
@@ -56,13 +56,13 @@ const WorkShiftConfigPage: React.FC = () => {
 
           {activeTab === 'holidays' && (
             <div className="secondary-sections" style={{ gridTemplateColumns: 'minmax(0, 1fr)' }}>
-              <HolidaysWeekends />
+              <NgayLeCuoiTuan />
             </div>
           )}
         </div>
       </div>
 
-      <AddShiftDrawer 
+      <DrawerThemCaLam 
         open={isDrawerOpen} 
         onClose={() => setIsDrawerOpen(false)} 
         onSuccess={handleSuccess}
@@ -72,4 +72,4 @@ const WorkShiftConfigPage: React.FC = () => {
   );
 };
 
-export default WorkShiftConfigPage;
+export default CauHinhCaLamPage;

@@ -22,14 +22,14 @@ import {
   EditOutlined,
   DeleteOutlined
 } from '@ant-design/icons';
-import './OrgAndHRPage.css';
-import { departmentApi } from '../../../features/departments/api/department.api';
-import { employeeApi } from '../../../features/employees/api/employee.api';
-import { shiftApi } from '../../../features/settings/api/shift.api';
-import type { Department } from '../../../types/department.types';
+import './CoCauToChuc.css';
+import { departmentApi } from '../../../features/departments/api/phongBan.api';
+import { employeeApi } from '../../../features/employees/api/nhanVien.api';
+import { shiftApi } from '../../../features/settings/api/caLam.api';
+import type { Department } from '../../../types/kieuPhongBan';
 import type { Employee } from '../../../features/employees/types';
 import { Spin, Popconfirm, message } from 'antd';
-import AddDepartmentDrawer from '../../../features/departments/components/AddDepartmentDrawer';
+import DrawerThemPhongBan from '../../../features/departments/components/DrawerThemPhongBan';
 
 const ROLE_MAP: Record<string, string> = {
   'Admin': 'Quản trị viên',
@@ -38,7 +38,7 @@ const ROLE_MAP: Record<string, string> = {
 };
 const getRoleNameVN = (roleName?: string | null) => roleName ? (ROLE_MAP[roleName] || roleName) : '';
 
-export default function OrgAndHRPage() {
+export default function CoCauToChucPage() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
@@ -65,7 +65,7 @@ export default function OrgAndHRPage() {
 
   const handleDeleteDept = async (id: string) => {
     try {
-      const res = await departmentApi.delete(id);
+      const res = await departmentApi.xoa(id);
       if (res.success) {
         message.success('Xóa phòng ban thành công');
         fetchInitialData();
@@ -117,9 +117,9 @@ export default function OrgAndHRPage() {
   const fetchInitialData = async () => {
     try {
       const [deptRes, empRes, shiftRes] = await Promise.all([
-        departmentApi.getAll(),
-        employeeApi.getAll(),
-        shiftApi.getAllShifts()
+        departmentApi.layTatCa(),
+        employeeApi.layTatCa(),
+        shiftApi.layTatCaCaLam()
       ]);
       console.log("Dữ liệu phòng ban", deptRes.data);
       if (deptRes.success) {
@@ -150,7 +150,7 @@ export default function OrgAndHRPage() {
       if (selectedDeptId === null) return;
       setLoadingEmployees(true);
       try {
-        const response = await employeeApi.getByDepartment(selectedDeptId as number);
+        const response = await employeeApi.layTheoPhongBan(selectedDeptId as number);
         console.log("Dữ liệu nhân viên", response.data);
         if (response.success) {
           setEmployees(response.data);
@@ -459,7 +459,7 @@ export default function OrgAndHRPage() {
         </div>
       </div>
 
-      <AddDepartmentDrawer
+      <DrawerThemPhongBan
         open={isAddDeptDrawerOpen}
         onClose={() => setIsAddDeptDrawerOpen(false)}
         onSuccess={fetchInitialData}

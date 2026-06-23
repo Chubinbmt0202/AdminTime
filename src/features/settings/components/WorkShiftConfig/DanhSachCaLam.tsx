@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { SearchOutlined } from '@ant-design/icons';
-import ShiftCard from './ShiftCard';
-import { shiftApi } from '../../api/shift.api';
+import TheCaLam from './TheCaLam';
+import { shiftApi } from '../../api/caLam.api';
 import {
   CarryOutOutlined,
   SunOutlined,
@@ -17,18 +17,18 @@ interface ShiftListProps {
   onEdit?: (shift: any) => void;
 }
 
-const ShiftList: React.FC<ShiftListProps> = ({ refreshKey, onEdit }) => {
+const DanhSachCaLam: React.FC<ShiftListProps> = ({ refreshKey, onEdit }) => {
   const [shifts, setShifts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchShifts();
+    taiDanhSachCaLam();
   }, [refreshKey]);
 
-  const fetchShifts = async () => {
+  const taiDanhSachCaLam = async () => {
     setLoading(true);
     try {
-      const response = await shiftApi.getAllShifts();
+      const response = await shiftApi.layTatCaCaLam();
       console.log("data ca làm:", response.data)
       if (response && response.success) {
         setShifts(response.data || []);
@@ -46,7 +46,7 @@ const ShiftList: React.FC<ShiftListProps> = ({ refreshKey, onEdit }) => {
     }
   };
 
-  const handleDelete = (shift: any) => {
+  const xuLyXoa = (shift: any) => {
     confirm({
       title: 'Xóa ca làm việc',
       icon: <ExclamationCircleOutlined />,
@@ -56,10 +56,10 @@ const ShiftList: React.FC<ShiftListProps> = ({ refreshKey, onEdit }) => {
       cancelText: 'Hủy',
       onOk: async () => {
         try {
-          const response = await shiftApi.deleteShift(shift.id_ca_lam_viec || shift.id);
+          const response = await shiftApi.xoaCaLam(shift.id_ca_lam_viec || shift.id);
           if (response.success) {
             message.success('Xóa ca làm việc thành công');
-            fetchShifts();
+            taiDanhSachCaLam();
           } else {
             message.error(response.message || 'Không thể xóa ca làm việc');
           }
@@ -112,13 +112,13 @@ const ShiftList: React.FC<ShiftListProps> = ({ refreshKey, onEdit }) => {
           {shifts.map((shift, index) => {
             const mappedShift = mapShiftToCard(shift, index);
             return (
-              <ShiftCard
+              <TheCaLam
                 key={shift.id_ca_lam_viec || shift.id || index}
                 {...mappedShift}
                 lunchBreak={shift.has_lunch_break}
                 workingDays={shift.coefficient}
                 onEdit={() => onEdit?.(shift)}
-                onDelete={() => handleDelete(shift)}
+                onDelete={() => xuLyXoa(shift)}
               />
             );
           })}
@@ -131,4 +131,4 @@ const ShiftList: React.FC<ShiftListProps> = ({ refreshKey, onEdit }) => {
   );
 };
 
-export default ShiftList;
+export default DanhSachCaLam;

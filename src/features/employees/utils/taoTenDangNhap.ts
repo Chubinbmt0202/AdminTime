@@ -1,7 +1,7 @@
-import { removeVietnameseTones } from '../../../utils/string';
+import { boDauTiengViet } from '../../../utils/tienIchChuoi';
 
-export function generateUsername(fullName: string): string {
-    const cleaned = removeVietnameseTones(fullName).toLowerCase();
+export function taoTenDangNhap(fullName: string): string {
+    const cleaned = boDauTiengViet(fullName).toLowerCase();
     const parts = cleaned.split(/\s+/).filter(Boolean);
     if (parts.length === 0) return '';
 

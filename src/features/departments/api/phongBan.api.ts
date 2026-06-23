@@ -1,17 +1,17 @@
-import { apiClient } from '../../../services/api.client';
-import type { DepartmentApiResponse } from '../../../types/department.types';
+import { apiClient } from '../../../services/apiClient';
+import type { DepartmentApiResponse } from '../../../types/kieuPhongBan';
 
 export const departmentApi = {
-    getAll: (): Promise<DepartmentApiResponse> => {
+    layTatCa: (): Promise<DepartmentApiResponse> => {
         return apiClient.get('/departments/');
     },
-    create: (data: { ten_phong_ban?: string; mo_ta?: string; mo_ta_chuc_nang?: string }): Promise<{success: boolean; message?: string; data?: any}> => {
+    taoMoi: (data: { ten_phong_ban?: string; mo_ta?: string; mo_ta_chuc_nang?: string }): Promise<{success: boolean; message?: string; data?: any}> => {
         return apiClient.post('/departments/add', data);
     },
-    update: (id: string, data: { ten_phong_ban?: string; mo_ta?: string }): Promise<{success: boolean; message?: string; data?: any}> => {
+    capNhat: (id: string, data: { ten_phong_ban?: string; mo_ta?: string }): Promise<{success: boolean; message?: string; data?: any}> => {
         return apiClient.put(`/departments/${id}`, data);
     },
-    delete: (id: string): Promise<{success: boolean; message?: string}> => {
+    xoa: (id: string): Promise<{success: boolean; message?: string}> => {
         return apiClient.delete(`/departments/${id}`);
     }
 };

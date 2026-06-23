@@ -18,15 +18,15 @@ import {
 } from '@ant-design/icons';
 
 // Import từ cấu trúc mới
-import { useToast } from '../../components/common/Toast/Toast';
-import AddEmployeeDrawer from '../../features/employees/components/AddEmployeeDrawer';
-import { employeeApi } from '../../features/employees/api/employee.api';
+import { useThongBao } from '../../components/common/Toast/ThongBaoToast';
+import DrawerThemNhanVien from '../../features/employees/components/DrawerThemNhanVien';
+import { employeeApi } from '../../features/employees/api/nhanVien.api';
 import type { Employee } from '../../features/employees/types';
 import { STATUSES, AVATAR_COLORS, PAGE_SIZE_OPTIONS } from '../../constants';
-import { formatDate } from '../../utils/date';
-import { getInitials } from '../../utils/string';
-import { exportToExcel } from '../../utils/exportUtils';
-import './EmployeesPage.css';
+import { dinhDangNgay } from '../../utils/tienIchNgay';
+import { layChuCaiDau } from '../../utils/tienIchChuoi';
+import { xuatRaExcel } from '../../utils/tienIchXuatFile';
+import './QuanLyNhanVien.css';
 import { useNavigate } from 'react-router-dom';
 
 const ROLE_MAP: Record<string, string> = {
@@ -36,8 +36,8 @@ const ROLE_MAP: Record<string, string> = {
 };
 const getRoleNameVN = (roleName?: string | null) => roleName ? (ROLE_MAP[roleName] || roleName) : '';
 
-export default function EmployeesPage() {
-  const toast = useToast();
+export default function QuanLyNhanVienPage() {
+  const toast = useThongBao();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,11 +63,11 @@ export default function EmployeesPage() {
   const [role, setRole] = useState('Tất cả vai trò');
 
   // Lấy dữ liệu thông qua API Service
-  const fetchEmployees = async () => {
+  const taiDanhSachNhanVien = async () => {
     setLoading(true);
     setError(null);
     try {
-      const json = await employeeApi.getAll();
+      const json = await employeeApi.layTatCa();
       if (!json.success) throw new Error(json.message || 'Lỗi không xác định');
       console.log("Dữ liệu nhân viên nè", json.data);
       setEmployees(json.data);
@@ -80,7 +80,7 @@ export default function EmployeesPage() {
   };
 
   useEffect(() => {
-    fetchEmployees();
+    taiDanhSachNhanVien();
   }, []);
 
   const filtered = useMemo(() => {
@@ -105,7 +105,7 @@ export default function EmployeesPage() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
 
-  const handleSearch = (v: string) => { setSearch(v); setPage(1); };
+  const xuLyTimKiem = (v: string) => { setSearch(v); setPage(1); };
   const handleRole = (v: string) => { setRole(v); setPage(1); };
   const handleStatus = (v: string) => { setStatus(v); setPage(1); };
 
@@ -133,11 +133,11 @@ export default function EmployeesPage() {
   const clearSelection = () => setSelected(new Set());
 
   // Xóa nhân viên thông qua API Service
-  const handleDelete = async () => {
+  const xuLyXoa = async () => {
     if (!confirmDelete) return;
     setDeleting(true);
     try {
-      const json = await employeeApi.delete(String(confirmDelete.id_nhan_vien));
+      const json = await employeeApi.xoa(String(confirmDelete.id_nhan_vien));
       if (!json.success) throw new Error(json.message || 'Xóa thất bại');
       toast.success('Xóa nhân viên thành công', `Đã xóa ${confirmDelete.full_name}`);
 
@@ -147,7 +147,7 @@ export default function EmployeesPage() {
         next.delete(confirmDelete.id_nhan_vien);
         return next;
       });
-      fetchEmployees();
+      taiDanhSachNhanVien();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Lỗi không xác định';
       toast.error('Không thể xóa nhân viên', msg);
@@ -177,17 +177,17 @@ export default function EmployeesPage() {
     'Họ và tên': emp.full_name,
     'Vai trò': getRoleNameVN(emp.role_name),
     'Dữ liệu khuôn mặt': (emp.du_lieu_khuon_mat && Object.keys(emp.du_lieu_khuon_mat).length > 0) ? 'Đã đăng ký' : 'Chưa đăng ký',
-    'Ngày tạo': formatDate(emp.created_at)
+    'Ngày tạo': dinhDangNgay(emp.created_at)
   });
 
   const handleExportAll = () => {
     const data = filtered.map(mapEmployeeToExport);
-    exportToExcel(data, 'Danh_Sach_Nhan_Vien');
+    xuatRaExcel(data, 'Danh_Sach_Nhan_Vien');
   };
 
   const handleExportSelected = () => {
     const data = employees.filter(e => selected.has(e.id_nhan_vien)).map(mapEmployeeToExport);
-    exportToExcel(data, 'Danh_Sach_Nhan_Vien_Da_Chon');
+    xuatRaExcel(data, 'Danh_Sach_Nhan_Vien_Da_Chon');
   };
 
   function handleDetailEmployee(id: number): void {
@@ -198,7 +198,7 @@ export default function EmployeesPage() {
   return (
     <>
       <div className="emp-page">
-        {/* Header */}
+        {/* ThanhTieuDe */}
         <div className="emp-header">
           <div className="emp-header-left">
             <h1 className="emp-title">Danh sách nhân viên</h1>
@@ -212,7 +212,7 @@ export default function EmployeesPage() {
             </p>
           </div>
           <div className="emp-header-actions">
-            <button className="btn-secondary" onClick={fetchEmployees} disabled={loading}>
+            <button className="btn-secondary" onClick={taiDanhSachNhanVien} disabled={loading}>
               <ReloadOutlined spin={loading} />
             </button>
             <button className="btn-secondary" onClick={handleExportAll}>
@@ -232,7 +232,7 @@ export default function EmployeesPage() {
               className="emp-search"
               placeholder="Tìm theo tên, username, mã NV, vai trò..."
               value={search}
-              onChange={e => handleSearch(e.target.value)}
+              onChange={e => xuLyTimKiem(e.target.value)}
             />
           </div>
           <select className="emp-select" value={role} onChange={e => handleRole(e.target.value)}>
@@ -272,7 +272,7 @@ export default function EmployeesPage() {
             <div className="emp-error">
               <span className="emp-error-icon">⚠️</span>
               <span>{error}</span>
-              <button className="btn-secondary" style={{ marginTop: 12 }} onClick={fetchEmployees}>
+              <button className="btn-secondary" style={{ marginTop: 12 }} onClick={taiDanhSachNhanVien}>
                 <ReloadOutlined /> Thử lại
               </button>
             </div>
@@ -327,7 +327,7 @@ export default function EmployeesPage() {
                           className="emp-avatar"
                           style={{ background: AVATAR_COLORS[idx % AVATAR_COLORS.length] }}
                         >
-                          {getInitials(emp.full_name)}
+                          {layChuCaiDau(emp.full_name)}
                         </div>
                       )}
                       <span className="emp-name">{emp.full_name}</span>
@@ -360,7 +360,7 @@ export default function EmployeesPage() {
                         </span>
                       )}
                     </td>
-                    <td className="col-date">{formatDate(emp.created_at)}</td>
+                    <td className="col-date">{dinhDangNgay(emp.created_at)}</td>
                     <td className="col-action">
                       <div className="row-actions">
                         <button className="row-btn" title="Xem" onClick={() => handleDetailEmployee(emp.id_nhan_vien)}><EyeOutlined /></button>
@@ -410,11 +410,11 @@ export default function EmployeesPage() {
         )}
       </div>
 
-      <AddEmployeeDrawer
+      <DrawerThemNhanVien
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         onSuccess={() => {
-          fetchEmployees();
+          taiDanhSachNhanVien();
           setDrawerOpen(false);
         }}
       />
@@ -442,7 +442,7 @@ export default function EmployeesPage() {
               </button>
               <button
                 className="confirm-btn-delete"
-                onClick={handleDelete}
+                onClick={xuLyXoa}
                 disabled={deleting}
               >
                 {deleting

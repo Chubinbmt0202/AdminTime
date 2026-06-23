@@ -1,4 +1,4 @@
-import { ENV } from '../config/env';
+import { ENV } from '../config/bienMoiTruong';
 
 export const apiClient = {
     get: async <T = unknown>(endpoint: string): Promise<T> => {

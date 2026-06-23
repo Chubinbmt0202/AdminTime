@@ -1,22 +1,23 @@
 import { Routes, Route } from 'react-router-dom';
-import MainLayout from '../layouts/MainLayout';
-import DashboardPage from '../pages/Dashboard/DashboardPage';
-import EmployeesPage from '../pages/Employees/EmployeesPage';
-import DetailEmployeesPage from '../features/employees/components/DetailEmployee/DetailEmployeesPage';
-import LogsPage from '../pages/LogsPage/LogsPage';
-import WorkShiftConfigPage from '../features/settings/components/WorkShiftConfig/WorkShiftConfigPage';
-import ApplicationPage from '../pages/Application/ApplicationPage';
-import OvertimePage from '../pages/Overtime/OvertimePage';
-import LateExplanationPage from '../pages/LateExplanation/LateExplanationPage';
-import LeaveTypeConfigPage from '../features/settings/components/LeaveTypeConfig/LeaveTypeConfigPage';
-import LoginPage from '../pages/Login/LoginPage';
-import RequireAuth from '../auth/RequireAuth';
-import { useAuth } from '../auth/AuthContext';
-import OrgAndHRPage from '../pages/Admin/OrgAndHR/OrgAndHRPage';
-import AttendanceSetupPage from '../pages/Admin/AttendanceSetup/AttendanceSetupPage';
-import AddGPSLocationPage from '../pages/Admin/AttendanceSetup/AddGPSLocationPage';
-import AddWifiPage from '../pages/Admin/AttendanceSetup/AddWifiPage';
-import DepartmentsPage from '../pages/Admin/DepartmentsPage';
+import BoCucChinh from '../layouts/BoCucChinh';
+import TrangTongQuanPage from '../pages/Dashboard/TrangTongQuan';
+import QuanLyNhanVienPage from '../pages/Employees/QuanLyNhanVien';
+import ChiTietNhanVienPage from '../features/employees/components/DetailEmployee/ChiTietNhanVienPage';
+import LichSuChamCongPage from '../pages/LogsPage/LichSuChamCong';
+import CauHinhCaLamPage from '../features/settings/components/WorkShiftConfig/CauHinhCaLam';
+import QuanLyDonTuPage from '../pages/Application/QuanLyDonTu';
+import YeuCauTangCaPage from '../pages/Overtime/YeuCauTangCa';
+import GiaiTrinhDiMuonPage from '../pages/LateExplanation/GiaiTrinhDiMuon';
+import CauHinhLoaiNghiPage from '../features/settings/components/LeaveTypeConfig/CauHinhLoaiNghi';
+import TrangDangNhapPage from '../pages/Login/TrangDangNhap';
+import YeuCauDangNhap from '../auth/BatBuocDangNhap';
+import { useXacThuc } from '../auth/ContextXacThuc';
+import CoCauToChucPage from '../pages/Admin/OrgAndHR/CoCauToChuc';
+import ThietLapChamCongPage from '../pages/Admin/AttendanceSetup/ThietLapChamCong';
+import ThemViTriGPSPage from '../pages/Admin/AttendanceSetup/ThemViTriGPS';
+import ThemWifiPage from '../pages/Admin/AttendanceSetup/ThemWifi';
+import QuanLyPhongBanPage from '../pages/Admin/QuanLyPhongBan';
+import QuanLyPhanQuyenPage from '../pages/Admin/QuanLyPhanQuyen';
 
 
 function PlaceholderPage({ title }: { title: string }) {
@@ -28,36 +29,37 @@ function PlaceholderPage({ title }: { title: string }) {
 }
 
 export default function AppRoutes() {
-    const { role } = useAuth();
+    const { role } = useXacThuc();
 
     return (
         <Routes>
-            <Route path="/login" element={<LoginPage />} />
+            <Route path="/login" element={<TrangDangNhapPage />} />
 
-            <Route element={<RequireAuth />}>
-                <Route path="/" element={<MainLayout />}>
-                    <Route index element={(role === 'HR' || role === 'Admin') ? <DashboardPage /> : <PlaceholderPage title="Dashboard" />} />
+            <Route element={<YeuCauDangNhap />}>
+                <Route path="/" element={<BoCucChinh />}>
+                    <Route index element={(role === 'HR' || role === 'Admin') ? <TrangTongQuanPage /> : <PlaceholderPage title="Dashboard" />} />
                     <Route path="director" element={role === 'Director' ? <PlaceholderPage title="Trang chủ Giám đốc" /> : <PlaceholderPage title="Unauthorized" />} />
-                    <Route path="hr" element={role === 'HR' ? <DashboardPage /> : <PlaceholderPage title="Trang chủ Nhân sự" />} />
-                    <Route path="admin" element={role === 'Admin' ? <DashboardPage /> : <PlaceholderPage title="Unauthorized" />} />
-                    <Route path="admin/org-hr" element={<OrgAndHRPage />} />
+                    <Route path="hr" element={role === 'HR' ? <TrangTongQuanPage /> : <PlaceholderPage title="Trang chủ Nhân sự" />} />
+                    <Route path="admin" element={role === 'Admin' ? <TrangTongQuanPage /> : <PlaceholderPage title="Unauthorized" />} />
+                    <Route path="admin/org-hr" element={<CoCauToChucPage />} />
 
-                    <Route path="admin/attendance-setup" element={<AttendanceSetupPage />} />
-                    <Route path="admin/attendance-setup/add-gps" element={<AddGPSLocationPage />} />
-                    <Route path="admin/attendance-setup/edit-gps/:id" element={<AddGPSLocationPage />} />
-                    <Route path="admin/attendance-setup/add-wifi" element={<AddWifiPage />} />
-                    <Route path="admin/attendance-setup/edit-wifi/:id" element={<AddWifiPage />} />
-                    <Route path="leave-types" element={<LeaveTypeConfigPage />} />
+                    <Route path="admin/attendance-setup" element={<ThietLapChamCongPage />} />
+                    <Route path="admin/attendance-setup/add-gps" element={<ThemViTriGPSPage />} />
+                    <Route path="admin/attendance-setup/edit-gps/:id" element={<ThemViTriGPSPage />} />
+                    <Route path="admin/attendance-setup/add-wifi" element={<ThemWifiPage />} />
+                    <Route path="admin/attendance-setup/edit-wifi/:id" element={<ThemWifiPage />} />
+                    <Route path="leave-types" element={<CauHinhLoaiNghiPage />} />
                     {/* <Route path="admin/security" element={<PlaceholderPage title="Giám sát an ninh (Quản trị)" />} /> */}
                     <Route path="admin/system-settings" element={<PlaceholderPage title="Cài đặt hệ thống (Quản trị)" />} />
-                    <Route path="employees" element={<EmployeesPage />} />
-                    <Route path="employees/:id" element={<DetailEmployeesPage />} />
-                    <Route path="logs" element={<LogsPage />} />
-                    <Route path="leave-requests" element={<ApplicationPage />} />
-                    <Route path="overtime-requests" element={<OvertimePage />} />
-                    <Route path="late-explanations" element={<LateExplanationPage />} />
+                    <Route path="employees" element={<QuanLyNhanVienPage />} />
+                    <Route path="employees/:id" element={<ChiTietNhanVienPage />} />
+                    <Route path="logs" element={<LichSuChamCongPage />} />
+                    <Route path="leave-requests" element={<QuanLyDonTuPage />} />
+                    <Route path="overtime-requests" element={<YeuCauTangCaPage />} />
+                    <Route path="late-explanations" element={<GiaiTrinhDiMuonPage />} />
                     <Route path="reports" element={<PlaceholderPage title="Reports" />} />
-                    <Route path="admin/shifts" element={<WorkShiftConfigPage />} />
+                    <Route path="admin/shifts" element={<CauHinhCaLamPage />} />
+                    <Route path="admin/roles" element={<QuanLyPhanQuyenPage />} />
 
                 </Route>
             </Route>

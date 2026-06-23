@@ -1,13 +1,13 @@
 import { BrowserRouter } from 'react-router-dom';
-import { ToastProvider, useToast } from './components/common/Toast/Toast';
+import { NhaCungCapToast, useThongBao } from './components/common/Toast/ThongBaoToast';
 import AppRoutes from './routes';
-import { AuthProvider, useAuth } from './auth/AuthContext';
+import { NhaCungCapXacThuc, useXacThuc } from './auth/ContextXacThuc';
 import { useEffect, useRef } from 'react';
-import { database } from './config/firebase';
+import { database } from './config/cauHinhFirebase';
 import { ref, onChildAdded } from 'firebase/database';
 
 // Hàm phát tiếng kêu thông báo nhẹ nhàng, hiện đại bằng Web Audio API (không cần tải file âm thanh)
-const playNotificationSound = () => {
+const phatAmThanhThongBao = () => {
   try {
     const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioContextClass) return;
@@ -39,9 +39,9 @@ const playNotificationSound = () => {
   }
 };
 
-function RealtimeNotificationListener() {
-  const toast = useToast();
-  const auth = useAuth();
+function BoLangNgheThongBaoThoiGianThuc() {
+  const toast = useThongBao();
+  const auth = useXacThuc();
   const initTime = useRef(Date.now());
 
   useEffect(() => {
@@ -57,8 +57,8 @@ function RealtimeNotificationListener() {
       const data = snapshot.val();
       if (data && data.ngay_tao && data.ngay_tao > initTime.current) {
         // Phát âm thanh báo hiệu
-        playNotificationSound();
-        // Hiển thị popup Toast
+        phatAmThanhThongBao();
+        // Hiển thị popup ThongBaoToast
         toast.info(data.tieu_de, data.noi_dung, 6000);
       }
     });
@@ -73,14 +73,14 @@ function RealtimeNotificationListener() {
 
 function App() {
   return (
-    <ToastProvider>
-      <AuthProvider>
-        <RealtimeNotificationListener />
+    <NhaCungCapToast>
+      <NhaCungCapXacThuc>
+        <BoLangNgheThongBaoThoiGianThuc />
         <BrowserRouter>
           <AppRoutes />
         </BrowserRouter>
-      </AuthProvider>
-    </ToastProvider>
+      </NhaCungCapXacThuc>
+    </NhaCungCapToast>
   );
 }
 

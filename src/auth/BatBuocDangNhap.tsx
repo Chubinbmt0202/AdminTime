@@ -1,8 +1,8 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { useAuth } from './AuthContext';
+import { useXacThuc } from './ContextXacThuc';
 
-export default function RequireAuth() {
-  const { isAuthenticated } = useAuth();
+export default function YeuCauDangNhap() {
+  const { isAuthenticated } = useXacThuc();
   const location = useLocation();
 
   if (!isAuthenticated) {

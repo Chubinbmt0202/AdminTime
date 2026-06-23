@@ -13,13 +13,13 @@ import {
     LoadingOutlined,
     ReloadOutlined
 } from '@ant-design/icons';
-import './ApplicationPage.css';
-import { leaveApi } from '../../features/leaves/api/leave.api';
-import { useAuth } from '../../auth/AuthContext';
-import { formatDate } from '../../utils/date';
+import './QuanLyDonTu.css';
+import { leaveApi } from '../../features/leaves/api/donXinNghi.api';
+import { useXacThuc } from '../../auth/ContextXacThuc';
+import { dinhDangNgay } from '../../utils/tienIchNgay';
 import type { LeaveRequest } from '../../features/leaves/types';
-import { useToast } from '../../components/common/Toast/Toast';
-import { exportToExcel } from '../../utils/exportUtils';
+import { useThongBao } from '../../components/common/Toast/ThongBaoToast';
+import { xuatRaExcel } from '../../utils/tienIchXuatFile';
 
 const getStatusLabel = (status: boolean | null) => {
     if (status === true) return 'Đã duyệt';
@@ -102,9 +102,9 @@ function ConfirmModal({ isOpen, action, employeeName, leaveType, onConfirm, onCa
 }
 
 // ---- MAIN PAGE ----
-export default function ApplicationPage() {
-    const { user } = useAuth();
-    const toast = useToast();
+export default function QuanLyDonTuPage() {
+    const { user } = useXacThuc();
+    const toast = useThongBao();
     const [search, setSearch] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('all');
     const [selectedLog, setSelectedLog] = useState<LeaveRequest | null>(null);
@@ -117,11 +117,11 @@ export default function ApplicationPage() {
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
 
-    const fetchLeaveRequests = useCallback(async () => {
+    const taiDonXinNghi = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
-            const res = await leaveApi.getAll();
+            const res = await leaveApi.layTatCa();
             if (res.success) {
                 setLeaveRequests(res.data);
             } else {
@@ -136,8 +136,8 @@ export default function ApplicationPage() {
     }, [toast]);
 
     useEffect(() => {
-        fetchLeaveRequests();
-    }, [fetchLeaveRequests]);
+        taiDonXinNghi();
+    }, [taiDonXinNghi]);
 
     const handleViewDetails = (log: LeaveRequest) => {
         setSelectedLog(log);
@@ -168,7 +168,7 @@ export default function ApplicationPage() {
         setLoading(true);
         try {
             const status = confirmAction === 'approve' ? 'approved' : 'rejected';
-            const res = await leaveApi.updateStatus({
+            const res = await leaveApi.capNhatTrangThai({
                 id_don_xin_nghi: selectedLog.id_don_xin_nghi,
                 status: status,
                 id_nguoi_duyet: user.id_nhan_vien,
@@ -177,7 +177,7 @@ export default function ApplicationPage() {
 
             if (res.success) {
                 toast.success('Thành công', res.message || 'Đã cập nhật trạng thái đơn');
-                await fetchLeaveRequests();
+                await taiDonXinNghi();
             } else {
                 throw new Error(res.message || 'Lỗi khi cập nhật trạng thái');
             }
@@ -223,14 +223,14 @@ export default function ApplicationPage() {
             'Mã NV': log.id_nguoi_dung,
             'Họ và tên': log.ho_ten_nhan_vien || 'Unknown',
             'Loại phép': log.ten_phep,
-            'Ngày bắt đầu': formatDate(log.ngay_bat_dau),
-            'Ngày kết thúc': formatDate(log.ngay_ket_thuc),
+            'Ngày bắt đầu': dinhDangNgay(log.ngay_bat_dau),
+            'Ngày kết thúc': dinhDangNgay(log.ngay_ket_thuc),
             'Lý do': log.ly_do,
-            'Ngày nộp đơn': formatDate(log.ngay_tao),
+            'Ngày nộp đơn': dinhDangNgay(log.ngay_tao),
             'Trạng thái': getStatusLabel(log.trang_thai)
         }));
 
-        exportToExcel(data, 'Danh_Sach_Don_Xin_Nghi');
+        xuatRaExcel(data, 'Danh_Sach_Don_Xin_Nghi');
     };
 
     return (
@@ -242,7 +242,7 @@ export default function ApplicationPage() {
                     <p className="logs-subtitle">Theo dõi và quản lý dữ liệu đơn xin nghỉ của toàn bộ nhân viên.</p>
                 </div>
                 <div className="logs-header-actions">
-                    <button className="btn-secondary" onClick={fetchLeaveRequests} disabled={loading}>
+                    <button className="btn-secondary" onClick={taiDonXinNghi} disabled={loading}>
                         <SyncOutlined spin={loading} /> Làm mới
                     </button>
                     <button className="btn-primary" onClick={handleExport}>
@@ -301,7 +301,7 @@ export default function ApplicationPage() {
                         <option value="pending">Chờ duyệt</option>
                         <option value="rejected">Từ chối</option>
                     </select>
-                    <button className="btn-icon-filter" onClick={fetchLeaveRequests} disabled={loading}>
+                    <button className="btn-icon-filter" onClick={taiDonXinNghi} disabled={loading}>
                         <SyncOutlined spin={loading} />
                     </button>
                 </div>
@@ -351,7 +351,7 @@ export default function ApplicationPage() {
                                 </td>
                                 <td>{log.ten_phep}</td>
                                 <td className="fw-600">
-                                    {formatDate(log.ngay_bat_dau)} - {formatDate(log.ngay_ket_thuc)}
+                                    {dinhDangNgay(log.ngay_bat_dau)} - {dinhDangNgay(log.ngay_ket_thuc)}
                                 </td>
                                 <td>{log.ly_do}</td>
                                 <td>
@@ -422,7 +422,7 @@ export default function ApplicationPage() {
                                     <div className="info-block">
                                         <span className="info-label">Thời gian</span>
                                         <span className="info-value fw-600">
-                                            {formatDate(selectedLog.ngay_bat_dau)} - {formatDate(selectedLog.ngay_ket_thuc)}
+                                            {dinhDangNgay(selectedLog.ngay_bat_dau)} - {dinhDangNgay(selectedLog.ngay_ket_thuc)}
                                         </span>
                                     </div>
                                     <div className="info-block">
@@ -460,7 +460,7 @@ export default function ApplicationPage() {
                                         <div className="timeline-dot"></div>
                                         <div className="timeline-content">
                                             <div className="tl-title">Khởi tạo đơn</div>
-                                            <div className="tl-meta">Bởi {selectedLog.ho_ten_nhan_vien} • {formatDate(selectedLog.ngay_tao)}</div>
+                                            <div className="tl-meta">Bởi {selectedLog.ho_ten_nhan_vien} • {dinhDangNgay(selectedLog.ngay_tao)}</div>
                                             <div className="tl-comment">"{selectedLog.ly_do}"</div>
                                         </div>
                                     </div>
@@ -469,7 +469,7 @@ export default function ApplicationPage() {
                                             <div className="timeline-dot"></div>
                                             <div className="timeline-content">
                                                 <div className="tl-title">Đã được xử lý</div>
-                                                <div className="tl-meta">Người duyệt: {selectedLog.ten_nguoi_duyet || 'Admin'} • {selectedLog.ngay_duyet ? formatDate(selectedLog.ngay_duyet) : ''}</div>
+                                                <div className="tl-meta">Người duyệt: {selectedLog.ten_nguoi_duyet || 'Admin'} • {selectedLog.ngay_duyet ? dinhDangNgay(selectedLog.ngay_duyet) : ''}</div>
                                                 <div className="tl-comment">"{selectedLog.ghi_chu}"</div>
                                             </div>
                                         </div>

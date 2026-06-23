@@ -5,9 +5,9 @@ import {
   CoffeeOutlined,
   SettingOutlined
 } from '@ant-design/icons';
-import { shiftApi } from '../../api/shift.api';
+import { shiftApi } from '../../api/caLam.api';
 import { message } from 'antd';
-import './AddShiftDrawer.css';
+import './DrawerThemCaLam.css';
 
 interface Props {
   open: boolean;
@@ -16,7 +16,7 @@ interface Props {
   initialData?: any;
 }
 
-const AddShiftDrawer: React.FC<Props> = ({ open, onClose, onSuccess, initialData }) => {
+const DrawerThemCaLam: React.FC<Props> = ({ open, onClose, onSuccess, initialData }) => {
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     shiftName: '',
@@ -86,7 +86,7 @@ const AddShiftDrawer: React.FC<Props> = ({ open, onClose, onSuccess, initialData
     }
   };
 
-  const handleSave = async () => {
+  const xuLyLuu = async () => {
     setLoading(true);
     try {
       const payload = {
@@ -104,9 +104,9 @@ const AddShiftDrawer: React.FC<Props> = ({ open, onClose, onSuccess, initialData
 
       let response;
       if (initialData?.id_ca_lam_viec || initialData?.id) {
-        response = await shiftApi.updateShift(initialData.id_ca_lam_viec || initialData.id, payload);
+        response = await shiftApi.capNhatCaLam(initialData.id_ca_lam_viec || initialData.id, payload);
       } else {
-        response = await shiftApi.addShift(payload);
+        response = await shiftApi.themCaLam(payload);
       }
 
       if (response.success) {
@@ -343,7 +343,7 @@ const AddShiftDrawer: React.FC<Props> = ({ open, onClose, onSuccess, initialData
 
         <div className="drawer-footer">
           <button className="btn-cancel" onClick={onClose} disabled={loading}>Hủy bỏ</button>
-          <button className="btn-save" onClick={handleSave} disabled={loading}>
+          <button className="btn-save" onClick={xuLyLuu} disabled={loading}>
             {loading ? 'Đang lưu...' : initialData ? 'Cập nhật ca làm việc' : 'Lưu ca làm việc'}
           </button>
         </div>
@@ -352,4 +352,4 @@ const AddShiftDrawer: React.FC<Props> = ({ open, onClose, onSuccess, initialData
   );
 };
 
-export default AddShiftDrawer;
+export default DrawerThemCaLam;

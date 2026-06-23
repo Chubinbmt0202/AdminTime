@@ -10,13 +10,13 @@ import {
     WarningOutlined,
     LoadingOutlined
 } from '@ant-design/icons';
-import './LateExplanationPage.css';
-import { lateExplanationApi } from '../../features/lateExplanations/api/lateExplanation.api';
-import { useAuth } from '../../auth/AuthContext';
-import { formatDate } from '../../utils/date';
+import './GiaiTrinhDiMuon.css';
+import { lateExplanationApi } from '../../features/lateExplanations/api/giaiTrinhDiMuon.api';
+import { useXacThuc } from '../../auth/ContextXacThuc';
+import { dinhDangNgay } from '../../utils/tienIchNgay';
 import type { LateExplanation } from '../../features/lateExplanations/types';
-import { useToast } from '../../components/common/Toast/Toast';
-import { exportToExcel } from '../../utils/exportUtils';
+import { useThongBao } from '../../components/common/Toast/ThongBaoToast';
+import { xuatRaExcel } from '../../utils/tienIchXuatFile';
 
 const getStatusLabel = (status: boolean | null) => {
     if (status === true) return 'Đã duyệt';
@@ -88,9 +88,9 @@ function ConfirmModal({ isOpen, action, employeeName, onConfirm, onCancel }: Con
     );
 }
 
-export default function LateExplanationPage() {
-    const { user } = useAuth();
-    const toast = useToast();
+export default function GiaiTrinhDiMuonPage() {
+    const { user } = useXacThuc();
+    const toast = useThongBao();
     const [search, setSearch] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('all');
     const [selectedLog, setSelectedLog] = useState<LateExplanation | null>(null);
@@ -107,7 +107,7 @@ export default function LateExplanationPage() {
         setLoading(true);
         setError(null);
         try {
-            const res = await lateExplanationApi.getAll();
+            const res = await lateExplanationApi.layTatCa();
             if (res.success) {
                 setExplanations(res.data);
             } else {
@@ -153,7 +153,7 @@ export default function LateExplanationPage() {
         setLoading(true);
         try {
             const status = confirmAction === 'approve' ? 'approved' : 'rejected';
-            const res = await lateExplanationApi.updateStatus({
+            const res = await lateExplanationApi.capNhatTrangThai({
                 id_giai_trinh: selectedLog.id_giai_trinh,
                 status: status,
                 id_nguoi_duyet: user.id_nhan_vien,
@@ -208,14 +208,14 @@ export default function LateExplanationPage() {
             'Mã giải trình': log.id_giai_trinh,
             'Mã NV': log.id_nhan_vien,
             'Họ và tên': log.ho_ten_nhan_vien || 'Unknown',
-            'Ngày giải trình': formatDate(log.ngay_giai_trinh),
+            'Ngày giải trình': dinhDangNgay(log.ngay_giai_trinh),
             'Giờ vào trễ': new Date(log.gio_vao_tre).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
             'Lý do': log.ly_do,
-            'Ngày tạo': formatDate(log.ngay_tao),
+            'Ngày tạo': dinhDangNgay(log.ngay_tao),
             'Trạng thái': getStatusLabel(log.trang_thai)
         }));
 
-        exportToExcel(data, 'Danh_Sach_Giai_Trinh_Di_Tre');
+        xuatRaExcel(data, 'Danh_Sach_Giai_Trinh_Di_Tre');
     };
 
     return (
@@ -327,7 +327,7 @@ export default function LateExplanationPage() {
                                         </div>
                                     </div>
                                 </td>
-                                <td className="fw-600">{formatDate(log.ngay_giai_trinh)}</td>
+                                <td className="fw-600">{dinhDangNgay(log.ngay_giai_trinh)}</td>
                                 <td className="fw-600">
                                     {new Date(log.gio_vao_tre).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                                 </td>
@@ -381,7 +381,7 @@ export default function LateExplanationPage() {
                                 <div className="info-grid">
                                     <div className="info-block">
                                         <span className="info-label">Ngày ghi nhận</span>
-                                        <span className="info-value fw-600">{formatDate(selectedLog.ngay_giai_trinh)}</span>
+                                        <span className="info-value fw-600">{dinhDangNgay(selectedLog.ngay_giai_trinh)}</span>
                                     </div>
                                     <div className="info-block">
                                         <span className="info-label">Giờ thực tế vào trễ</span>
@@ -408,7 +408,7 @@ export default function LateExplanationPage() {
                                         <div className="timeline-dot"></div>
                                         <div className="timeline-content">
                                             <div className="tl-title">Khởi tạo giải trình</div>
-                                            <div className="tl-meta">Bởi {selectedLog.ho_ten_nhan_vien} • {formatDate(selectedLog.ngay_tao)}</div>
+                                            <div className="tl-meta">Bởi {selectedLog.ho_ten_nhan_vien} • {dinhDangNgay(selectedLog.ngay_tao)}</div>
                                             <div className="tl-comment">"{selectedLog.ly_do}"</div>
                                         </div>
                                     </div>
@@ -417,7 +417,7 @@ export default function LateExplanationPage() {
                                             <div className="timeline-dot"></div>
                                             <div className="timeline-content">
                                                 <div className="tl-title">Đã xử lý giải trình</div>
-                                                <div className="tl-meta">Người duyệt: {selectedLog.ten_nguoi_duyet || 'Admin'} • {selectedLog.ngay_duyet ? formatDate(selectedLog.ngay_duyet) : ''}</div>
+                                                <div className="tl-meta">Người duyệt: {selectedLog.ten_nguoi_duyet || 'Admin'} • {selectedLog.ngay_duyet ? dinhDangNgay(selectedLog.ngay_duyet) : ''}</div>
                                                 <div className="tl-comment">"{selectedLog.ghi_chu}"</div>
                                             </div>
                                         </div>

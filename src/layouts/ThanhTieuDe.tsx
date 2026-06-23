@@ -2,23 +2,23 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { BellFilled } from '@ant-design/icons';
 import { QuestionCircleOutlined, SearchOutlined } from '@ant-design/icons';
 import avatarImg from '../assets/images/avatar.png';
-import './Header.css';
-import Breadcrumb from '../components/common/Breadcrumb/Breadcrumb';
+import './ThanhTieuDe.css';
+import ThanhDieuHuong from '../components/common/Breadcrumb/ThanhDieuHuong';
 import { useNavigate } from 'react-router-dom';
 import { ref, onValue, update, get, query, limitToLast } from 'firebase/database';
-import { database } from '../config/firebase';
-import { useAuth } from '../auth/AuthContext';
+import { database } from '../config/cauHinhFirebase';
+import { useXacThuc } from '../auth/ContextXacThuc';
 
-export default function Header() {
+export default function ThanhTieuDe() {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const auth = useAuth();
+  const auth = useXacThuc();
 
   const [notifications, setNotifications] = useState<any[]>([]);
 
   // Định dạng thời gian trôi qua
-  const formatTimeAgo = (timestamp: number) => {
+  const dinhDangThoiGianDaQua = (timestamp: number) => {
     const diff = Date.now() - timestamp;
     const mins = Math.floor(diff / 60000);
     if (mins < 1) return 'Vừa xong';
@@ -66,7 +66,7 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', onDocClick);
   }, []);
 
-  const handleMarkAllAsRead = async () => {
+  const xuLyDanhDauTatCaDaDoc = async () => {
     try {
       const notifRef = ref(database, 'admin_notifications');
       const snapshot = await get(notifRef);
@@ -89,7 +89,7 @@ export default function Header() {
     }
   };
 
-  const handleNotifClick = async (n: any) => {
+  const xuLyClickThongBao = async (n: any) => {
     try {
       const itemRef = ref(database, `admin_notifications/${n.id}`);
       await update(itemRef, { da_doc: true });
@@ -108,7 +108,7 @@ export default function Header() {
     <header className="app-header">
       {/* Left side: Breadcrumbs */}
       <div className="app-header-left">
-        <Breadcrumb />
+        <ThanhDieuHuong />
       </div>
 
       {/* Right side: Notifications & Profile */}
@@ -131,7 +131,7 @@ export default function Header() {
             <div className="header-popover">
               <div className="header-popover-head">
                 <div className="header-popover-title">Thông báo ({unreadCount})</div>
-                <button className="header-popover-link" onClick={handleMarkAllAsRead}>
+                <button className="header-popover-link" onClick={xuLyDanhDauTatCaDaDoc}>
                   Đánh dấu tất cả là đã đọc
                 </button>
               </div>
@@ -145,7 +145,7 @@ export default function Header() {
                     <div
                       key={n.id}
                       className={`header-notif-item ${!n.da_doc ? 'unread' : ''}`}
-                      onClick={() => handleNotifClick(n)}
+                      onClick={() => xuLyClickThongBao(n)}
                       style={{ cursor: 'pointer' }}
                     >
                       <div className="header-notif-avatar-wrapper">
@@ -158,7 +158,7 @@ export default function Header() {
                         <div className="header-notif-text">
                           <strong>{n.ho_ten_nhan_vien}</strong>: {n.tieu_de} - {n.noi_dung}
                         </div>
-                        <div className="header-notif-time">{formatTimeAgo(n.ngay_tao)}</div>
+                        <div className="header-notif-time">{dinhDangThoiGianDaQua(n.ngay_tao)}</div>
                       </div>
                     </div>
                   ))

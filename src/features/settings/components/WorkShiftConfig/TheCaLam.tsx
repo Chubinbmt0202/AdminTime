@@ -22,7 +22,7 @@ interface ShiftCardProps {
   onDelete?: () => void;
 }
 
-const ShiftCard: React.FC<ShiftCardProps> = ({
+const TheCaLam: React.FC<ShiftCardProps> = ({
   title,
   subtitle,
   timeRange,
@@ -78,4 +78,4 @@ const ShiftCard: React.FC<ShiftCardProps> = ({
   );
 };
 
-export default ShiftCard;
+export default TheCaLam;

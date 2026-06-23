@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { message, Button, Popconfirm, Tag } from 'antd';
-import { officeApi } from '../../../features/offices/api/office.api';
+import { officeApi } from '../../../features/offices/api/vanPhong.api';
 import type { Office, WifiConfig } from '../../../features/offices/types';
 import {
   WifiOutlined,
@@ -16,7 +16,7 @@ import {
 import { MapContainer, TileLayer, Marker, Circle, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import './AttendanceSetupPage.css';
+import './ThietLapChamCong.css';
 
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconRetina from 'leaflet/dist/images/marker-icon-2x.png';
@@ -35,7 +35,7 @@ let DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
-const MapUpdater = ({ center }: { center: { lat: number, lng: number } }) => {
+const CapNhatBanDo = ({ center }: { center: { lat: number, lng: number } }) => {
   const map = useMap();
   useEffect(() => {
     if (center.lat && center.lng) {
@@ -49,7 +49,7 @@ const MapUpdater = ({ center }: { center: { lat: number, lng: number } }) => {
 
 
 
-export default function AttendanceSetupPage() {
+export default function ThietLapChamCongPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState<'wifi' | 'gps'>((location.state as any)?.activeTab || 'wifi');
@@ -59,15 +59,15 @@ export default function AttendanceSetupPage() {
   const [activeOfficeId, setActiveOfficeId] = useState<number | null>(null);
 
   useEffect(() => {
-    fetchOffices();
+    taiDanhSachVanPhong();
   }, []);
 
-  const fetchOffices = async () => {
+  const taiDanhSachVanPhong = async () => {
     setLoading(true);
     try {
       const [officesRes, wifiRes] = await Promise.all([
-        officeApi.getAll(),
-        officeApi.getAllWifi()
+        officeApi.layTatCa(),
+        officeApi.layTatCaWifi()
       ]);
 
       if (officesRes.success) {
@@ -104,14 +104,14 @@ export default function AttendanceSetupPage() {
     }
   };
 
-  const handleDeleteWifi = async (wifiAddress: string) => {
+  const xuLyXoaWifi = async (wifiAddress: string) => {
     const hide = message.loading('Đang xóa cấu hình WiFi...', 0);
     try {
-      const response = await officeApi.deleteWifi(wifiAddress);
+      const response = await officeApi.xoaWifi(wifiAddress);
       hide();
       if (response.success) {
         message.success('Đã xóa WiFi thành công');
-        fetchOffices();
+        taiDanhSachVanPhong();
       } else {
         message.error(response.message || 'Không thể xóa WiFi');
       }
@@ -207,7 +207,7 @@ export default function AttendanceSetupPage() {
                             <Popconfirm
                               title="Xóa cấu hình WiFi"
                               description="Bạn có chắc chắn muốn xóa WiFi này không?"
-                              onConfirm={() => handleDeleteWifi(config.wifiAddress)}
+                              onConfirm={() => xuLyXoaWifi(config.wifiAddress)}
                               okText="Xóa"
                               cancelText="Hủy"
                               okButtonProps={{ danger: true }}
@@ -292,11 +292,11 @@ export default function AttendanceSetupPage() {
                               e?.stopPropagation();
                               const hide = message.loading('Đang xóa địa điểm...', 0);
                               try {
-                                const response = await officeApi.deleteGPS(office.id_van_phong);
+                                const response = await officeApi.xoaGPS(office.id_van_phong);
                                 hide();
                                 if (response.success) {
                                   message.success(response.message || 'Đã xóa địa điểm thành công');
-                                  fetchOffices();
+                                  taiDanhSachVanPhong();
                                 } else {
                                   message.error(response.message || 'Không thể xóa địa điểm này');
                                 }
@@ -347,7 +347,7 @@ export default function AttendanceSetupPage() {
                             attribution='&copy; OpenStreetMap'
                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                           />
-                          <MapUpdater center={{ lat, lng }} />
+                          <CapNhatBanDo center={{ lat, lng }} />
                           <Marker position={[lat, lng]} />
                           <Circle
                             center={[lat, lng]}

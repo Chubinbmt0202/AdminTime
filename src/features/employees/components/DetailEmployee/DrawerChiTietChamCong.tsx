@@ -7,8 +7,8 @@ import {
   PictureOutlined,
   InfoCircleOutlined
 } from '@ant-design/icons';
-import type { AttendanceRecord } from '../../../../services/attendance.service';
-import './AttendanceDetailDrawer.css';
+import type { AttendanceRecord } from '../../../../services/dichVuChamCong';
+import './DrawerChiTietChamCong.css';
 
 interface Props {
   open: boolean;
@@ -22,7 +22,7 @@ const formatTime = (isoString: string | null | undefined) => {
   return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 };
 
-const formatDate = (dateString: string | null) => {
+const dinhDangNgay = (dateString: string | null) => {
   if (!dateString) return 'N/A';
   const date = new Date(dateString);
   return date.toLocaleDateString('vi-VN');
@@ -59,7 +59,7 @@ const calculateTotalTime = (checkIn: string | null | undefined, checkOut: string
   return `${hours}h ${minutes}m`;
 };
 
-export default function AttendanceDetailDrawer({ open, onClose, record }: Props) {
+export default function DrawerChiTietChamCong({ open, onClose, record }: Props) {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     if (open) document.addEventListener('keydown', handler);
@@ -79,7 +79,7 @@ export default function AttendanceDetailDrawer({ open, onClose, record }: Props)
             </div>
             <div>
               <h2 className="att-drawer-title">Chi tiết chấm công</h2>
-              <p className="att-drawer-subtitle">{formatDate(record.log_date)} - {record.full_name}</p>
+              <p className="att-drawer-subtitle">{dinhDangNgay(record.log_date)} - {record.full_name}</p>
             </div>
           </div>
           <button className="att-drawer-close-btn" onClick={onClose} title="Đóng">

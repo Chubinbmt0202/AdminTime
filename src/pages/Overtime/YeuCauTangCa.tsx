@@ -10,12 +10,12 @@ import {
     WarningOutlined,
     LoadingOutlined
 } from '@ant-design/icons';
-import '../Application/ApplicationPage.css';
-import { overtimeApi } from '../../features/overtime/api/overtime.api';
-import { formatDate } from '../../utils/date';
+import '../Application/QuanLyDonTu.css';
+import { overtimeApi } from '../../features/overtime/api/tangCa.api';
+import { dinhDangNgay } from '../../utils/tienIchNgay';
 import type { OvertimeRequest } from '../../features/overtime/types';
-import { useToast } from '../../components/common/Toast/Toast';
-import { exportToExcel } from '../../utils/exportUtils';
+import { useThongBao } from '../../components/common/Toast/ThongBaoToast';
+import { xuatRaExcel } from '../../utils/tienIchXuatFile';
 
 const getStatusLabel = (status: string) => {
     if (status === 'DA_DUYET') return 'Đã duyệt';
@@ -100,8 +100,8 @@ function ConfirmModal({ isOpen, action, employeeName, onConfirm, onCancel }: Con
 }
 
 // ---- MAIN PAGE ----
-export default function OvertimePage() {
-    const toast = useToast();
+export default function YeuCauTangCaPage() {
+    const toast = useThongBao();
     const [search, setSearch] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('all');
     const [selectedLog, setSelectedLog] = useState<OvertimeRequest | null>(null);
@@ -118,7 +118,7 @@ export default function OvertimePage() {
         setLoading(true);
         setError(null);
         try {
-            const res = await overtimeApi.getAll();
+            const res = await overtimeApi.layTatCa();
             if (res.success) {
                 setOvertimeRequests(res.data || []);
             } else {
@@ -162,7 +162,7 @@ export default function OvertimePage() {
         setLoading(true);
         try {
             const status = confirmAction === 'approve' ? 'DA_DUYET' : 'TU_CHOI';
-            const res = await overtimeApi.updateStatus({
+            const res = await overtimeApi.capNhatTrangThai({
                 id_don_ot: selectedLog.id_don_ot,
                 status: status,
                 ghi_chu: ghiChu
@@ -212,14 +212,14 @@ export default function OvertimePage() {
             'Mã đơn': log.id_don_ot,
             'Mã NV': log.id_nhan_vien,
             'Họ và tên': log.ho_va_ten || 'Unknown',
-            'Ngày tăng ca': formatDate(log.ngay_dang_ky_ot),
+            'Ngày tăng ca': dinhDangNgay(log.ngay_dang_ky_ot),
             'Khung giờ': `${log.gio_bat_dau} - ${log.gio_ket_thuc_du_kien}`,
             'Lý do': log.ly_do,
-            'Ngày nộp đơn': formatDate(log.ngay_tao),
+            'Ngày nộp đơn': dinhDangNgay(log.ngay_tao),
             'Trạng thái': getStatusLabel(log.trang_thai)
         }));
 
-        exportToExcel(data, 'Danh_Sach_Don_Tang_Ca');
+        xuatRaExcel(data, 'Danh_Sach_Don_Tang_Ca');
     };
 
     return (
@@ -334,7 +334,7 @@ export default function OvertimePage() {
                                         </div>
                                     </div>
                                 </td>
-                                <td className="fw-600">{formatDate(log.ngay_dang_ky_ot)}</td>
+                                <td className="fw-600">{dinhDangNgay(log.ngay_dang_ky_ot)}</td>
                                 <td className="fw-600">
                                     {log.gio_bat_dau} - {log.gio_ket_thuc_du_kien}
                                 </td>
@@ -389,7 +389,7 @@ export default function OvertimePage() {
                                     <div className="info-block">
                                         <span className="info-label">Ngày tăng ca</span>
                                         <span className="info-value fw-600">
-                                            {formatDate(selectedLog.ngay_dang_ky_ot)}
+                                            {dinhDangNgay(selectedLog.ngay_dang_ky_ot)}
                                         </span>
                                     </div>
                                     <div className="info-block">
@@ -404,7 +404,7 @@ export default function OvertimePage() {
                                     </div>
                                     <div className="info-block">
                                         <span className="info-label">Ngày nộp đơn</span>
-                                        <span className="info-value text-gray">{formatDate(selectedLog.ngay_tao)}</span>
+                                        <span className="info-value text-gray">{dinhDangNgay(selectedLog.ngay_tao)}</span>
                                     </div>
                                 </div>
                             </div>
@@ -421,7 +421,7 @@ export default function OvertimePage() {
                                         <div className="timeline-dot"></div>
                                         <div className="timeline-content">
                                             <div className="tl-title">Khởi tạo đơn</div>
-                                            <div className="tl-meta">Bởi {selectedLog.ho_va_ten} • {formatDate(selectedLog.ngay_tao)}</div>
+                                            <div className="tl-meta">Bởi {selectedLog.ho_va_ten} • {dinhDangNgay(selectedLog.ngay_tao)}</div>
                                             <div className="tl-comment">"{selectedLog.ly_do}"</div>
                                         </div>
                                     </div>

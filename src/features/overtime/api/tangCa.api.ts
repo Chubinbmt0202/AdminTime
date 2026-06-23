@@ -1,11 +1,11 @@
-import { apiClient } from '../../../services/api.client';
+import { apiClient } from '../../../services/apiClient';
 import type { OvertimeRequest } from '../types';
 
 export const overtimeApi = {
-    getAll: (): Promise<{ success: boolean; data: OvertimeRequest[]; message?: string }> => {
+    layTatCa: (): Promise<{ success: boolean; data: OvertimeRequest[]; message?: string }> => {
         return apiClient.get('/ot/all');
     },
-    updateStatus: (params: {
+    capNhatTrangThai: (params: {
         id_don_ot: string;
         status: 'DA_DUYET' | 'TU_CHOI';
         ghi_chu?: string;
