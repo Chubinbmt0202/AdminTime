@@ -49,7 +49,8 @@ const initialFormData = {
     du_lieu_khuon_mat: null as any,
     hinh_anh: '',
     ngay_cap_nhat_khuon_mat: null as string | null,
-    status: true
+    status: true,
+    login_devices: [] as any[]
 };
 
 type FieldKey = keyof typeof initialFormData;
@@ -372,7 +373,8 @@ export default function ChiTietNhanVienPage() {
                         du_lieu_khuon_mat: json.data.du_lieu_khuon_mat,
                         hinh_anh: json.data.hinh_anh || '',
                         ngay_cap_nhat_khuon_mat: json.data.ngay_cap_nhat_khuon_mat || null,
-                        status: json.data.trang_thai !== undefined ? json.data.trang_thai : true
+                        status: json.data.trang_thai !== undefined ? json.data.trang_thai : true,
+                        login_devices: json.data.login_devices || []
                     });
                     setSettingDepartmentId(json.data.department_id || '');
                     setSettingRole(json.data.id_vai_tro || '');
@@ -851,6 +853,75 @@ export default function ChiTietNhanVienPage() {
                                     >
                                         {isUpdatingSecurity ? <><LoadingOutlined spin /> Đang cập nhật...</> : 'Lưu thay đổi mật khẩu'}
                                     </button>
+                                </div>
+                            </div>
+
+                            <hr className="setting-divider" />
+
+                            {/* Section: Thiết bị đăng nhập & WiFi */}
+                            <div className="setting-section">
+                                <h3 className="setting-section-title">
+                                    <LoginOutlined /> Lịch sử đăng nhập & Thiết bị
+                                </h3>
+                                <p className="setting-desc" style={{ marginBottom: '16px' }}>
+                                    Danh sách các thiết bị đã đăng nhập gần đây bằng tài khoản này.
+                                </p>
+                                
+                                <div style={{ overflowX: 'auto', background: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+                                        <thead>
+                                            <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', textAlign: 'left' }}>
+                                                <th style={{ padding: '12px 16px', color: '#64748b', fontWeight: 600 }}>Thiết bị</th>
+                                                <th style={{ padding: '12px 16px', color: '#64748b', fontWeight: 600 }}>Hệ điều hành</th>
+                                                <th style={{ padding: '12px 16px', color: '#64748b', fontWeight: 600 }}>Địa chỉ IP</th>
+                                                <th style={{ padding: '12px 16px', color: '#64748b', fontWeight: 600 }}>WiFi (BSSID)</th>
+                                                <th style={{ padding: '12px 16px', color: '#64748b', fontWeight: 600 }}>Thời gian đăng nhập</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {(!formData.login_devices || formData.login_devices.length === 0) ? (
+                                                <tr>
+                                                    <td colSpan={5} style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>
+                                                        Chưa ghi nhận thiết bị đăng nhập nào
+                                                    </td>
+                                                </tr>
+                                            ) : (
+                                                formData.login_devices.map((device: any, idx: number) => (
+                                                    <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                                        <td style={{ padding: '12px 16px', fontWeight: 500, color: '#334155' }}>
+                                                            {device.ten_thiet_bi || 'Thiết bị không xác định'}
+                                                        </td>
+                                                        <td style={{ padding: '12px 16px', color: '#64748b' }}>
+                                                            {device.he_dieu_hanh || 'N/A'}
+                                                        </td>
+                                                        <td style={{ padding: '12px 16px', color: '#64748b', fontFamily: 'monospace' }}>
+                                                            {device.dia_chi_ip || 'N/A'}
+                                                        </td>
+                                                        <td style={{ padding: '12px 16px' }}>
+                                                            {device.dia_chi_wifi ? (
+                                                                <span style={{ 
+                                                                    backgroundColor: '#eff6ff', 
+                                                                    color: '#2563eb', 
+                                                                    padding: '4px 8px', 
+                                                                    borderRadius: '4px',
+                                                                    fontSize: '12px',
+                                                                    fontWeight: 600,
+                                                                    fontFamily: 'monospace'
+                                                                }}>
+                                                                    {device.dia_chi_wifi}
+                                                                </span>
+                                                            ) : (
+                                                                <span style={{ color: '#94a3b8' }}>N/A</span>
+                                                            )}
+                                                        </td>
+                                                        <td style={{ padding: '12px 16px', color: '#64748b' }}>
+                                                            {new Date(device.thoi_gian_dang_nhap).toLocaleString('vi-VN')}
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            )}
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
 
