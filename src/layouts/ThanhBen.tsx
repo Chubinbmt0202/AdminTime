@@ -91,7 +91,10 @@ export default function ThanhBen() {
   }
 
   useEffect(() => {
-    if (location.pathname.startsWith('/leave-requests')) {
+    if (location.pathname.startsWith('/applications')) {
+      danhDauDaDocThongBao('LEAVE_REQUEST')
+      danhDauDaDocThongBao('OVERTIME_REQUEST')
+    } else if (location.pathname.startsWith('/leave-requests')) {
       danhDauDaDocThongBao('LEAVE_REQUEST')
     } else if (location.pathname.startsWith('/overtime-requests')) {
       danhDauDaDocThongBao('OVERTIME_REQUEST')
@@ -127,8 +130,7 @@ export default function ThanhBen() {
         { key: 'hr-overview', label: 'Tổng quan', icon: <AppstoreOutlined />, path: '/hr' },
         { key: 'employees', label: 'Nhân viên', icon: <TeamOutlined />, path: '/employees' },
         { key: 'logs', label: 'Chấm công', icon: <HistoryOutlined />, path: '/logs' },
-        { key: 'leave-requests', label: 'Đơn xin nghỉ', icon: <CalendarOutlined />, path: '/leave-requests' },
-        { key: 'overtime-requests', label: 'Đơn xin tăng ca', icon: <ClockCircleOutlined />, path: '/overtime-requests' },
+        { key: 'applications', label: 'Quản lý đơn từ', icon: <CalendarOutlined />, path: '/applications' },
         { key: 'late-explanations', label: 'Giải trình đi trễ', icon: <HistoryOutlined />, path: '/late-explanations' },
         { key: 'leave-types', label: 'Thiết lập đơn từ', icon: <SettingOutlined />, path: '/leave-types' },
       ]
@@ -181,7 +183,9 @@ export default function ThanhBen() {
       <nav className="sidebar-nav">
         {navItems.map(item => {
           let count = 0
-          if (item.key === 'leave-requests') {
+          if (item.key === 'applications') {
+            count = soLuongThongBaoNghiPhep + soLuongThongBaoTangCa
+          } else if (item.key === 'leave-requests') {
             count = soLuongThongBaoNghiPhep
           } else if (item.key === 'overtime-requests') {
             count = soLuongThongBaoTangCa

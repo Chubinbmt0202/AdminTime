@@ -9,6 +9,7 @@ export type AuthUser = {
   ten_vai_tro: Role;
   id_nhan_vien: string;
   is_face_updated?: boolean;
+  hinh_anh?: string | null;
 };
 
 export type LoginResponse = {

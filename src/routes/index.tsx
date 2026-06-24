@@ -1,12 +1,11 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import BoCucChinh from '../layouts/BoCucChinh';
 import TrangTongQuanPage from '../pages/Dashboard/TrangTongQuan';
 import QuanLyNhanVienPage from '../pages/Employees/QuanLyNhanVien';
 import ChiTietNhanVienPage from '../features/employees/components/DetailEmployee/ChiTietNhanVienPage';
 import LichSuChamCongPage from '../pages/LogsPage/LichSuChamCong';
 import CauHinhCaLamPage from '../features/settings/components/WorkShiftConfig/CauHinhCaLam';
-import QuanLyDonTuPage from '../pages/Application/QuanLyDonTu';
-import YeuCauTangCaPage from '../pages/Overtime/YeuCauTangCa';
+import QuanLyDonTuChungPage from '../pages/Application/QuanLyDonTuChung';
 import GiaiTrinhDiMuonPage from '../pages/LateExplanation/GiaiTrinhDiMuon';
 import CauHinhLoaiNghiPage from '../features/settings/components/LeaveTypeConfig/CauHinhLoaiNghi';
 import TrangDangNhapPage from '../pages/Login/TrangDangNhap';
@@ -54,8 +53,9 @@ export default function AppRoutes() {
                     <Route path="employees" element={<QuanLyNhanVienPage />} />
                     <Route path="employees/:id" element={<ChiTietNhanVienPage />} />
                     <Route path="logs" element={<LichSuChamCongPage />} />
-                    <Route path="leave-requests" element={<QuanLyDonTuPage />} />
-                    <Route path="overtime-requests" element={<YeuCauTangCaPage />} />
+                    <Route path="applications" element={<QuanLyDonTuChungPage />} />
+                    <Route path="leave-requests" element={<Navigate to="/applications?tab=leave" replace />} />
+                    <Route path="overtime-requests" element={<Navigate to="/applications?tab=overtime" replace />} />
                     <Route path="late-explanations" element={<GiaiTrinhDiMuonPage />} />
                     <Route path="reports" element={<PlaceholderPage title="Reports" />} />
                     <Route path="admin/shifts" element={<CauHinhCaLamPage />} />

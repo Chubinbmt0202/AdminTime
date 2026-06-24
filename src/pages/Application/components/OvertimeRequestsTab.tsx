@@ -3,33 +3,30 @@ import {
     DownloadOutlined,
     SyncOutlined,
     SearchOutlined,
-    FilterOutlined,
     EyeOutlined,
     CloseOutlined,
-    PaperClipOutlined,
     CloseCircleOutlined,
     CheckCircleOutlined,
     WarningOutlined,
     LoadingOutlined,
-    ReloadOutlined
+    SettingOutlined
 } from '@ant-design/icons';
-import './QuanLyDonTu.css';
-import { leaveApi } from '../../features/leaves/api/donXinNghi.api';
-import { useXacThuc } from '../../auth/ContextXacThuc';
-import { dinhDangNgay } from '../../utils/tienIchNgay';
-import type { LeaveRequest } from '../../features/leaves/types';
-import { useThongBao } from '../../components/common/Toast/ThongBaoToast';
-import { xuatRaExcel } from '../../utils/tienIchXuatFile';
+import '../QuanLyDonTu.css';
+import { overtimeApi } from '../../../features/overtime/api/tangCa.api';
+import { dinhDangNgay } from '../../../utils/tienIchNgay';
+import type { OvertimeRequest } from '../../../features/overtime/types';
+import { useThongBao } from '../../../components/common/Toast/ThongBaoToast';
+import { xuatRaExcel } from '../../../utils/tienIchXuatFile';
 
-const getStatusLabel = (status: boolean | null) => {
-    if (status === true) return 'Đã duyệt';
-    if (status === false) return 'Từ chối';
+const getStatusLabel = (status: string) => {
+    if (status === 'DA_DUYET') return 'Đã duyệt';
+    if (status === 'TU_CHOI') return 'Từ chối';
     return 'Chờ duyệt';
 };
 
-const getStatusType = (status: boolean | null) => {
-    if (status === true) return 'success';
-    if (status === false) return 'danger';
+const getStatusType = (status: string) => {
+    if (status === 'DA_DUYET') return 'success';
+    if (status === 'TU_CHOI') return 'danger';
     return 'warning';
 };
 
@@ -40,55 +37,57 @@ interface ConfirmModalProps {
     isOpen: boolean;
     action: ConfirmAction;
     employeeName?: string;
-    leaveType?: string;
-    onConfirm: () => void;
+    onConfirm: (ghiChu: string) => void;
     onCancel: () => void;
 }
 
-function ConfirmModal({ isOpen, action, employeeName, leaveType, onConfirm, onCancel }: ConfirmModalProps) {
+function ConfirmModal({ isOpen, action, employeeName, onConfirm, onCancel }: ConfirmModalProps) {
+    const [ghiChu, setGhiChu] = useState('');
+
+    useEffect(() => {
+        if (!isOpen) setGhiChu('');
+    }, [isOpen]);
+
     if (!isOpen) return null;
 
     const isApprove = action === 'approve';
 
     return (
         <>
-            {/* Backdrop */}
             <div className="confirm-backdrop" onClick={onCancel} />
-
-            {/* Modal */}
             <div className="confirm-modal">
-                {/* Icon */}
                 <div className={`confirm-icon-wrap ${isApprove ? 'icon-approve' : 'icon-reject'}`}>
                     {isApprove
                         ? <CheckCircleOutlined className="confirm-icon" />
                         : <WarningOutlined className="confirm-icon" />
                     }
                 </div>
-
-                {/* Title */}
                 <h3 className="confirm-title">
                     {isApprove ? 'Xác nhận phê duyệt' : 'Xác nhận từ chối'}
                 </h3>
-
-                {/* Description */}
                 <p className="confirm-desc">
                     {isApprove
-                        ? <>Bạn có chắc chắn muốn <strong>phê duyệt</strong> đơn xin nghỉ của <strong>{employeeName}</strong> ({leaveType})?</>
-                        : <>Bạn có chắc chắn muốn <strong>từ chối</strong> đơn xin nghỉ của <strong>{employeeName}</strong> ({leaveType})? Hành động này không thể hoàn tác.</>
+                        ? <>Bạn có chắc chắn muốn <strong>phê duyệt</strong> đơn xin tăng ca của <strong>{employeeName}</strong>?</>
+                        : <>Bạn có chắc chắn muốn <strong>từ chối</strong> đơn xin tăng ca của <strong>{employeeName}</strong>? Hành động này không thể hoàn tác.</>
                     }
                 </p>
-
-                {/* Divider */}
+                <div style={{ marginTop: '16px' }}>
+                    <textarea 
+                        placeholder="Ghi chú (tuỳ chọn)" 
+                        value={ghiChu}
+                        onChange={(e) => setGhiChu(e.target.value)}
+                        style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc', resize: 'none' }}
+                        rows={3}
+                    />
+                </div>
                 <div className="confirm-divider" />
-
-                {/* Actions */}
                 <div className="confirm-actions">
                     <button className="confirm-btn-cancel" onClick={onCancel}>
                         Huỷ bỏ
                     </button>
                     <button
                         className={`confirm-btn-main ${isApprove ? 'btn-confirm-approve' : 'btn-confirm-reject'}`}
-                        onClick={onConfirm}
+                        onClick={() => onConfirm(ghiChu)}
                     >
                         {isApprove
                             ? <><CheckCircleOutlined /> Phê duyệt</>
@@ -101,34 +100,75 @@ function ConfirmModal({ isOpen, action, employeeName, leaveType, onConfirm, onCa
     );
 }
 
-// ---- MAIN PAGE ----
-export default function QuanLyDonTuPage() {
-    const { user } = useXacThuc();
+// ---- SUB COMPONENT ----
+export default function OvertimeRequestsTab() {
     const toast = useThongBao();
     const [search, setSearch] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('all');
-    const [selectedLog, setSelectedLog] = useState<LeaveRequest | null>(null);
+    const [selectedLog, setSelectedLog] = useState<OvertimeRequest | null>(null);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-    const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
+    const [overtimeRequests, setOvertimeRequests] = useState<OvertimeRequest[]>([]);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
     // Confirm modal state
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null);
 
-    const taiDonXinNghi = useCallback(async () => {
-        setLoading(true);
-        setError(null);
+    // Overtime settings state
+    const [isConfigDrawerOpen, setIsConfigDrawerOpen] = useState(false);
+    const [thoiGianCheckInTruoc, setThoiGianCheckInTruoc] = useState<number>(30);
+    const [thoiGianOtToiThieu, setThoiGianOtToiThieu] = useState<number>(30);
+    const [saveLoading, setSaveLoading] = useState(false);
+
+    // Date filter state
+    const [selectedDate, setSelectedDate] = useState(new Date().toLocaleDateString('en-CA'));
+
+    const taiCauHinh = useCallback(async () => {
         try {
-            const res = await leaveApi.layTatCa();
-            if (res.success) {
-                setLeaveRequests(res.data);
-            } else {
-                throw new Error(res.message || 'Lỗi khi tải danh sách đơn xin nghỉ');
+            const res = await overtimeApi.layCauHinh();
+            if (res.success && res.data) {
+                setThoiGianCheckInTruoc(res.data.thoi_gian_check_in_truoc);
+                setThoiGianOtToiThieu(res.data.thoi_gian_ot_toi_thieu);
             }
         } catch (err: any) {
-            setError(err.message);
+            console.error("Lỗi khi tải cấu hình tăng ca:", err);
+        }
+    }, []);
+
+    useEffect(() => {
+        taiCauHinh();
+    }, [taiCauHinh]);
+
+    const handleSaveConfig = async () => {
+        setSaveLoading(true);
+        try {
+            const res = await overtimeApi.capNhatCauHinh({
+                thoi_gian_check_in_truoc: thoiGianCheckInTruoc,
+                thoi_gian_ot_toi_thieu: thoiGianOtToiThieu
+            });
+            if (res.success) {
+                toast.success('Thành công', 'Đã lưu cấu hình tăng ca thành công.');
+                setIsConfigDrawerOpen(false);
+            } else {
+                throw new Error(res.message || 'Lỗi khi cập nhật cấu hình');
+            }
+        } catch (err: any) {
+            toast.error('Lỗi', err.message || 'Lỗi kết nối server.');
+        } finally {
+            setSaveLoading(false);
+        }
+    };
+
+    const fetchRequests = useCallback(async () => {
+        setLoading(true);
+        try {
+            const res = await overtimeApi.layTatCa();
+            if (res.success) {
+                setOvertimeRequests(res.data || []);
+            } else {
+                throw new Error(res.message || 'Lỗi khi tải danh sách đơn xin tăng ca');
+            }
+        } catch (err: any) {
             toast.error('Lỗi', err.message);
         } finally {
             setLoading(false);
@@ -136,10 +176,10 @@ export default function QuanLyDonTuPage() {
     }, [toast]);
 
     useEffect(() => {
-        taiDonXinNghi();
-    }, [taiDonXinNghi]);
+        fetchRequests();
+    }, [fetchRequests]);
 
-    const handleViewDetails = (log: LeaveRequest) => {
+    const handleViewDetails = (log: OvertimeRequest) => {
         setSelectedLog(log);
         setIsDrawerOpen(true);
     };
@@ -149,35 +189,31 @@ export default function QuanLyDonTuPage() {
         setSelectedLog(null);
     };
 
-    // Mở modal xác nhận
     const openConfirm = (action: ConfirmAction) => {
         setConfirmAction(action);
         setConfirmOpen(true);
     };
 
-    // Huỷ modal
     const handleConfirmCancel = () => {
         setConfirmOpen(false);
         setConfirmAction(null);
     };
 
-    // Xác nhận hành động
-    const handleConfirmOk = async () => {
-        if (!selectedLog || !user?.id_nhan_vien) return;
+    const handleConfirmOk = async (ghiChu: string) => {
+        if (!selectedLog) return;
 
         setLoading(true);
         try {
-            const status = confirmAction === 'approve' ? 'approved' : 'rejected';
-            const res = await leaveApi.capNhatTrangThai({
-                id_don_xin_nghi: selectedLog.id_don_xin_nghi,
+            const status = confirmAction === 'approve' ? 'DA_DUYET' : 'TU_CHOI';
+            const res = await overtimeApi.capNhatTrangThai({
+                id_don_ot: selectedLog.id_don_ot,
                 status: status,
-                id_nguoi_duyet: user.id_nhan_vien,
-                ghi_chu: status === 'approved' ? 'Đã duyệt' : 'Từ chối'
+                ghi_chu: ghiChu
             });
 
             if (res.success) {
                 toast.success('Thành công', res.message || 'Đã cập nhật trạng thái đơn');
-                await taiDonXinNghi();
+                await fetchRequests();
             } else {
                 throw new Error(res.message || 'Lỗi khi cập nhật trạng thái');
             }
@@ -192,25 +228,29 @@ export default function QuanLyDonTuPage() {
     };
 
     const filteredRequests = useMemo(() => {
-        return leaveRequests.filter(req => {
-            const matchSearch = req.ho_ten_nhan_vien.toLowerCase().includes(search.toLowerCase()) ||
-                req.id_don_xin_nghi.toLowerCase().includes(search.toLowerCase());
-            const matchStatus = selectedStatus === 'all' ||
-                (selectedStatus === 'approved' && req.trang_thai === true) ||
-                (selectedStatus === 'pending' && req.trang_thai === null) ||
-                (selectedStatus === 'rejected' && req.trang_thai === false);
-            return matchSearch && matchStatus;
+        return overtimeRequests.filter(req => {
+            const matchSearch = (req.ho_va_ten || '').toLowerCase().includes(search.toLowerCase()) ||
+                req.id_don_ot.toLowerCase().includes(search.toLowerCase());
+            const matchStatus = selectedStatus === 'all' || req.trang_thai === selectedStatus;
+            
+            let matchDate = true;
+            if (selectedDate) {
+                const reqDate = new Date(req.ngay_dang_ky_ot).toLocaleDateString('en-CA');
+                matchDate = reqDate === selectedDate;
+            }
+
+            return matchSearch && matchStatus && matchDate;
         });
-    }, [leaveRequests, search, selectedStatus]);
+    }, [overtimeRequests, search, selectedStatus, selectedDate]);
 
     const stats = useMemo(() => {
         return {
-            total: leaveRequests.length,
-            pending: leaveRequests.filter(r => r.trang_thai === null).length,
-            approved: leaveRequests.filter(r => r.trang_thai === true).length,
-            rejected: leaveRequests.filter(r => r.trang_thai === false).length,
+            total: overtimeRequests.length,
+            pending: overtimeRequests.filter(r => r.trang_thai === 'CHO_DUYET').length,
+            approved: overtimeRequests.filter(r => r.trang_thai === 'DA_DUYET').length,
+            rejected: overtimeRequests.filter(r => r.trang_thai === 'TU_CHOI').length,
         };
-    }, [leaveRequests]);
+    }, [overtimeRequests]);
 
     const handleExport = () => {
         if (!filteredRequests || filteredRequests.length === 0) {
@@ -219,30 +259,32 @@ export default function QuanLyDonTuPage() {
         }
 
         const data = filteredRequests.map(log => ({
-            'Mã đơn': log.id_don_xin_nghi,
-            'Mã NV': log.id_nguoi_dung,
-            'Họ và tên': log.ho_ten_nhan_vien || 'Unknown',
-            'Loại phép': log.ten_phep,
-            'Ngày bắt đầu': dinhDangNgay(log.ngay_bat_dau),
-            'Ngày kết thúc': dinhDangNgay(log.ngay_ket_thuc),
+            'Mã đơn': log.id_don_ot,
+            'Mã NV': log.id_nhan_vien,
+            'Họ và tên': log.ho_va_ten || 'Unknown',
+            'Ngày tăng ca': dinhDangNgay(log.ngay_dang_ky_ot),
+            'Khung giờ': `${log.gio_bat_dau} - ${log.gio_ket_thuc_du_kien}`,
             'Lý do': log.ly_do,
             'Ngày nộp đơn': dinhDangNgay(log.ngay_tao),
             'Trạng thái': getStatusLabel(log.trang_thai)
         }));
 
-        xuatRaExcel(data, 'Danh_Sach_Don_Xin_Nghi');
+        xuatRaExcel(data, 'Danh_Sach_Don_Tang_Ca');
     };
 
     return (
-        <div className="logs-page">
+        <div className="tab-content-wrapper">
             {/* 1. HEADER */}
-            <div className="logs-header">
+            <div className="logs-header" style={{ padding: '16px 0' }}>
                 <div className="logs-header-left">
-                    <h1 className="logs-title">Quản lý đơn xin nghỉ</h1>
-                    <p className="logs-subtitle">Theo dõi và quản lý dữ liệu đơn xin nghỉ của toàn bộ nhân viên.</p>
+                    <h2 className="logs-title" style={{ fontSize: '1.25rem' }}>Quản lý đơn xin tăng ca</h2>
+                    <p className="logs-subtitle">Theo dõi và quản lý dữ liệu đơn xin tăng ca của toàn bộ nhân viên.</p>
                 </div>
                 <div className="logs-header-actions">
-                    <button className="btn-secondary" onClick={taiDonXinNghi} disabled={loading}>
+                    <button className="btn-secondary" onClick={() => setIsConfigDrawerOpen(true)}>
+                        <SettingOutlined /> Cấu hình tăng ca
+                    </button>
+                    <button className="btn-secondary" onClick={fetchRequests} disabled={loading}>
                         <SyncOutlined spin={loading} /> Làm mới
                     </button>
                     <button className="btn-primary" onClick={handleExport}>
@@ -252,7 +294,7 @@ export default function QuanLyDonTuPage() {
             </div>
 
             {/* 2. SUMMARY CARDS */}
-            <div className="logs-summary-cards">
+            <div className="logs-summary-cards" style={{ marginBottom: '24px' }}>
                 <div className="log-card">
                     <span className="log-card-title">TỔNG NHẬN ĐƠN TỪ</span>
                     <span className="log-card-value text-blue">{stats.total}</span>
@@ -276,7 +318,7 @@ export default function QuanLyDonTuPage() {
             </div>
 
             {/* 3. FILTERS */}
-            <div className="logs-filters">
+            <div className="logs-filters" style={{ marginBottom: '20px' }}>
                 <div className="filter-group">
                     <div className="search-wrap">
                         <SearchOutlined className="input-icon" />
@@ -289,6 +331,31 @@ export default function QuanLyDonTuPage() {
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
+                    <div className="date-picker-wrap" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                        <input
+                            type="date"
+                            className="log-input date-input"
+                            style={{ width: "170px", paddingRight: "30px" }}
+                            value={selectedDate}
+                            onChange={(e) => setSelectedDate(e.target.value)}
+                        />
+                        {selectedDate && (
+                            <button
+                                onClick={() => setSelectedDate('')}
+                                style={{
+                                    position: 'absolute',
+                                    right: '8px',
+                                    border: 'none',
+                                    background: 'transparent',
+                                    cursor: 'pointer',
+                                    color: '#94a3b8',
+                                    fontSize: '14px'
+                                }}
+                            >
+                                ✕
+                            </button>
+                        )}
+                    </div>
                 </div>
                 <div className="filter-group">
                     <select
@@ -297,11 +364,11 @@ export default function QuanLyDonTuPage() {
                         onChange={(e) => setSelectedStatus(e.target.value)}
                     >
                         <option value="all">Mọi trạng thái</option>
-                        <option value="approved">Đã duyệt</option>
-                        <option value="pending">Chờ duyệt</option>
-                        <option value="rejected">Từ chối</option>
+                        <option value="DA_DUYET">Đã duyệt</option>
+                        <option value="CHO_DUYET">Chờ duyệt</option>
+                        <option value="TU_CHOI">Từ chối</option>
                     </select>
-                    <button className="btn-icon-filter" onClick={taiDonXinNghi} disabled={loading}>
+                    <button className="btn-icon-filter" onClick={fetchRequests} disabled={loading}>
                         <SyncOutlined spin={loading} />
                     </button>
                 </div>
@@ -314,7 +381,7 @@ export default function QuanLyDonTuPage() {
                         <tr>
                             <th>MÃ ĐƠN TỪ</th>
                             <th>HỌ VÀ TÊN</th>
-                            <th>LOẠI ĐƠN TỪ</th>
+                            <th>NGÀY TĂNG CA</th>
                             <th>THỜI GIAN</th>
                             <th>LÝ DO</th>
                             <th>TRẠNG THÁI</th>
@@ -331,27 +398,27 @@ export default function QuanLyDonTuPage() {
                             </tr>
                         ) : filteredRequests.length === 0 ? (
                             <tr>
-                                <td colSpan={7} className="text-center py-20">Không có đơn xin nghỉ nào.</td>
+                                <td colSpan={7} className="text-center py-20">Không có đơn xin tăng ca nào.</td>
                             </tr>
                         ) : filteredRequests.map((log) => (
-                            <tr key={log.id_don_xin_nghi}>
-                                <td className="fw-600">{log.id_don_xin_nghi}</td>
+                            <tr key={log.id_don_ot}>
+                                <td className="fw-600">{log.id_don_ot}</td>
                                 <td>
                                     <div className="log-emp-info">
                                         <img
-                                            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(log.ho_ten_nhan_vien)}&background=random`}
-                                            alt={log.ho_ten_nhan_vien}
+                                            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(log.ho_va_ten || 'Unknown')}&background=random`}
+                                            alt={log.ho_va_ten}
                                             className="log-avatar"
                                         />
                                         <div>
-                                            <div className="log-emp-name">{log.ho_ten_nhan_vien}</div>
-                                            <div className="log-emp-id">{log.id_nguoi_dung}</div>
+                                            <div className="log-emp-name">{log.ho_va_ten}</div>
+                                            <div className="log-emp-id">{log.id_nhan_vien}</div>
                                         </div>
                                     </div>
                                 </td>
-                                <td>{log.ten_phep}</td>
+                                <td className="fw-600">{dinhDangNgay(log.ngay_dang_ky_ot)}</td>
                                 <td className="fw-600">
-                                    {dinhDangNgay(log.ngay_bat_dau)} - {dinhDangNgay(log.ngay_ket_thuc)}
+                                    {log.gio_bat_dau} - {log.gio_ket_thuc_du_kien}
                                 </td>
                                 <td>{log.ly_do}</td>
                                 <td>
@@ -370,16 +437,6 @@ export default function QuanLyDonTuPage() {
                 </table>
             </div>
 
-            {/* 5. PAGINATION */}
-            <div className="logs-pagination">
-                <span className="pag-text">Hiển thị {filteredRequests.length} trong số {leaveRequests.length} đơn</span>
-                <div className="pag-controls">
-                    <button className="pag-btn disabled">Trước</button>
-                    <button className="pag-btn active">1</button>
-                    <button className="pag-btn disabled">Sau</button>
-                </div>
-            </div>
-
             {/* DRAWER OVERLAY */}
             {isDrawerOpen && (
                 <div className="drawer-overlay-application" onClick={closeDrawer}></div>
@@ -388,7 +445,7 @@ export default function QuanLyDonTuPage() {
             {/* DRAWER */}
             <div className={`drawer-container ${isDrawerOpen ? 'open' : ''}`}>
                 <div className="drawer-header">
-                    <h2>Chi tiết đơn từ</h2>
+                    <h2>Chi tiết đơn tăng ca</h2>
                     <button className="btn-close-drawer" onClick={closeDrawer}>
                         <CloseOutlined />
                     </button>
@@ -397,57 +454,45 @@ export default function QuanLyDonTuPage() {
                 <div className="drawer-body">
                     {selectedLog ? (
                         <>
-                            {/* 1. Thông tin nhân sự */}
                             <div className="drawer-profile-card">
                                 <img
-                                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(selectedLog.ho_ten_nhan_vien)}&background=random`}
+                                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(selectedLog.ho_va_ten || 'Unknown')}&background=random`}
                                     alt="avatar"
                                     className="profile-avatar"
                                 />
                                 <div className="profile-info">
-                                    <h3 className="profile-name">{selectedLog.ho_ten_nhan_vien}</h3>
-                                    <p className="profile-meta">Mã NV: {selectedLog.id_nguoi_dung}</p>
+                                    <h3 className="profile-name">{selectedLog.ho_va_ten}</h3>
+                                    <p className="profile-meta">Mã NV: {selectedLog.id_nhan_vien}</p>
                                     <p className="profile-meta">{selectedLog.ten_phong_ban || 'Phòng ban chưa cập nhật'}</p>
                                 </div>
                             </div>
 
-                            {/* 2. Thông tin nghỉ phép */}
                             <div className="drawer-section">
-                                <h4 className="section-title">THÔNG TIN NGHỈ PHÉP</h4>
-                                <div className="info-block mb-16">
-                                    <span className="info-label">Loại đơn</span>
-                                    <span className="badge-leave-type">{selectedLog.ten_phep}</span>
-                                </div>
+                                <h4 className="section-title">THÔNG TIN TĂNG CA</h4>
                                 <div className="info-grid">
                                     <div className="info-block">
-                                        <span className="info-label">Thời gian</span>
+                                        <span className="info-label">Ngày tăng ca</span>
                                         <span className="info-value fw-600">
-                                            {dinhDangNgay(selectedLog.ngay_bat_dau)} - {dinhDangNgay(selectedLog.ngay_ket_thuc)}
+                                            {dinhDangNgay(selectedLog.ngay_dang_ky_ot)}
+                                        </span>
+                                    </div>
+                                    <div className="info-block">
+                                        <span className="info-label">Khung giờ</span>
+                                        <span className="info-value fw-600">
+                                            {selectedLog.gio_bat_dau} - {selectedLog.gio_ket_thuc_du_kien}
                                         </span>
                                     </div>
                                     <div className="info-block">
                                         <span className="info-label">Lý do</span>
                                         <span className="info-value text-gray">{selectedLog.ly_do}</span>
                                     </div>
-                                </div>
-                                <div className="info-block mt-16">
-                                    <span className="info-label">Đính kèm</span>
-                                    <div className="attachment-box">
-                                        <div className="attachment-name">
-                                            <PaperClipOutlined style={{ color: '#1890ff' }} />
-                                            <span>{selectedLog.url_minh_chung ? 'minh_chung.png' : 'Không có đính kèm'}</span>
-                                        </div>
-                                        {selectedLog.url_minh_chung && (
-                                            <DownloadOutlined
-                                                className="dl-icon"
-                                                onClick={() => window.open(selectedLog.url_minh_chung!, '_blank')}
-                                            />
-                                        )}
+                                    <div className="info-block">
+                                        <span className="info-label">Ngày nộp đơn</span>
+                                        <span className="info-value text-gray">{dinhDangNgay(selectedLog.ngay_tao)}</span>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* 3. Lịch sử phê duyệt */}
                             <div className="drawer-section">
                                 <div className="section-header-flex">
                                     <h4 className="section-title">LỊCH SỬ PHÊ DUYỆT</h4>
@@ -460,21 +505,21 @@ export default function QuanLyDonTuPage() {
                                         <div className="timeline-dot"></div>
                                         <div className="timeline-content">
                                             <div className="tl-title">Khởi tạo đơn</div>
-                                            <div className="tl-meta">Bởi {selectedLog.ho_ten_nhan_vien} • {dinhDangNgay(selectedLog.ngay_tao)}</div>
+                                            <div className="tl-meta">Bởi {selectedLog.ho_va_ten} • {dinhDangNgay(selectedLog.ngay_tao)}</div>
                                             <div className="tl-comment">"{selectedLog.ly_do}"</div>
                                         </div>
                                     </div>
-                                    {selectedLog.trang_thai !== null && (
+                                    {selectedLog.trang_thai !== 'CHO_DUYET' && (
                                         <div className="timeline-item completed">
                                             <div className="timeline-dot"></div>
                                             <div className="timeline-content">
                                                 <div className="tl-title">Đã được xử lý</div>
-                                                <div className="tl-meta">Người duyệt: {selectedLog.ten_nguoi_duyet || 'Admin'} • {selectedLog.ngay_duyet ? dinhDangNgay(selectedLog.ngay_duyet) : ''}</div>
-                                                <div className="tl-comment">"{selectedLog.ghi_chu}"</div>
+                                                <div className="tl-meta">Hệ thống</div>
+                                                <div className="tl-comment">Đơn đã {getStatusLabel(selectedLog.trang_thai).toLowerCase()}</div>
                                             </div>
                                         </div>
                                     )}
-                                    {selectedLog.trang_thai === null && (
+                                    {selectedLog.trang_thai === 'CHO_DUYET' && (
                                         <div className="timeline-item pending">
                                             <div className="timeline-dot"></div>
                                             <div className="timeline-content">
@@ -491,9 +536,8 @@ export default function QuanLyDonTuPage() {
                     )}
                 </div>
 
-                {/* DRAWER FOOTER */}
                 <div className="drawer-footer drawer-actions-split">
-                    {selectedLog?.trang_thai === null ? (
+                    {selectedLog?.trang_thai === 'CHO_DUYET' ? (
                         <>
                             <button className="btn-action-reject" onClick={() => openConfirm('reject')} disabled={loading}>
                                 <CloseCircleOutlined /> Từ chối
@@ -510,15 +554,81 @@ export default function QuanLyDonTuPage() {
                 </div>
             </div>
 
-            {/* ---- CONFIRM MODAL ---- */}
             <ConfirmModal
                 isOpen={confirmOpen}
                 action={confirmAction}
-                employeeName={selectedLog?.ho_ten_nhan_vien}
-                leaveType={selectedLog?.ten_phep}
+                employeeName={selectedLog?.ho_va_ten}
                 onConfirm={handleConfirmOk}
                 onCancel={handleConfirmCancel}
             />
+
+            {/* CONFIG DRAWER OVERLAY */}
+            {isConfigDrawerOpen && (
+                <div className="drawer-overlay-application" onClick={() => setIsConfigDrawerOpen(false)}></div>
+            )}
+
+            {/* CONFIG DRAWER */}
+            <div className={`drawer-container ${isConfigDrawerOpen ? 'open' : ''}`}>
+                <div className="drawer-header">
+                    <h2>Cấu hình thiết lập tăng ca</h2>
+                    <button className="btn-close-drawer" onClick={() => setIsConfigDrawerOpen(false)}>
+                        <CloseOutlined />
+                    </button>
+                </div>
+
+                <div className="drawer-body">
+                    <p style={{ color: '#64748b', fontSize: '14px', marginBottom: '24px' }}>
+                        Thiết lập các tham số và điều kiện áp dụng khi nhân viên đăng ký và chấm công tăng ca.
+                    </p>
+
+                    <div className="drawer-section">
+                        <div className="info-block mb-16">
+                            <label className="info-label" style={{ fontWeight: 600, marginBottom: '6px' }}>
+                                Thời gian cho phép check-in trước (phút)
+                            </label>
+                            <input
+                                type="number"
+                                className="log-input"
+                                style={{ width: '100%' }}
+                                min={0}
+                                value={thoiGianCheckInTruoc}
+                                onChange={(e) => setThoiGianCheckInTruoc(parseInt(e.target.value) || 0)}
+                                placeholder="Nhập số phút cho phép check-in trước giờ OT bắt đầu"
+                            />
+                            <span style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
+                                Ví dụ: Nếu cấu hình là 30 phút, đơn OT bắt đầu lúc 18:00 thì từ 17:30 nhân viên mới có thể bấm chấm công OT.
+                            </span>
+                        </div>
+
+                        <div className="info-block mb-16" style={{ marginTop: '24px' }}>
+                            <label className="info-label" style={{ fontWeight: 600, marginBottom: '6px' }}>
+                                Thời gian tăng ca tối thiểu (phút)
+                            </label>
+                            <input
+                                type="number"
+                                className="log-input"
+                                style={{ width: '100%' }}
+                                min={0}
+                                value={thoiGianOtToiThieu}
+                                onChange={(e) => setThoiGianOtToiThieu(parseInt(e.target.value) || 0)}
+                                placeholder="Nhập số phút tăng ca tối thiểu"
+                            />
+                            <span style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
+                                Ví dụ: Nếu cấu hình là 30 phút, các ca tăng ca có thời lượng dưới 30 phút sẽ không được tính.
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="drawer-footer drawer-actions-split">
+                    <button className="btn-action-reject" style={{ flex: 1 }} onClick={() => setIsConfigDrawerOpen(false)} disabled={saveLoading}>
+                        Hủy
+                    </button>
+                    <button className="btn-action-approve" style={{ flex: 1 }} onClick={handleSaveConfig} disabled={saveLoading}>
+                        {saveLoading ? <LoadingOutlined /> : <CheckCircleOutlined />} Lưu cấu hình
+                    </button>
+                </div>
+            </div>
         </div>
     );
 }

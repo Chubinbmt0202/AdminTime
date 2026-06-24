@@ -8,6 +8,8 @@ import { useNavigate } from 'react-router-dom';
 import { ref, onValue, update, get, query, limitToLast } from 'firebase/database';
 import { database } from '../config/cauHinhFirebase';
 import { useXacThuc } from '../auth/ContextXacThuc';
+import { AVATAR_COLORS } from '../constants';
+import { layChuCaiDau } from '../utils/tienIchChuoi';
 
 export default function ThanhTieuDe() {
   const [open, setOpen] = useState(false);
@@ -98,9 +100,9 @@ export default function ThanhTieuDe() {
     }
     setOpen(false);
     if (n.loai_thong_bao === 'LEAVE_REQUEST') {
-      navigate('/leave-requests');
+      navigate('/applications?tab=leave');
     } else if (n.loai_thong_bao === 'OVERTIME_REQUEST') {
-      navigate('/overtime-requests');
+      navigate('/applications?tab=overtime');
     }
   };
 
@@ -165,8 +167,8 @@ export default function ThanhTieuDe() {
                 )}
               </div>
               <div className="header-popover-footer">
-                <button className="header-popover-footer-btn" onClick={() => { setOpen(false); navigate('/leave-requests'); }}>
-                  Xem tất cả đơn nghỉ phép
+                <button className="header-popover-footer-btn" onClick={() => { setOpen(false); navigate('/applications'); }}>
+                  Xem tất cả đơn từ
                 </button>
               </div>
             </div>
@@ -180,9 +182,31 @@ export default function ThanhTieuDe() {
 
 
         {/* User Profile Avatar */}
-        <div className="header-profile">
+        <div className="header-profile" title={auth.user?.ho_va_ten || 'Tài khoản'}>
           <div className="header-avatar-wrapper">
-            <img src={avatarImg} alt="User Avatar" className="header-avatar" />
+            {auth.user?.hinh_anh ? (
+              <img src={auth.user.hinh_anh} alt="User Avatar" className="header-avatar" />
+            ) : (
+              <div
+                className="header-avatar-fallback"
+                style={{
+                  background: AVATAR_COLORS[
+                    (auth.user?.ho_va_ten ? auth.user.ho_va_ten.length : 0) % AVATAR_COLORS.length
+                  ],
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#fff',
+                  fontWeight: 600,
+                  fontSize: '14px',
+                  userSelect: 'none',
+                }}
+              >
+                {layChuCaiDau(auth.user?.ho_va_ten)}
+              </div>
+            )}
           </div>
         </div>
 

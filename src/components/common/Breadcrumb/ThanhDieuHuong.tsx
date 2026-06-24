@@ -16,6 +16,7 @@ const routeLabels: Record<string, string> = {
   'employees': 'Nhân viên',
   'logs': 'Nhật ký',
   'leave-requests': 'Quản lý đơn từ',
+  'applications': 'Quản lý đơn từ',
   'settings': 'Cài đặt',
 };
 
