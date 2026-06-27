@@ -220,6 +220,31 @@ export default function ChiTietNhanVienPage() {
     );
     const [selectedHistoryStatus, setSelectedHistoryStatus] = useState<string>('all');
 
+    const monthLogs = useMemo(() => {
+        return historyLogs.filter(log => {
+            if (!log.log_date) return false;
+            return log.log_date.substring(0, 7) === selectedMonth;
+        });
+    }, [historyLogs, selectedMonth]);
+
+    const filteredHistoryLogs = useMemo(() => {
+        return monthLogs.filter(log => {
+            if (selectedHistoryStatus === 'all') return true;
+            if (selectedHistoryStatus === 'present' && log.status === 'present') return true;
+            if (selectedHistoryStatus === 'late_early' && (log.status === 'late' || log.status === 'half_day')) return true;
+            return false;
+        });
+    }, [monthLogs, selectedHistoryStatus]);
+
+    const stats = useMemo(() => {
+        return {
+            total: monthLogs.length,
+            late: monthLogs.filter(l => l.status === 'late').length,
+            half: monthLogs.filter(l => l.status === 'half_day').length,
+            present: monthLogs.filter(l => l.status === 'present').length,
+        };
+    }, [monthLogs]);
+
     // States for department settings
     const [departments, setDepartments] = useState<Department[]>([]);
     const [roles, setRoles] = useState<Role[]>([]);
@@ -302,12 +327,12 @@ export default function ChiTietNhanVienPage() {
     }, [id]);
 
     const handleExportHistory = () => {
-        if (!historyLogs || historyLogs.length === 0) {
+        if (!filteredHistoryLogs || filteredHistoryLogs.length === 0) {
             toast.error('Lỗi', 'Không có dữ liệu lịch sử để xuất');
             return;
         }
 
-        const data = historyLogs.map(log => ({
+        const data: any[] = filteredHistoryLogs.map(log => ({
             'Ngày': formatHistoryDate(log.log_date),
             'Thứ': getVietnameseDay(log.log_date),
             'Giờ vào': formatHistoryTime(log.check_in_time),
@@ -317,8 +342,41 @@ export default function ChiTietNhanVienPage() {
             'Trạng thái': getHistoryStatusLabel(log.status)
         }));
 
+        const totalShifts = filteredHistoryLogs.length;
+        let totalHours = 0;
+        filteredHistoryLogs.forEach(log => {
+            if (log.check_in_time && log.check_out_time) {
+                const start = new Date(log.check_in_time);
+                const end = new Date(log.check_out_time);
+                const diffMs = end.getTime() - start.getTime();
+                if (diffMs > 0) {
+                    totalHours += diffMs / (1000 * 60 * 60);
+                }
+            }
+        });
+
+        data.push({
+            'Ngày': '',
+            'Thứ': '',
+            'Giờ vào': '',
+            'Giờ ra': '',
+            'Tổng giờ': '',
+            'Tăng ca': '',
+            'Trạng thái': ''
+        });
+
+        data.push({
+            'Ngày': 'TỔNG CỘNG',
+            'Thứ': '',
+            'Giờ vào': `Tổng ca: ${totalShifts}`,
+            'Giờ ra': '',
+            'Tổng giờ': `${totalHours.toFixed(1)}h`,
+            'Tăng ca': '',
+            'Trạng thái': ''
+        });
+
         const employeeName = formData.full_name ? formData.full_name.replace(/\s+/g, '_') : 'Nhan_Vien';
-        xuatRaExcel(data, `Lich_Su_Cham_Cong_${employeeName}`);
+        xuatRaExcel(data, `Lich_Su_Cham_Cong_${employeeName}_${selectedMonth}`);
     };
 
     const handleRequestInfoUpdate = async (e: React.MouseEvent) => {
@@ -574,28 +632,6 @@ export default function ChiTietNhanVienPage() {
                 );
 
             case 'history':
-                // Lọc theo tháng
-                const monthLogs = historyLogs.filter(log => {
-                    if (!log.log_date) return false;
-                    return log.log_date.substring(0, 7) === selectedMonth;
-                });
-
-                // Lọc tiếp theo trạng thái
-                const filteredHistoryLogs = monthLogs.filter(log => {
-                    if (selectedHistoryStatus === 'all') return true;
-                    if (selectedHistoryStatus === 'present' && log.status === 'present') return true;
-                    if (selectedHistoryStatus === 'late_early' && (log.status === 'late' || log.status === 'half_day')) return true;
-                    return false;
-                });
-
-                // Tính toán sơ bộ từ dữ liệu đã lọc theo tháng
-                const stats = {
-                    total: monthLogs.length,
-                    late: monthLogs.filter(l => l.status === 'late').length,
-                    half: monthLogs.filter(l => l.status === 'half_day').length,
-                    present: monthLogs.filter(l => l.status === 'present').length,
-                };
-
                 return (
                     <div className="history-tab-wrapper">
                         {/* 1. Summary & Filters */}
@@ -866,7 +902,7 @@ export default function ChiTietNhanVienPage() {
                                 <p className="setting-desc" style={{ marginBottom: '16px' }}>
                                     Danh sách các thiết bị đã đăng nhập gần đây bằng tài khoản này.
                                 </p>
-                                
+
                                 <div style={{ overflowX: 'auto', background: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
                                         <thead>
@@ -899,10 +935,10 @@ export default function ChiTietNhanVienPage() {
                                                         </td>
                                                         <td style={{ padding: '12px 16px' }}>
                                                             {device.dia_chi_wifi ? (
-                                                                <span style={{ 
-                                                                    backgroundColor: '#eff6ff', 
-                                                                    color: '#2563eb', 
-                                                                    padding: '4px 8px', 
+                                                                <span style={{
+                                                                    backgroundColor: '#eff6ff',
+                                                                    color: '#2563eb',
+                                                                    padding: '4px 8px',
                                                                     borderRadius: '4px',
                                                                     fontSize: '12px',
                                                                     fontWeight: 600,
@@ -1032,10 +1068,6 @@ export default function ChiTietNhanVienPage() {
                         ) : (
                             <><EditOutlined /> Chỉnh sửa</>
                         )}
-                    </button>
-
-                    <button className="btn-primary" onClick={handleExportHistory}>
-                        <DownloadOutlined /> Xuất báo cáo
                     </button>
                 </div>
             </div>

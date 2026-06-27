@@ -235,7 +235,7 @@ export default function OvertimeRequestsTab() {
             
             let matchDate = true;
             if (selectedDate) {
-                const reqDate = new Date(req.ngay_dang_ky_ot).toLocaleDateString('en-CA');
+                const reqDate = new Date(req.ngay_tao).toLocaleDateString('en-CA');
                 matchDate = reqDate === selectedDate;
             }
 

@@ -185,10 +185,8 @@ export default function LeaveRequestsTab() {
             
             let matchDate = true;
             if (selectedDate) {
-                const start = new Date(req.ngay_bat_dau).setHours(0,0,0,0);
-                const end = new Date(req.ngay_ket_thuc).setHours(23,59,59,999);
-                const filterTime = new Date(selectedDate).getTime();
-                matchDate = filterTime >= start && filterTime <= end;
+                const reqDate = new Date(req.ngay_tao).toLocaleDateString('en-CA');
+                matchDate = reqDate === selectedDate;
             }
 
             return matchSearch && matchStatus && matchDate;
