@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   TeamOutlined,
   ClockCircleOutlined,
@@ -30,6 +31,7 @@ const { Option } = Select;
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6'];
 
 const TrangTongQuanPage: React.FC = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
 
   // Filters State
@@ -39,6 +41,7 @@ const TrangTongQuanPage: React.FC = () => {
   // Stats Data
   const [totalEmployees, setTotalEmployees] = useState(0);
   const [todayAttendance, setTodayAttendance] = useState<any[]>([]);
+  const [dashboardStats, setDashboardStats] = useState({ presentCount: 0, lateCount: 0, forgotCheckInOutCount: 0, otCount: 0 });
 
   // Charts Data
   const [trendData, setTrendData] = useState<any[]>([]);
@@ -60,11 +63,17 @@ const TrangTongQuanPage: React.FC = () => {
           setTotalEmployees(empRes.data.length);
         }
 
-        // Today's attendance
+        // Today's attendance (for live feed)
         const dateStr = new Date().toISOString().split('T')[0];
         const attRes = await attendanceService.layChamCongHangNgay(dateStr);
         if (attRes.success && attRes.data) {
           setTodayAttendance(attRes.data);
+        }
+
+        // Stats based on timeFilter
+        const statsRes = await attendanceService.layThongKeDashboard(timeFilter);
+        if (statsRes.success && statsRes.data) {
+          setDashboardStats(statsRes.data);
         }
 
         // Trend Data
@@ -83,13 +92,11 @@ const TrangTongQuanPage: React.FC = () => {
             { name: 'Khác', value: 10 },
           ]);
 
-          // Mocking Bar Chart Data since API doesn't fully provide this right now
-          setBarData([
-            { name: 'Phòng IT', onTime: 40, late: 2 },
-            { name: 'Phòng Kế toán', onTime: 12, late: 4 },
-            { name: 'Phòng HCNS', onTime: 15, late: 1 },
-            { name: 'Phòng Sale', onTime: 30, late: 10 },
-          ]);
+          setBarData(trendRes.data.lateByDept.map((b: any) => ({
+            name: b.ten_phong_ban,
+            onTime: parseInt(b.on_time_count) || 0,
+            late: parseInt(b.late_count) || 0
+          })));
         }
 
         // Quick Approvals
@@ -99,9 +106,57 @@ const TrangTongQuanPage: React.FC = () => {
           lateExplanationApi.layTatCa()
         ]);
 
-        if (leavesRes.success) setPendingLeaves(leavesRes.data.filter(l => l.trang_thai === null));
-        if (otRes.success) setPendingOT(otRes.data.filter(o => o.trang_thai === 'CHO_DUYET'));
-        if (lateRes.success) setPendingLate(lateRes.data.filter(la => la.trang_thai === null));
+        const isDateInRange = (dStr: string, filter: string) => {
+          if (!dStr) return false;
+          const d = new Date(dStr);
+          const now = new Date();
+          if (filter === 'today') {
+            return d.toDateString() === now.toDateString();
+          } else if (filter === 'week') {
+            const start = new Date(now); start.setDate(now.getDate() - now.getDay()); start.setHours(0, 0, 0, 0);
+            const end = new Date(start); end.setDate(start.getDate() + 6); end.setHours(23, 59, 59, 999);
+            return d >= start && d <= end;
+          } else if (filter === 'month') {
+            return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+          } else if (filter === 'year') {
+            return d.getFullYear() === now.getFullYear();
+          }
+          return true;
+        };
+
+        const isOverlap = (sStr: string, eStr: string, filter: string) => {
+          if (!sStr || !eStr) return false;
+          const start = new Date(sStr); start.setHours(0, 0, 0, 0);
+          const end = new Date(eStr); end.setHours(23, 59, 59, 999);
+          const now = new Date();
+          if (filter === 'today') {
+            const today = new Date(now.toDateString());
+            return today >= start && today <= end;
+          } else if (filter === 'week') {
+            const wStart = new Date(now); wStart.setDate(now.getDate() - now.getDay()); wStart.setHours(0, 0, 0, 0);
+            const wEnd = new Date(wStart); wEnd.setDate(wStart.getDate() + 6); wEnd.setHours(23, 59, 59, 999);
+            return start <= wEnd && end >= wStart;
+          } else if (filter === 'month') {
+            const mStart = new Date(now.getFullYear(), now.getMonth(), 1);
+            const mEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+            return start <= mEnd && end >= mStart;
+          } else if (filter === 'year') {
+            const yStart = new Date(now.getFullYear(), 0, 1);
+            const yEnd = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+            return start <= yEnd && end >= yStart;
+          }
+          return true;
+        };
+
+        if (leavesRes.success) {
+          setPendingLeaves(leavesRes.data.filter(l => l.trang_thai === null && isOverlap(l.ngay_bat_dau, l.ngay_ket_thuc, timeFilter)));
+        }
+        if (otRes.success) {
+          setPendingOT(otRes.data.filter(o => o.trang_thai === 'CHO_DUYET' && isDateInRange(o.ngay_dang_ky_ot, timeFilter)));
+        }
+        if (lateRes.success) {
+          setPendingLate(lateRes.data.filter(la => la.trang_thai === null && isDateInRange(la.ngay_giai_trinh, timeFilter)));
+        }
 
       } catch (error) {
         console.error("Lỗi lấy dữ liệu dashboard:", error);
@@ -113,16 +168,24 @@ const TrangTongQuanPage: React.FC = () => {
   }, [timeFilter, deptFilter]);
 
   // Derived Metrics
-  const presentCount = todayAttendance.filter(a => a.check_in_time !== null).length;
-  const lateCount = todayAttendance.filter(a => a.status === 'late').length;
-  const forgotCheckInOutCount = todayAttendance.filter(a => a.check_in_time !== null && a.check_out_time === null && new Date().getHours() > 20).length; // Mock logic
-  const absentCount = Math.max(0, totalEmployees - presentCount);
+  const presentCount = dashboardStats.presentCount;
+  const lateCount = dashboardStats.lateCount;
+  const forgotCheckInOutCount = dashboardStats.forgotCheckInOutCount;
+  const activeOTCount = dashboardStats.otCount;
+
+  // Base total Employees calculation depending on filter. 
+  // For a rough mock, we multiply by days if week/month/year to get expected instances.
+  let expectedInstances = totalEmployees;
+  if (timeFilter === 'week') expectedInstances *= 6; // 6 working days
+  if (timeFilter === 'month') expectedInstances *= 24;
+  if (timeFilter === 'year') expectedInstances *= 288;
+  const absentCount = Math.max(0, expectedInstances - presentCount);
 
   // Mock data for Absence Breakdown
   const absentWithLeave = Math.floor(absentCount * 0.4);
   const absentWithoutLeave = absentCount - absentWithLeave;
 
-  const presentRate = totalEmployees ? Math.round((presentCount / totalEmployees) * 100) : 0;
+  const presentRate = expectedInstances ? Math.round((presentCount / expectedInstances) * 100) : 0;
 
   // Unified Feed with Mock Security Alerts
   const unifiedFeed: any[] = [];
@@ -248,6 +311,17 @@ const TrangTongQuanPage: React.FC = () => {
         </div>
 
         <div className="top-filters">
+          <Select
+            value={timeFilter}
+            onChange={(value) => setTimeFilter(value)}
+            style={{ width: 150, marginRight: 16 }}
+            size="large"
+          >
+            <Option value="today">Hôm nay</Option>
+            <Option value="week">Tuần này</Option>
+            <Option value="month">Tháng này</Option>
+            <Option value="year">Năm nay</Option>
+          </Select>
           <Button type="primary" icon={<DownloadOutlined />} size="large" className="btn-export" onClick={handleExportReport}>
             Xuất báo cáo
           </Button>
@@ -267,7 +341,7 @@ const TrangTongQuanPage: React.FC = () => {
               </div>
               <div className="metric-body">
                 <div className="metric-main-val">
-                  {presentCount} <span>/ {totalEmployees}</span>
+                  {presentCount} <span>/ {expectedInstances}</span>
                 </div>
                 <div className="metric-progress">
                   <div className="progress-labels">
@@ -325,7 +399,7 @@ const TrangTongQuanPage: React.FC = () => {
               </div>
               <div className="metric-body">
                 <div className="metric-main-val text-teal">
-                  {pendingOT.length} <span>Đang OT</span>
+                  {activeOTCount} <span>Đang OT</span>
                 </div>
                 <p className="metric-desc">Ghi nhận trong ngày hôm nay</p>
               </div>
@@ -356,7 +430,7 @@ const TrangTongQuanPage: React.FC = () => {
                   ))}
                   {pendingLeaves.length === 0 && <p className="empty-text">Không có đơn mới</p>}
                 </div>
-                <Button type="link" className="view-all-btn">Xem tất cả</Button>
+                <Button type="link" className="view-all-btn" onClick={() => navigate('/leave-requests')}>Xem tất cả</Button>
               </div>
 
               {/* Giải trình */}
@@ -379,7 +453,7 @@ const TrangTongQuanPage: React.FC = () => {
                   ))}
                   {pendingLate.length === 0 && <p className="empty-text">Không có đơn mới</p>}
                 </div>
-                <Button type="link" className="view-all-btn">Xem tất cả</Button>
+                <Button type="link" className="view-all-btn" onClick={() => navigate('/late-explanations')}>Xem tất cả</Button>
               </div>
 
               {/* Yêu cầu Tăng ca */}
@@ -402,7 +476,7 @@ const TrangTongQuanPage: React.FC = () => {
                   ))}
                   {pendingOT.length === 0 && <p className="empty-text">Không có yêu cầu mới</p>}
                 </div>
-                <Button type="link" className="view-all-btn">Xem tất cả</Button>
+                <Button type="link" className="view-all-btn" onClick={() => navigate('/overtime-requests')}>Xem tất cả</Button>
               </div>
             </div>
           </div>

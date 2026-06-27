@@ -84,7 +84,8 @@ export default function CauHinhLoaiNghiPage() {
                         <tr>
                             <th>MÃ LOẠI</th>
                             <th>TÊN LOẠI PHÉP</th>
-                            <th>SỐ LẦN/NGÀY TỐI ĐA</th>
+                            <th>SỐ NGÀY/NĂM TỐI ĐA</th>
+                            <th>SỐ NGÀY/THÁNG TỐI ĐA</th>
                             <th>CÓ LƯƠNG</th>
                             <th>MÔ TẢ</th>
                             <th>THAO TÁC</th>
@@ -130,6 +131,20 @@ export default function CauHinhLoaiNghiPage() {
                                                 />
                                             ) : (
                                                 <span className="badge-days">{type.so_ngay_toi_da} ngày</span>
+                                            )}
+                                        </td>
+
+                                        <td>
+                                            {isEditing ? (
+                                                <input
+                                                    type="number"
+                                                    className="form-input"
+                                                    style={{ width: '80px' }}
+                                                    value={editForm.so_ngay_toi_da_1_thang}
+                                                    onChange={e => setEditForm({ ...editForm, so_ngay_toi_da_1_thang: Number(e.target.value) })}
+                                                />
+                                            ) : (
+                                                <span className="badge-days">{type.so_ngay_toi_da_1_thang || 0} ngày</span>
                                             )}
                                         </td>
 

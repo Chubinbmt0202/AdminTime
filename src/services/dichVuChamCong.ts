@@ -46,5 +46,9 @@ export const attendanceService = {
 
     layXuHuongChamCong: async (days: number = 7): Promise<any> => {
         return apiClient.get(`/attendance/summary/trend?days=${days}`);
+    },
+
+    layThongKeDashboard: async (timeFilter: string = 'today'): Promise<any> => {
+        return apiClient.get(`/attendance/summary/dashboard-stats?timeFilter=${timeFilter}`);
     }
 };
